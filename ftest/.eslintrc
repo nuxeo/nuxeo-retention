@@ -1,0 +1,15 @@
+{
+  "globals": {
+    "addedVocabularyEntries": true,
+    "driver": true,
+    "fixtures": true,
+  },
+  "overrides": [
+    {
+      "files": ["features/step_definitions/*.js"],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    }
+  ]
+}
