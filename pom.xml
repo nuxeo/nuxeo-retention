@@ -12,10 +12,14 @@
   <name>Nuxeo Retention Parent</name>
   <version>11.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <description>The Nuxeo Retention addon adds the capability to create and attach retention rules to documents
+    in order to perform advanced record management.
+  </description>
 
   <modules>
     <module>nuxeo-retention</module>
     <module>nuxeo-retention-package</module>
+    <module>nuxeo-retention-web</module>
   </modules>
 
   <dependencyManagement>
@@ -30,6 +34,11 @@
         <artifactId>nuxeo-retention-package</artifactId>
         <version>${project.version}</version>
         <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.retention</groupId>
+        <artifactId>nuxeo-retention-web</artifactId>
+        <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

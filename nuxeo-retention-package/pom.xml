@@ -13,7 +13,11 @@
   <dependencies>
     <dependency>
       <groupId>org.nuxeo.retention</groupId>
-      <artifactId>nuxeo-retention-core</artifactId>
+      <artifactId>nuxeo-retention</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.retention</groupId>
+      <artifactId>nuxeo-retention-web</artifactId>
     </dependency>
 
     <dependency>

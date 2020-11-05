@@ -1,5 +1,4 @@
 /**
-@license
 (C) Copyright Nuxeo Corp. (http://nuxeo.com/)
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +17,6 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { FiltersBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-filters-behavior.js';
 import { FormatBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-format-behavior.js';
-import { escapeHTML } from '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-selectivity.js';
 
 /**
 `nuxeo-attach-rule-button`
@@ -234,9 +232,9 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _ruleResultFormatter(doc) {
-    let result = escapeHTML(doc.title);
+    let result = this._escapeHTML(doc.title);
     if (doc.properties && doc.properties['dc:description']) {
-      result += `<span style="display:block;color:#9a9a9a;word-break:break-all;">${escapeHTML(
+      result += `<span style="display:block;color:#9a9a9a;word-break:break-all;">${this._escapeHTML(
         doc.properties['dc:description'],
       )}</span>`;
     }
@@ -244,7 +242,26 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _ruleSelectionFormatter(doc) {
-    return escapeHTML(doc.title);
+    return this._escapeHTML(doc.title);
   }
+
+  _escapeHTML(markup) {
+    const replaceMap = {
+      '\\': '&#92;',
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      '\'': '&#39;',
+      '/': '&#47;',
+    };
+
+    // Do not try to escape the markup if it's not a string
+    if (typeof markup !== 'string') {
+      return markup;
+    }
+
+    return String(markup).replace(/[&<>"'/\\]/g, (match) => replaceMap[match]);
+  };
 }
 customElements.define(RetentionAttachRuleButton.is, RetentionAttachRuleButton);
