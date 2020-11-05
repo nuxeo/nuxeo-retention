@@ -1,6 +1,6 @@
 import { Then } from 'cucumber';
 
-Then('I set a legal hold on the document with description {string}', function(desc) {
+Then('I set a legal hold on the document with description {string}', function (desc) {
   this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button:not([hold])');
   const dialog = this.ui.browser.el.element('nuxeo-hold-toggle-button #dialog');
   dialog.waitForVisible();
@@ -10,53 +10,53 @@ Then('I set a legal hold on the document with description {string}', function(de
   dialog.click('paper-button[name = "hold"]');
 });
 
-Then('I unset the legal hold on the document', function() {
+Then('I unset the legal hold on the document', function () {
   this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button[hold]');
 });
 
-Then('I see the document is under legal hold', function() {
+Then('I see the document is under legal hold', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.infoBar.waitForVisible('#retentionInfoBar #legalHold');
 });
 
-Then('I see the document is not under legal hold', function() {
+Then('I see the document is not under legal hold', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.infoBar.waitForExist('#legalHold', false);
 });
 
-Then('I can unset the legal hold on the document', function() {
+Then('I can unset the legal hold on the document', function () {
   this.ui.browser.el.waitForExist('nuxeo-hold-toggle-button[hold]');
 });
 
-Then('I cannot set the legal hold on the document', function() {
+Then('I cannot set the legal hold on the document', function () {
   this.ui.browser.el.waitForExist('nuxeo-hold-toggle-button', false);
 });
 
-Then('I cannot unset the legal hold on the document', function() {
+Then('I cannot unset the legal hold on the document', function () {
   this.ui.browser.el.waitForExist('nuxeo-hold-toggle-button[hold]', false);
 });
 
-Then('I cannot edit main blob', function() {
+Then('I cannot edit main blob', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.el.waitForExist('nuxeo-replace-blob-button', false);
   page.el.waitForExist('nuxeo-delete-blob-button', false);
 });
 
-Then('I can edit main blob', function() {
+Then('I can edit main blob', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.el.waitForExist('nuxeo-replace-blob-button');
   page.el.waitForExist('nuxeo-delete-blob-button');
 });
 
-Then('I can see the retention menu', function() {
+Then('I can see the retention menu', function () {
   this.ui.drawer.waitForVisible('nuxeo-menu-icon[name="retention"]');
 });
 
-Then('I cannot see the retention menu', function() {
+Then('I cannot see the retention menu', function () {
   this.ui.drawer.waitForNotVisible('nuxeo-menu-icon[name="retention"]');
 });
 
-Then('I go to the retention event', function() {
+Then('I go to the retention event', function () {
   const menu = this.ui.drawer.open('retention');
   return driver.waitUntil(() => {
     try {
@@ -70,7 +70,7 @@ Then('I go to the retention event', function() {
   });
 });
 
-Then('I go to the retention rules location', function() {
+Then('I go to the retention rules location', function () {
   const menu = this.ui.drawer.open('retention');
   return driver.waitUntil(() => {
     try {
@@ -84,7 +84,7 @@ Then('I go to the retention rules location', function() {
   });
 });
 
-Then('I attach the {string} rule to the document', function(ruleName) {
+Then('I attach the {string} rule to the document', function (ruleName) {
   this.ui.browser.clickDocumentActionMenu('nuxeo-attach-rule-button');
   const dialog = this.ui.browser.el.element('nuxeo-attach-rule-button #dialog');
   dialog.waitForVisible();
@@ -95,7 +95,7 @@ Then('I attach the {string} rule to the document', function(ruleName) {
   driver.waitForVisible('iron-overlay-backdrop', driver.options.waitForTimeout, true);
 });
 
-Then('I see the document is under retention', function() {
+Then('I see the document is under retention', function () {
   driver.waitUntil(() => {
     driver.refresh();
     const page = this.ui.browser.documentPage(this.doc.type);
@@ -104,7 +104,7 @@ Then('I see the document is under retention', function() {
   });
 });
 
-Then('I see the document is under indeterminate retention', function() {
+Then('I see the document is under indeterminate retention', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.infoBar.waitForVisible('#retentionInfoBar #indeterminateRetention');
 });
@@ -118,7 +118,7 @@ Then('I have a "ContractEnd" retention event', () => {
   });
 });
 
-Then('I fire the {string} retention event with {string} input', function(eventName, eventInput) {
+Then('I fire the {string} retention event with {string} input', function (eventName, eventInput) {
   this.ui.el.waitForVisible('nuxeo-retention-events');
   const evtsElement = this.ui.el.element('nuxeo-retention-events');
   evtsElement.waitForVisible('nuxeo-directory-suggestion[name="event"]');

@@ -17,6 +17,13 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { FiltersBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-filters-behavior.js';
 import { FormatBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-format-behavior.js';
+import '@nuxeo/nuxeo-elements/nuxeo-operation.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-dialog.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-textarea.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-tooltip.js';
+import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-button/paper-button.js';
 
 /**
 `nuxeo-hold-toggle-button`
@@ -57,9 +64,7 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
         </paper-dialog-scrollable>
         <div class="buttons">
           <paper-button dialog-dismiss="" class="secondary">[[i18n('command.close')]]</paper-button>
-          <paper-button name="hold" class="primary" on-tap="_hold">
-            [[_label]]
-          </paper-button>
+          <paper-button name="hold" class="primary" on-tap="_hold"> [[_label]] </paper-button>
         </div>
       </nuxeo-dialog>
     `;
@@ -208,16 +213,16 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
     this.set('description', null);
   }
 
-  _computeTooltip(hold) {
-    return this.i18n(`retention.holdToggleButton.tooltip.${hold ? 'unhold' : 'hold'}`);
+  _computeTooltip() {
+    return this.i18n(`retention.holdToggleButton.tooltip.${this.hold ? 'unhold' : 'hold'}`);
   }
 
-  _computeLabel(hold) {
-    return this.i18n(`retention.holdToggleButton.tooltip.${hold ? 'unhold' : 'hold'}`);
+  _computeLabel() {
+    return this.i18n(`retention.holdToggleButton.tooltip.${this.hold ? 'unhold' : 'hold'}`);
   }
 
-  _computeIcon(hold) {
-    return hold ? 'nuxeo:hold' : 'nuxeo:unhold';
+  _computeIcon() {
+    return this.hold ? 'nuxeo:hold' : 'nuxeo:unhold';
   }
 
   _documentChanged() {

@@ -106,14 +106,10 @@ limitations under the License.
         <paper-item key="metadata_based">[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
       </nuxeo-select>
       <dom-if if="[[_isImmediate(document.properties.retention_def:startingPointPolicy)]]">
-        <template>
-          [[i18n('retention.rule.label.startPolicy.immediate.description')]]
-        </template>
+        <template> [[i18n('retention.rule.label.startPolicy.immediate.description')]] </template>
       </dom-if>
       <dom-if if="[[_isAfterDelay(document.properties.retention_def:startingPointPolicy)]]">
-        <template>
-          [[i18n('retention.rule.label.startPolicy.afterDelay.description')]]
-        </template>
+        <template> [[i18n('retention.rule.label.startPolicy.afterDelay.description')]] </template>
       </dom-if>
       <dom-if if="[[_isEventBased(document.properties.retention_def:startingPointPolicy)]]" restamp>
         <template>

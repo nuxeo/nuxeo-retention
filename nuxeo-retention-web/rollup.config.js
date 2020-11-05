@@ -20,7 +20,8 @@ const GLOBALS = {
   '@nuxeo/nuxeo-ui-elements/nuxeo-filters-behavior.js':
     'const { FiltersBehavior } = Nuxeo; export { FiltersBehavior };',
   '@nuxeo/nuxeo-ui-elements/nuxeo-format-behavior.js': 'const { FormatBehavior } = Nuxeo; export { FormatBehavior };',
-  '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js': 'const { RoutingBehavior } = Nuxeo; export { RoutingBehavior };',
+  '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js':
+    'const { RoutingBehavior } = Nuxeo; export { RoutingBehavior };',
 };
 
 // Ignore these imports since they should just be all about custom element definitions which are done already by Web UI

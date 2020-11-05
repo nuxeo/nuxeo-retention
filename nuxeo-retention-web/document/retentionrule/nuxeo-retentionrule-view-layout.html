@@ -36,29 +36,21 @@
 
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <div role="widget">
-        <nuxeo-tag>
-          [[_computeApplicationPolicyLabel(document)]]
-        </nuxeo-tag>
+        <nuxeo-tag> [[_computeApplicationPolicyLabel(document)]] </nuxeo-tag>
       </div>
       <div role="widget" hidden$="[[!_isManual(document)]]">
         <label>[[i18n('retention.rule.label.applicationPolicy.manual.description')]]</label>
-        <nuxeo-tag>
-          [[document.properties.retention_rule:docTypes]]
-        </nuxeo-tag>
+        <nuxeo-tag> [[document.properties.retention_rule:docTypes]] </nuxeo-tag>
       </div>
       <div role="widget" hidden$="[[!_isAuto(document)]]">
         <label>[[i18n('retention.rule.label.applicationPolicy.auto.description.short')]]</label>
-        <nuxeo-tag>
-          [[document.properties.retention_def:expression]]
-        </nuxeo-tag>
+        <nuxeo-tag> [[document.properties.retention_def:expression]] </nuxeo-tag>
       </div>
     </nuxeo-card>
 
     <nuxeo-card heading="[[i18n('retention.rule.label.startPolicy.heading')]]">
       <div role="widget">
-        <nuxeo-tag name="startPolicy">
-          [[_computeStartPolicyLabel(document)]]
-        </nuxeo-tag>
+        <nuxeo-tag name="startPolicy"> [[_computeStartPolicyLabel(document)]] </nuxeo-tag>
       </div>
       <div role="widget" hidden$="[[!_isEventBased(document)]]">
         <nuxeo-directory-suggestion
@@ -73,15 +65,11 @@
         </nuxeo-directory-suggestion>
         <div role="widget">
           <label>[[i18n("retention.rule.label.startPolicy.eventBased.expression.placeholder")]]</label>
-          <nuxeo-tag name="eventInput">
-            [[document.properties.retention_def:startingPointValue]]
-          </nuxeo-tag>
+          <nuxeo-tag name="eventInput"> [[document.properties.retention_def:startingPointValue]] </nuxeo-tag>
         </div>
       </div>
       <div role="widget" hidden$="[[!_isMetadataBased(document)]]">
-        <nuxeo-tag name="xpath">
-          [[document.properties.retention_def:metadataXPath]]
-        </nuxeo-tag>
+        <nuxeo-tag name="xpath"> [[document.properties.retention_def:metadataXPath]] </nuxeo-tag>
       </div>
     </nuxeo-card>
 

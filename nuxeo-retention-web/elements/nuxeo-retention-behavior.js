@@ -45,6 +45,7 @@ function _fetchDateFields(onlySchemas) {
         schemaFetcher = null;
       });
   }
+  return null;
 }
 
 function _fetchDocTypes() {

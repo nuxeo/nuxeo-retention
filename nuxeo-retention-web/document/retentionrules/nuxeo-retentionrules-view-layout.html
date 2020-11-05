@@ -108,9 +108,7 @@ limitations under the License.
         >
           <template>
             <template is="dom-repeat" items="[[item.properties.retention_rule:docTypes]]" as="docType">
-              <nuxeo-tag>
-                [[docType]]
-              </nuxeo-tag>
+              <nuxeo-tag> [[docType]] </nuxeo-tag>
             </template>
           </template>
         </nuxeo-data-table-column>
@@ -158,9 +156,7 @@ limitations under the License.
           field="versionLabel"
           hidden
         >
-          <template>
-            [[formatVersion(item)]]
-          </template>
+          <template> [[formatVersion(item)]] </template>
         </nuxeo-data-table-column>
         <nuxeo-data-table-column name="[[i18n('documentContentView.datatable.header.created')]]" flex="50" hidden>
           <template>
@@ -173,25 +169,19 @@ limitations under the License.
           </template>
         </nuxeo-data-table-column>
         <nuxeo-data-table-column name="[[i18n('retention.rule.label.duration')]]" flex="70">
-          <template>
-            [[formatDuration(item)]]
-          </template>
+          <template> [[formatDuration(item)]] </template>
         </nuxeo-data-table-column>
         <nuxeo-data-table-column name="[[i18n('retention.rule.label.beginactions')]]">
           <template>
             <template is="dom-repeat" items="[[item.properties.retention_def:beginActions]]" as="action">
-              <nuxeo-tag>
-                [[formatDirectory(action)]]
-              </nuxeo-tag>
+              <nuxeo-tag> [[formatDirectory(action)]] </nuxeo-tag>
             </template>
           </template>
         </nuxeo-data-table-column>
         <nuxeo-data-table-column name="[[i18n('retention.rule.label.endactions')]]">
           <template>
             <template is="dom-repeat" items="[[item.properties.retention_def:endActions]]" as="action">
-              <nuxeo-tag>
-                [[formatDirectory(action)]]
-              </nuxeo-tag>
+              <nuxeo-tag> [[formatDirectory(action)]] </nuxeo-tag>
             </template>
           </template>
         </nuxeo-data-table-column>
