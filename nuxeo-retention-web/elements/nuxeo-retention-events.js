@@ -17,6 +17,17 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { I18nBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-i18n-behavior.js';
 import moment from '@nuxeo/moment';
+import '@nuxeo/nuxeo-elements/nuxeo-audit-page-provider.js';
+import '@nuxeo/nuxeo-elements/nuxeo-operation.js';
+import '@nuxeo/nuxeo-ui-elements/nuxeo-data-table/iron-data-table.js';
+import '@nuxeo/nuxeo-ui-elements/nuxeo-data-table/data-table-column.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-card.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-date.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-date-picker.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-directory-suggestion.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-input.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-user-tag.js';
+import '@polymer/paper-button/paper-button.js';
 
 /**
 `nuxeo-retention-events`
@@ -101,9 +112,7 @@ class RetentionEvents extends mixinBehaviors([I18nBehavior], Nuxeo.Element) {
               <template><nuxeo-user-tag user="[[item.principalName]]"></nuxeo-user-tag></template>
             </nuxeo-data-table-column>
             <nuxeo-data-table-column name="[[i18n('retention.events.input')]]">
-              <template>
-                [[item.comment]]
-              </template>
+              <template> [[item.comment]] </template>
             </nuxeo-data-table-column>
           </nuxeo-data-table>
         </nuxeo-card>
@@ -146,9 +155,7 @@ class RetentionEvents extends mixinBehaviors([I18nBehavior], Nuxeo.Element) {
         const start = Date.parse(this.startDate);
         const end = Date.parse(this.endDate);
         if (start > end) {
-          this.endDate = moment(start)
-            .add(7, 'day')
-            .format('YYYY-MM-DD');
+          this.endDate = moment(start).add(7, 'day').format('YYYY-MM-DD');
         }
       }
       this._refreshHistory();
@@ -165,9 +172,7 @@ class RetentionEvents extends mixinBehaviors([I18nBehavior], Nuxeo.Element) {
         const start = Date.parse(this.startDate);
         const end = Date.parse(this.endDate);
         if (start > end) {
-          this.startDate = moment(end)
-            .subtract(7, 'day')
-            .format('YYYY-MM-DD');
+          this.startDate = moment(end).subtract(7, 'day').format('YYYY-MM-DD');
         }
       }
       this._refreshHistory();

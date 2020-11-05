@@ -18,6 +18,13 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { FiltersBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-filters-behavior.js';
 import { FormatBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-format-behavior.js';
 import moment from '@nuxeo/moment';
+import '@nuxeo/nuxeo-elements/nuxeo-operation.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-dialog.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-date-picker.js';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-tooltip.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
 
 /**
 `nuxeo-retain-button`

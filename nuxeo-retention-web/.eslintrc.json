@@ -1,0 +1,48 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "rules": {
+    "class-methods-use-this": "off",
+    "import/extensions": ["error", "always", {"ignorePackages": true}],
+    "no-underscore-dangle": "off"
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "plugins": ["html"],
+  "settings": {
+    "html/indent": "+2",
+    "html/report-bad-indent": "error"
+  },
+  "globals": {
+    "Nuxeo": false,
+    "Polymer": false
+  },
+  "overrides": [
+    {
+      "files": ["test/**/*.test.js"],
+      "env": {
+        "mocha": true
+      },
+      "rules": {
+        "no-unused-expressions": "off"
+      },
+      "globals": {
+        "assert": "readable",
+        "expect": "readable",
+        "sinon": "readable"
+      }
+    },
+    {
+      "files": ["ftest/**/*.js"],
+      "rules": {
+        "func-names": "off",
+        "import/no-extraneous-dependencies": ["error", { "devDependencies": true }]
+      },
+      "globals": {
+        "driver": true,
+        "fixtures": true
+      }
+    }
+  ]
+}
