@@ -52,7 +52,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(EmbeddedAutomationServerFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types.core")
+@Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.core.management")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
