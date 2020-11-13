@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>nuxeo-retention</artifactId>
-  <name>Nuxeo retention</name>
+  <name>Nuxeo Retention Management Core</name>
 
   <dependencies>
     <dependency>
