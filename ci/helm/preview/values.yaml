@@ -1,0 +1,108 @@
+
+expose:
+  Annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+  config:
+    # add tls configuration
+    domain: napps.dev.nuxeo.com
+    exposer: Ingress
+    http: true
+    tlsacme: true
+    tlsSecretName: napps-tls
+    urltemplate: '"{{.Service}}-{{.Namespace}}.{{.Domain}}"'
+
+cleanup:
+  Args:
+    - --cleanup
+  Annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+
+nuxeo:
+  fullnameOverride: preview
+  nuxeo:
+    podLabels:
+      branch: "$BRANCH_NAME"
+      team: napps
+      resource: pod
+      usage: preview
+    service:
+      annotations:
+        fabric8.io/expose: "true"
+        fabric8.io/ingress.annotations: |-
+          nginx.ingress.kubernetes.io/proxy-body-size: 0
+          nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
+      labels:
+        branch: "$BRANCH_NAME"
+        team: napps
+        resource: service
+        usage: preview
+    image:
+      repository: ${DOCKER_REGISTRY}/${ORG}/nuxeo-retention
+      tag: ${VERSION}
+      pullPolicy: Always
+    persistence:
+      enabled: disable
+    packages: nuxeo-web-ui-3.1.0-rc.9 /packages/nuxeo-retention-package-*.zip
+    livenessProbe:
+      initialDelaySeconds: 420
+      periodSeconds: 20
+      successThreshold: 1
+      failureThreshold: 5
+      timeoutSeconds: 10
+    readinessProbe:
+        periodSeconds: 20
+        initialDelaySeconds: 420
+        successThreshold: 1
+        timeoutSeconds: 10
+        failureThreshold: 5
+    customParams: |-
+      org.nuxeo.connect.url=https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/
+    customEnvs:
+      - name: NUXEO_CLID
+        valueFrom:
+          secretKeyRef:
+            name: instance-clid
+            key: CLID
+    tolerations:
+    - key: team
+      operator: Equal
+      value: napps
+      effect: NoSchedule
+    nodeSelector:
+      team: napps
+  mongodb:
+    deploy: false
+  postgresql:
+    deploy: true
+    useStatefulSet: true
+    image:
+      tag: "11.7.0"
+    initdbScripts:
+      db-init.sql: |
+        CREATE ROLE nuxeo WITH PASSWORD 'nuxeo' LOGIN;
+        CREATE DATABASE nuxeo ENCODING 'UTF8' OWNER nuxeo;
+    persistence:
+      enabled: false
+    labels:
+      branch: "$BRANCH_NAME"
+      resource: deployment
+      team: napps
+      usage: preview
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+    tolerations:
+    - key: team
+      operator: Equal
+      value: napps
+      effect: NoSchedule
+    nodeSelector:
+      team: napps
+  elasticsearch:
+    deploy: false
