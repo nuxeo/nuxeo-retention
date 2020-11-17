@@ -94,9 +94,6 @@ void lint() {
 
 String mavenArgs() {
   String args = '-DskipITs=true -fae -B -nsu'
-  if (!this.isPullRequest()) {
-    args += ' -Prelease'
-  }
   return args
 }
 
