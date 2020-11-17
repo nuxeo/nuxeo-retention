@@ -37,7 +37,11 @@ export default {
   },
   plugins: [
     copy({
-      targets: [{ src: 'i18n', dest: TARGET }],
+      targets: [
+        { src: 'document', dest: TARGET },
+        { src: 'i18n', dest: TARGET },
+        { src: 'search', dest: TARGET },
+      ],
     }),
     resolve(),
     {
