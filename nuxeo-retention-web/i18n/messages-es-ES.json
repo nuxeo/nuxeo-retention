@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Regla de retención adjunta",
   "retention.rule.attachButton.bulk.error": "Se ha producido un error al adjuntar la regla de retención: {0}",
   "retention.rule.attachButton.bulk.label": "Adjuntar en masa regla de retención",
-  "retention.rule.attachButton.bulk.poll": "Adjuntar regla de retención"
+  "retention.rule.attachButton.bulk.poll": "Adjuntar regla de retención",
+  "ui.label.quickFilters.exceptTrashed": "Excluir documento basura",
+  "ui.label.quickFilters.hasLegalHold": "Bajo retención legal",
+  "ui.label.quickFilters.hasNotLegalHold": "No está bajo control legal",
+  "ui.label.quickFilters.withoutRule": "Sin regla adjunta",
+  "ui.label.quickFilters.withRule": "Con regla adjunta"
 }

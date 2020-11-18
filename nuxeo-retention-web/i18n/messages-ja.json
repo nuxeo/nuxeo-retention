@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "保持ルールが添付されました",
   "retention.rule.attachButton.bulk.error": "保持ルールの添付中にエラーが発生しました: {0}",
   "retention.rule.attachButton.bulk.label": "保持ルールを添付",
-  "retention.rule.attachButton.bulk.poll": "保持ルールを添付"
+  "retention.rule.attachButton.bulk.poll": "保持ルールを添付",
+  "ui.label.quickFilters.exceptTrashed": "ゴミ箱にあるドキュメントを除外",
+  "ui.label.quickFilters.hasLegalHold": "法的な保留下に",
+  "ui.label.quickFilters.hasNotLegalHold": "法的な保留下にない",
+  "ui.label.quickFilters.withoutRule": "添付ルールなし",
+  "ui.label.quickFilters.withRule": "付す規則を使って"
 }

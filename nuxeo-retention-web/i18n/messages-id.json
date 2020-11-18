@@ -96,5 +96,9 @@
   "retention.rule.attachButton.bulk.error": "An error occurred while attaching retention rule: {0}",
   "retention.rule.attachButton.bulk.label": "Bulk attach retention rule",
   "retention.rule.attachButton.bulk.poll": "Attaching retention rule",
-  "searchAnalytics.callsPerHour.heading": "Panggilan per Jam"
+  "ui.label.quickFilters.exceptTrashed": "Exclude trashed document",
+  "ui.label.quickFilters.hasLegalHold": "Under legal hold",
+  "ui.label.quickFilters.hasNotLegalHold": "Not under legal hold",
+  "ui.label.quickFilters.withoutRule": "Without attached rule",
+  "ui.label.quickFilters.withRule": "With attached rule"
 }

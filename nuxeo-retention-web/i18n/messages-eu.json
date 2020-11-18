@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Atxikitze-araua erantsia",
   "retention.rule.attachButton.bulk.error": "Errore bat gertatu da atxikitze-araua eranstean: {0}",
   "retention.rule.attachButton.bulk.label": "Erantsi atxikitze-arauak multzoan",
-  "retention.rule.attachButton.bulk.poll": "Atxikitze-araua eransten"
+  "retention.rule.attachButton.bulk.poll": "Atxikitze-araua eransten",
+  "ui.label.quickFilters.exceptTrashed": "Baztertu zakarrontziko dokumentuak",
+  "ui.label.quickFilters.hasLegalHold": "Atxikitze legalpean",
+  "ui.label.quickFilters.hasNotLegalHold": "Atxikitze legal gabe",
+  "ui.label.quickFilters.withoutRule": "Arau erantsirik gabe",
+  "ui.label.quickFilters.withRule": "Arau erantsiekin"
 }

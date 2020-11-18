@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Retentie regel gekoppeld",
   "retention.rule.attachButton.bulk.error": "Er is een fout opgetreden tijdens het koppelen van de eigenschapsregel: {0}",
   "retention.rule.attachButton.bulk.label": "Bulkbevestiging bewaarregel",
-  "retention.rule.attachButton.bulk.poll": "Regel voor retentie koppelen"
+  "retention.rule.attachButton.bulk.poll": "Regel voor retentie koppelen",
+  "ui.label.quickFilters.exceptTrashed": "Verwijderd document uitsluiten",
+  "ui.label.quickFilters.hasLegalHold": "Onder juridisch vasthouden",
+  "ui.label.quickFilters.hasNotLegalHold": "Niet onder juridisch vasthouden",
+  "ui.label.quickFilters.withoutRule": "Zonder bijgevoegde regel",
+  "ui.label.quickFilters.withRule": "Met bijgevoegde regel"
 }
