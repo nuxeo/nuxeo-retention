@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Regola di ritenzione allegata",
   "retention.rule.attachButton.bulk.error": "Si è verificato un errore durante l'associazione della regola di ritenzione: {0}",
   "retention.rule.attachButton.bulk.label": "Regola di ritenzione allegata in blocco",
-  "retention.rule.attachButton.bulk.poll": "Allega regola di ritenzione"
+  "retention.rule.attachButton.bulk.poll": "Allega regola di ritenzione",
+  "ui.label.quickFilters.exceptTrashed": "Escludi il documento cestinato",
+  "ui.label.quickFilters.hasLegalHold": "Sotto sospensione legale",
+  "ui.label.quickFilters.hasNotLegalHold": "Non in sospensionelegale",
+  "ui.label.quickFilters.withoutRule": "Senza regola allegata",
+  "ui.label.quickFilters.withRule": "Con regola allegata"
 }

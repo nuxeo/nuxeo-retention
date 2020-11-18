@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Règle de rétention attachée",
   "retention.rule.attachButton.bulk.error": "Une erreur est survenue lors de l'attachement de la règle de rétention : {0}",
   "retention.rule.attachButton.bulk.label": "Appliquer la règle de rétention à une liste de documents",
-  "retention.rule.attachButton.bulk.poll": "Attacher la règle de rétention"
+  "retention.rule.attachButton.bulk.poll": "Attacher la règle de rétention",
+  "ui.label.quickFilters.exceptTrashed": "Exclure le document mis à la corbeille",
+  "ui.label.quickFilters.hasLegalHold": "Soumis à la conservation légale",
+  "ui.label.quickFilters.hasNotLegalHold": "Non soumis à la conservation légale",
+  "ui.label.quickFilters.withoutRule": "Sans règle jointe",
+  "ui.label.quickFilters.withRule": "Avec règle jointe"
 }

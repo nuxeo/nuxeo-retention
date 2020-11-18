@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Załączono regułę retencji",
   "retention.rule.attachButton.bulk.error": "Wystąpił błąd podczas dołączania reguły retencji: {0}",
   "retention.rule.attachButton.bulk.label": "Masowo dołącz regułę retencji",
-  "retention.rule.attachButton.bulk.poll": "Dołącz regułę retencji"
+  "retention.rule.attachButton.bulk.poll": "Dołącz regułę retencji",
+  "ui.label.quickFilters.exceptTrashed": "Wyklucz dokument z kosza",
+  "ui.label.quickFilters.hasLegalHold": "Blokada prawna przed usunięciem",
+  "ui.label.quickFilters.hasNotLegalHold": "Bez blokady prawnej przed usunięciem",
+  "ui.label.quickFilters.withoutRule": "Bez załączonej reguły",
+  "ui.label.quickFilters.withRule": "Z załączoną regułą"
 }

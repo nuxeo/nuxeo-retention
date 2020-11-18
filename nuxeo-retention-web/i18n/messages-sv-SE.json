@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Kvarhållande regel bifogad",
   "retention.rule.attachButton.bulk.error": "Ett fel inträffade vid bifogande av kvarhållande regel: {0}",
   "retention.rule.attachButton.bulk.label": "Bifogar kvarhållande regel",
-  "retention.rule.attachButton.bulk.poll": "Bifogar kvarhållande regel"
+  "retention.rule.attachButton.bulk.poll": "Bifogar kvarhållande regel",
+  "ui.label.quickFilters.exceptTrashed": "Exkludera kastat dokument",
+  "ui.label.quickFilters.hasLegalHold": "Under arkiveringsskyldighet",
+  "ui.label.quickFilters.hasNotLegalHold": "Inte under arkiveringsskyldighet",
+  "ui.label.quickFilters.withoutRule": "Utan bifogad regel",
+  "ui.label.quickFilters.withRule": "Med bifogad regel"
 }

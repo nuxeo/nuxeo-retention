@@ -95,5 +95,10 @@
   "retention.rule.attachButton.attached": "Aufbewahrungsregel beigefügt",
   "retention.rule.attachButton.bulk.error": "Beim Anhängen der Aufbewahrungsregel ist ein Fehler aufgetreten: {0}",
   "retention.rule.attachButton.bulk.label": "Aufbewahrungsregel anhängen",
-  "retention.rule.attachButton.bulk.poll": "Beifügen einer Aufbewahrungsregel"
+  "retention.rule.attachButton.bulk.poll": "Beifügen einer Aufbewahrungsregel",
+  "ui.label.quickFilters.exceptTrashed": "Papierkorb ausschließen",
+  "ui.label.quickFilters.hasLegalHold": "Unterliegt der Gesetzlichen Aufbewahrung",
+  "ui.label.quickFilters.hasNotLegalHold": "Nicht unter Gesetzlichen Aufbewahrung",
+  "ui.label.quickFilters.withoutRule": "Ohne beigefügte Regel",
+  "ui.label.quickFilters.withRule": "Mit angehängten Regeln"
 }
