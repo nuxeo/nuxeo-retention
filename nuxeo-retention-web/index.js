@@ -21,4 +21,8 @@ import './elements/nuxeo-retention-events.js';
 import './elements/nuxeo-retention-menu.js';
 import './elements/nuxeo-retain-button.js';
 
-import './nuxeo-retention.html';
+import html from './nuxeo-retention.html';
+
+const tmpl = document.createElement('template');
+tmpl.innerHTML = html;
+document.head.appendChild(tmpl.content);
