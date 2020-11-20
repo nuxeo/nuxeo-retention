@@ -44,7 +44,7 @@ limitations under the License.
       on-quick-filters-changed="_updateActions"
       on-refresh="_refreshResults"
     >
-      <nuxeo-slot-content name="retentionActions" slot="RESULTS_ACTIONS" order="-105">
+      <div slot="actions">
         <template is="dom-if" if="[[_isWithoutRule]]">
           <nuxeo-attach-rule-button provider="[[nxProvider]]"></nuxeo-attach-rule-button>
         </template>
@@ -54,7 +54,8 @@ limitations under the License.
         <template is="dom-if" if="[[_isHasNotLegalHold]]">
           <nuxeo-hold-toggle-button provider="[[nxProvider]]"></nuxeo-hold-toggle-button>
         </template>
-      </nuxeo-slot-content>
+        <nuxeo-csv-export-button provider="[[nxProvider]]"></nuxeo-csv-export-button>
+      </div>
 
       <nuxeo-data-table
         name="table"
