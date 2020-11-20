@@ -33,6 +33,7 @@ limitations under the License.
     </style>
 
     <nuxeo-results
+      id="results"
       name="default"
       nx-provider="[[nxProvider]]"
       selected-items="{{selectedItems}}"
@@ -41,6 +42,7 @@ limitations under the License.
       display-sort
       display-quick-filters
       on-quick-filters-changed="_updateActions"
+      on-refresh="_refreshResults"
     >
       <nuxeo-slot-content name="retentionActions" slot="RESULTS_ACTIONS" order="-105">
         <template is="dom-if" if="[[_isWithoutRule]]">
@@ -119,6 +121,10 @@ limitations under the License.
 
       _navigate(e) {
         this.fire('navigate', { doc: (e.model || e.detail).item, index: (e.model || e.detail).index });
+      },
+
+      _refreshResults() {
+        this.$.results.fetch();
       },
 
       _updateActions() {
