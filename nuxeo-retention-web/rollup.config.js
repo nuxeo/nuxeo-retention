@@ -48,9 +48,7 @@ export default {
       transform(code, id) {
         // HTML imports
         if (path.extname(id) === '.html') {
-          return `const tmpl = document.createElement('template');tmpl.innerHTML = ${JSON.stringify(
-            code,
-          )};document.head.appendChild(tmpl.content);`;
+          return `export default ${JSON.stringify(code)}`;
         }
 
         const dep = path.relative('./node_modules', id);
