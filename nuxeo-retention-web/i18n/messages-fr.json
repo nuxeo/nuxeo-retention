@@ -1,8 +1,8 @@
 {
-  "activity.afterExtendRetention": "Retention period updated",
-  "activity.afterSetRetention": "Retention period started",
-  "activity.retentionRuleAttached": "Retention rule applied",
-  "app.retention": "Retention",
+  "activity.afterExtendRetention": "Période de rétention mise à jour",
+  "activity.afterSetRetention": "La période de rétention a démarré",
+  "activity.retentionRuleAttached": "Règle de rétention attachée",
+  "app.retention": "Rétention",
   "app.title.retentionEvents": "Retention Events",
   "app.title.retentionRules": "Retention Rules",
   "app.title.retentionSearch": "Retention Search",
