@@ -44,7 +44,7 @@ nuxeo:
       pullPolicy: Always
     persistence:
       enabled: disable
-    packages: nuxeo-web-ui-3.1.0-rc.9 /packages/nuxeo-retention-package-*.zip
+    packages: nuxeo-web-ui-3.0.2-rc.47
     livenessProbe:
       initialDelaySeconds: 420
       periodSeconds: 20
