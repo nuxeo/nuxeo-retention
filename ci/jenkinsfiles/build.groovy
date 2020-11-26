@@ -211,6 +211,20 @@ pipeline {
             }
           }
         }
+        stage('Git Push') {
+          steps {
+            container('maven') {
+              echo '''
+                --------------------------
+                Git push ${TAG}
+                --------------------------
+              '''
+              script {
+                pipelineLib.gitPush("${TAG}")
+              }
+            }
+          }
+        }
       }
     }
   }
