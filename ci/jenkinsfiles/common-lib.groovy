@@ -26,7 +26,7 @@ void buildDockerImage () {
     Image tag: ${VERSION}
   """
   sh """
-      echo "Build and push Docker image to internal Docker registry ${DOCKER_REGISTRY}"
+    echo "Build and push Docker image to internal Docker registry ${DOCKER_REGISTRY}"
     cp -r ${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip ${WORKSPACE}/ci/docker
   """
   skaffoldBuild("${WORKSPACE}/ci/docker/skaffold.yaml")
@@ -237,7 +237,7 @@ void lint() {
 }
 
 String mavenArgs() {
-  String args = '-DskipITs=true -fae -B -nsu'
+  String args = '-fae -B -nsu'
   return args
 }
 
@@ -279,6 +279,8 @@ def runBackEndUnitTests() {
           } catch (err) {
             this.setGitHubBuildStatus("${context}", "${message}", 'FAILURE', "${GIT_URL}")
             throw err
+          } finally {
+            junit testResults: "**/target/surefire-reports/*.xml"
           }
         }
       }
@@ -363,8 +365,6 @@ void updateVersion(String version) {
   """
   sh """
     mvn ${MAVEN_ARGS} versions:set -DnewVersion=${version} -DgenerateBackupPoms=false
-    cd ${FRONTEND_FOLDER}
-    npm version ${version} --no-git-tag-version
   """
 }
 

@@ -15,7 +15,6 @@
 *
 * Contributors:
 *     Abdoul BA <aba@nuxeo.com>
-*     Nuno Cunha <ncunha@nuxeo.com>
 */
 
 def appName = 'nuxeo-retention'
@@ -37,32 +36,36 @@ properties([
   disableConcurrentBuilds(),
 ])
 
-void setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
-  if ( env.DRY_RUN != 'true' && ENABLE_GITHUB_STATUS == 'true') {
-    step([
-      $class: 'GitHubCommitStatusSetter',
-      reposSource: [$class: 'ManuallyEnteredRepositorySource', url: gitRepo],
-      contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
-      statusResultSource: [
-        $class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]]
-      ],
-    ])
-  }
+String currentVersion() {
+  return readMavenPom().getVersion()
+}
+
+String getReleaseVersion(String version) {
+  return version.replace('-SNAPSHOT', '')
 }
 
 pipeline {
   agent {
     label 'builder-maven-nuxeo-11'
   }
+  parameters {
+    string(name: 'rcVersion', description: 'Version to be promoted')
+    string(name: 'reference', description: 'Reference branch to be bumped after releasing')
+    booleanParam(
+      name: 'dryRun', defaultValue: true,
+      description: 'if true all steps will be run without publishing the artifact'
+    )
+  }
   environment {
     APP_NAME = "${appName}"
     BACKEND_FOLDER = "${WORKSPACE}/nuxeo-retention"
-    BRANCH_LC = "${BRANCH_NAME.toLowerCase()}"
-    CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
-    CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
+    BRANCH_NAME = GIT_BRANCH.replace('origin/', '')
+    BRANCH_LC = "${BRANCH_NAME.toLowerCase().replace('.', '-')}"
+    CLEANUP_PREVIEW = 'true'
+    CONNECT_PROD_URL = 'https://connect.nuxeo.com/nuxeo'
     CHART_DIR = 'ci/helm/preview'
-    CONNECT_PREPROD_URL = 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
-    ENABLE_GITHUB_STATUS = 'true'
+    CURRENT_VERSION = currentVersion()
+    ENABLE_GITHUB_STATUS = 'false'
     FRONTEND_FOLDER = "${WORKSPACE}/nuxeo-retention-web"
     JENKINS_HOME = '/root'
     MAVEN_DEBUG = '-e'
@@ -71,21 +74,74 @@ pipeline {
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
-    REFERENCE_BRANCH = 'master'
+    REFERENCE_BRANCH = '2021'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
+    VERSION = getReleaseVersion(CURRENT_VERSION)
   }
   stages {
+    stage('Check parameters') {
+      steps {
+        script {
+          if (!params.rcVersion || params.rcVersion == '') {
+            currentBuild.result = 'ABORTED'
+            currentBuild.description = 'Missing required version parameter, aborting the build.'
+            error(currentBuild.description)
+          }
+
+          if (!params.reference || params.reference == '') {
+            currentBuild.result = 'ABORTED'
+            currentBuild.description = 'Missing required reference parameter, aborting the build.'
+            error(currentBuild.description)
+          } else {
+            echo '''
+              ----------------------------------------
+              Update Reference Branch
+              ----------------------------------------
+            '''
+            env.REFERENCE_BRANCH = params.reference
+          }
+
+          if (params.dryRun && params.dryRun != '') {
+            env.DRY_RUN_RELEASE = params.dryRun
+            if (env.DRY_RUN_RELEASE == 'true') {
+              env.SLACK_CHANNEL = 'infra-napps'
+            }
+          } else {
+            env.SLACK_CHANNEL = 'pr-napps'
+            env.DRY_RUN_RELEASE = 'false'
+          }
+          env.RC_VERSION = params.rcVersion
+          env.PACKAGE_BASE_NAME = "nuxeo-retention-package-${VERSION}"
+          env.PACKAGE_FILENAME = "nuxeo-retention-package/target/${PACKAGE_BASE_NAME}.zip"
+          echo """
+            -----------------------------------------------------------
+            Release nuxeo retention connector
+            -----------------------------------------------------------
+            ----------------------------------------
+            Retention package:   ${PACKAGE_BASE_NAME}
+            Build version:    ${RC_VERSION}
+            Current version:  ${CURRENT_VERSION}
+            Release version:  ${VERSION}
+            Reference branch: ${REFERENCE_BRANCH}
+            ----------------------------------------
+          """
+        }
+      }
+    }
     stage('Load Common Library') {
       steps {
         container('maven') {
           script {
             pipelineLib = load 'ci/jenkinsfiles/common-lib.groovy'
-            if (env.DRY_RUN == 'true') {
-              env.SLACK_CHANNEL = 'infra-napps'
-            } else {
-              env.SLACK_CHANNEL = 'pr-napps'
-            }
           }
+        }
+      }
+    }
+    stage('Notify promotion start on slack') {
+      steps {
+        script {
+          String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
+          pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
@@ -103,8 +159,23 @@ pipeline {
         container('maven') {
           script {
             pipelineLib.setup()
-            env.VERSION = pipelineLib.getVersion()
             sh 'env'
+          }
+        }
+      }
+    }
+    stage('Fetch Release Candidate') {
+      steps {
+        container('maven') {
+          sh "git fetch origin 'refs/tags/v${RC_VERSION}*:refs/tags/v${RC_VERSION}*'"
+        }
+      }
+    }
+    stage('Checkout') {
+      steps {
+        container('maven') {
+          script {
+            pipelineLib.gitCheckout("v${RC_VERSION}")
           }
         }
       }
@@ -120,37 +191,19 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        setGitHubBuildStatus('retention/compile', 'Compile', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
             pipelineLib.compile()
           }
         }
       }
-      post {
-        success {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'FAILURE', "${repositoryUrl}")
-        }
-      }
     }
     stage('Linting') {
       steps {
-        setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
             pipelineLib.lint()
           }
-        }
-      }
-      post {
-        success {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'FAILURE', "${repositoryUrl}")
         }
       }
     }
@@ -165,37 +218,19 @@ pipeline {
     }
     stage('Build Docker Image') {
       steps {
-        setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
             pipelineLib.buildDockerImage()
           }
         }
       }
-      post {
-        success {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'FAILURE', "${repositoryUrl}")
-        }
-      }
     }
     stage('Buid Helm Chart') {
       steps {
-        setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
             pipelineLib.buildHelmChart("${CHART_DIR}")
           }
-        }
-      }
-      post {
-        success {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'FAILURE', "${repositoryUrl}")
         }
       }
     }
@@ -203,7 +238,6 @@ pipeline {
       steps {
         container('maven') {
           script {
-            env.CLEANUP_PREVIEW = pipelineLib.needsPreviewCleanup()
             pipelineLib.deployPreview(
               "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
             )
@@ -213,7 +247,6 @@ pipeline {
     }
     stage('Run Functional Tests') {
       steps {
-        setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
             try {
@@ -243,17 +276,9 @@ pipeline {
           container('maven') {
             script {
               //cleanup the preview
-              if (env.CLEANUP_PREVIEW == 'true') {
-                pipelineLib.cleanupPreview("${PREVIEW_NAMESPACE}")
-              }
+              pipelineLib.cleanupPreview("${PREVIEW_NAMESPACE}")
             }
           }
-        }
-        success {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'FAILURE', "${repositoryUrl}")
         }
       }
     }
@@ -285,15 +310,16 @@ pipeline {
         }
         stage('Publish Retention Package') {
           steps {
-            setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'PENDING', "${repositoryUrl}")
             container('maven') {
               script {
                 echo """
                   -------------------------------------------------
-                  Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
+                  Upload Retention Package ${VERSION} to ${CONNECT_PROD_URL}
                   -------------------------------------------------
                 """
-                pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                if (DRY_RUN_RELEASE == 'false') {
+                  pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PROD_URL}")
+                }
               }
             }
           }
@@ -303,12 +329,6 @@ pipeline {
                 allowEmptyArchive: true,
                 artifacts: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
               )
-            }
-            success {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'SUCCESS', "${repositoryUrl}")
-            }
-            unsuccessful {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'FAILURE', "${repositoryUrl}")
             }
           }
         }
@@ -321,8 +341,41 @@ pipeline {
                 --------------------------
               """
               script {
-                pipelineLib.gitPush("${TAG}")
+                if (DRY_RUN_RELEASE == 'false') {
+                  pipelineLib.gitPush("${TAG}")
+                }
               }
+            }
+          }
+        }
+      }
+    }
+    stage('Release and Bump reference branch') {
+      when {
+        allOf {
+          not {
+            environment name: 'DRY_RUN', value: 'true'
+          }
+        }
+      }
+      steps {
+        container('maven') {
+          script {
+            //cleanup files updated by other stages
+            sh 'git reset --hard'
+            // increment minor version
+            String nextVersion =
+              sh(returnStdout: true, script: "perl -pe 's/\\b(\\d+)(?=\\D*\$)/\$1+1/e' <<< ${CURRENT_VERSION}").trim()
+            echo """
+              -----------------------------------------------
+              Update ${REFERENCE_BRANCH} version from ${CURRENT_VERSION} to ${nextVersion}
+              -----------------------------------------------
+            """
+            pipelineLib.gitCheckout("${REFERENCE_BRANCH}")
+            pipelineLib.updateVersion("${nextVersion}")
+            pipelineLib.gitCommit("Release ${VERSION}, update ${CURRENT_VERSION} to ${nextVersion}", '-a')
+            if (DRY_RUN_RELEASE == 'false') {
+              pipelineLib.gitPush("${REFERENCE_BRANCH}")
             }
           }
         }
@@ -332,24 +385,20 @@ pipeline {
   post {
     always {
       script {
-        if (!pipelineLib.isPullRequest() && env.DRY_RUN != 'true') {
-          // update JIRA issue
-          step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
-          currentBuild.description = "Build ${VERSION}"
-        }
+        currentBuild.description = "Release ${VERSION} from build ${RC_VERSION}"
       }
     }
     success {
       script {
         // update Slack Channel
-        String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
+        String message = "Successfully released ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL} :tada:"
         pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
-    unsuccessful {
+    failure {
       script {
         // update Slack Channel
-        String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
+        String message = "Failed to release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
         pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
