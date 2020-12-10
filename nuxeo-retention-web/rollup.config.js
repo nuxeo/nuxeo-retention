@@ -27,6 +27,9 @@ const GLOBALS = {
 // Ignore these imports since they should just be all about custom element definitions which are done already by Web UI
 const IGNORES = [/^@(nuxeo|polymer)\//];
 
+// Keep these imports
+const KEEP = ['@nuxeo/nuxeo-ui-elements/import-href.js'];
+
 const TARGET = 'target/classes/web/nuxeo.war/ui';
 
 export default {
@@ -60,7 +63,7 @@ export default {
         }
 
         // Ignore bundled imports
-        if (IGNORES.some((r) => r.test(dep))) {
+        if (!KEEP.includes(dep) && IGNORES.some((r) => r.test(dep))) {
           return 'export default undefined;';
         }
 
