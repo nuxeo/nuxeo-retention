@@ -41,6 +41,7 @@ export default {
         { src: 'document', dest: TARGET },
         { src: 'i18n', dest: TARGET },
         { src: 'search', dest: TARGET },
+        { src: 'images', dest: TARGET },
       ],
     }),
     resolve(),
