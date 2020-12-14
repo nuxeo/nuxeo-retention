@@ -121,8 +121,8 @@ void deployPreview(String namespace, String charDir, String isCleanupPreview, St
         ${traceCmd}
         ${previewCmd}
       """
-    } catch (err){
-      if (isCleanupPreview == 'true'){
+    } catch (err) {
+      if (isCleanupPreview == 'true') {
         this.cleanupPreview("${namespace}")
       }
       throw err
