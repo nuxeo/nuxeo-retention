@@ -217,7 +217,9 @@ pipeline {
         container('maven') {
           script {
             try {
-              pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
+              retry(3) {
+                pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
+              }
             } catch(err) {
               throw err
             } finally {
