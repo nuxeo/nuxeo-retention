@@ -315,11 +315,11 @@ pipeline {
         stage('Git Push') {
           steps {
             container('maven') {
-              echo '''
+              echo """
                 --------------------------
                 Git push ${TAG}
                 --------------------------
-              '''
+              """
               script {
                 pipelineLib.gitPush("${TAG}")
               }
