@@ -279,6 +279,8 @@ def runBackEndUnitTests() {
           } catch (err) {
             this.setGitHubBuildStatus("${context}", "${message}", 'FAILURE', "${GIT_URL}")
             throw err
+          } finally {
+            junit testResults: "**/target/surefire-reports/*.xml"
           }
         }
       }
