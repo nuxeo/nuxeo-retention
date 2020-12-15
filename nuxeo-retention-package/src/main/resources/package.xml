@@ -8,6 +8,10 @@
   <platforms>
     <platform>@DISTRIBUTION_NAME@-@NUXEO_TARGET_VERSION@</platform>
   </platforms>
+  <!-- Dependencies on other packages -->
+  <dependencies>
+    <package>nuxeo-web-ui</package>
+  </dependencies>
   <license>Apache 2.0</license>
   <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
 </package>
