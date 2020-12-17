@@ -21,6 +21,12 @@
 def appName = 'nuxeo-retention'
 def pipelineLib
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
+def mcontainers = [
+  'default': 'maven-default',
+  'mongodb': 'maven-mongodb',
+  'postgresql': 'maven',
+]
+def targetTestEnvs = ['default', 'mongodb', 'postgresql',]
 
 properties([
   [
@@ -64,6 +70,7 @@ pipeline {
     CONNECT_PREPROD_URL = 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
     ENABLE_GITHUB_STATUS = 'true'
     FRONTEND_FOLDER = "${WORKSPACE}/nuxeo-retention-web"
+    HELM_VALUES_DIR = "${WORKSPACE}/ci/helm/values"
     JENKINS_HOME = '/root'
     MAVEN_DEBUG = '-e'
     MAVEN_OPTS = "${MAVEN_OPTS} -Xms512m -Xmx3072m"
@@ -71,7 +78,9 @@ pipeline {
     NUXEO_BASE_IMAGE = 'docker-private.packages.nuxeo.com/nuxeo/nuxeo:11.4.42'
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
+    PREVIEW_HELM_RELEASE = 'preview-nuxeo'
     REFERENCE_BRANCH = 'master'
+    TEST_SERVICE_DOMAIN_SUFFIX = 'svc.cluster.local'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
   }
   stages {
@@ -137,6 +146,16 @@ pipeline {
       }
     }
     stage('Linting') {
+        when {
+        allOf {
+          not {
+            branch 'PR-*'
+          }
+          not {
+            environment name: 'DRY_RUN', value: 'true'
+          }
+        }
+      }
       steps {
         setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'PENDING', "${repositoryUrl}")
         container('maven') {
@@ -155,11 +174,35 @@ pipeline {
       }
     }
     stage('Run Unit Tests') {
+      when {
+        allOf {
+          not {
+            branch 'PR-*'
+          }
+          not {
+            environment name: 'DRY_RUN', value: 'true'
+          }
+        }
+      }
       steps {
         script {
+          container('maven') {
+            pipelineLib.helmGenerateValues("${HELM_VALUES_DIR}", 'utests')
+          }
           def stages = [:]
-          stages['backend'] = pipelineLib.runBackEndUnitTests()
+          targetTestEnvs.each { env ->
+             String containerName = mcontainers["${env}"]
+             stages["JUnit - ${env}"] =
+               pipelineLib.runBackEndUnitTests(
+                 "${env}", "${containerName}", "${repositoryUrl}",
+                 "retention/utests/backend/${env}", 'Unit tests - BackEnd'
+               )
+           }
           parallel stages
+          //cleanup stages
+          targetTestEnvs.each { env ->
+            stages.remove("JUnit - ${env}")
+          }
         }
       }
     }
@@ -186,7 +229,8 @@ pipeline {
         setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
-            pipelineLib.buildHelmChart("${CHART_DIR}")
+            pipelineLib.helmGenerateValues("${HELM_VALUES_DIR}", 'preview')
+            pipelineLib.cleanupChart("${CHART_DIR}")
           }
         }
       }
@@ -223,8 +267,6 @@ pipeline {
             } catch(err) {
               throw err
             } finally {
-              //retrieve preview logs
-              pipelineLib.getPreviewLogs("${PREVIEW_NAMESPACE}")
               cucumber (
                 fileIncludePattern: '**/*.json',
                 jsonReportDirectory: "${FRONTEND_FOLDER}/ftest/target/cucumber-reports/",
@@ -343,14 +385,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
+        //pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     unsuccessful {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
+        //pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }

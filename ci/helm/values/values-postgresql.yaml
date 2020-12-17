@@ -1,0 +1,35 @@
+# Values overridden from the PostgreSQL chart: https://github.com/bitnami/charts/blob/master/bitnami/postgresql/values.yaml
+image:
+  tag: "13.0.0"
+postgresqlDatabase: "$DATABASE"
+initdbScripts:
+  db-init.sql: |
+    CREATE ROLE nuxeo WITH PASSWORD 'nuxeo' LOGIN;
+    CREATE DATABASE nuxeo ENCODING 'UTF8' OWNER nuxeo;
+persistence:
+  enabled: false
+resources:
+  requests:
+    cpu: "500m"
+    memory: "250Mi"
+  limits:
+    cpu: "1"
+    memory: "500Mi"
+master:
+  labels:
+    branch: "$BRANCH_NAME"
+    resource: statefulset
+    team: napps
+    usage: "$USAGE"
+  podLabels:
+    branch: "$BRANCH_NAME"
+    resource: pod
+    team: napps
+    usage: "$USAGE"
+  tolerations:
+    - key: team
+      operator: Equal
+      value: napps
+      effect: NoSchedule
+  nodeSelector:
+    team: napps

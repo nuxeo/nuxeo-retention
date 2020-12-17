@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral */
 /*
 * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
 *
@@ -18,7 +19,7 @@
 *     Nuno Cunha <ncunha@nuxeo.com>
 */
 
-void buildDockerImage () {
+def buildDockerImage () {
   echo """
     ----------------------------------------
     Build Docker image
@@ -32,51 +33,47 @@ void buildDockerImage () {
   skaffoldBuild("${WORKSPACE}/ci/docker/skaffold.yaml")
 }
 
-void buildHelmChart(String charDir) {
-  echo """
-    ----------------------------------------
-    Building Helm Chart ${charDir}
-    ----------------------------------------
-  """
-  // first substitute environment variables in chart values
-  sh """
-    export BUCKET_PREFIX=retention/${BRANCH_LC}
-    cd ${charDir}
-    mv values.yaml values.yaml.tosubst
-    envsubst < values.yaml.tosubst > values.yaml
-    #build and deploy the chart
-    #To avoid jx gc cron job,
-    #reference branch previews are deployed by calling jx step helm install instead of jx preview
-    jx step helm build
-    mkdir target && helm template . --output-dir target
-  """
-  // the requirements.yaml file has been changed by the step before
-  this.cleanupChart(charDir)
-}
-
-void cleanupChart(String charDir) {
+def cleanupChart(String charDir) {
   sh """
     cd ${charDir}
     git checkout requirements.yaml
   """
 }
 
-void cleanupPreview(String namespace) {
-  String deploymentName = this.getResourceName('deployment', "${namespace}")
-  String statefulsetName = this.getResourceName('statefulset', "${namespace}")
+def cleanupPreview(String namespace) {
   try {
-    this.scaleResource("${namespace}", 'deployment', "${deploymentName}", '0')
-    this.scaleResource("${namespace}", 'statefulset', "${statefulsetName}", '0')
+    this.scaleResource("${namespace}", 'deployment', "${PREVIEW_HELM_RELEASE}", '0')
+    this.scaleResource("${namespace}", 'statefulset', 'postgresql-postgresql', '0')
   } catch (err) {
     echo hudson.Functions.printThrowable(err)
   } finally {
-    sh "jx step helm delete preview --namespace=${namespace} --purge"
+    this.helmUninstall('postgresql', "${namespace}")
+    this.helmUninstall('nuxeo', "${namespace}")
     // clean up the preview namespace
     sh "kubectl delete namespace ${namespace} --ignore-not-found=true"
   }
 }
 
-void compile() {
+def cleanupUnitTestsEnv(String env, String namespace) {
+  boolean isDefaultEnv = env == 'default'
+  String chartName = "${env}"
+  try {
+    if (this.namespaceExists("${namespace}")) {
+      this.helmUninstall('redis', "${namespace}")
+      if (!isDefaultEnv) {
+        this.helmUninstall("${chartName}", "${namespace}")
+      }
+    }
+  } catch (err) {
+    echo hudson.Functions.printThrowable(err)
+    echo "NUXEO::RETENTION Cannot cleanup ${env} ${namespace}"
+  } finally {
+    // clean up test namespace
+    sh "kubectl delete namespace ${namespace} --ignore-not-found=true"
+  }
+}
+
+def compile() {
   echo '''
     ----------------------------------------
     Compile
@@ -85,89 +82,65 @@ void compile() {
   sh "mvn ${MAVEN_ARGS} -V -T0.8C -DskipTests clean install"
 }
 
-void deployPreview(String namespace, String charDir, String isCleanupPreview, String gitRepo, String isReferenceBranch) {
-  //The notification will only be printed if the PR has "preview" tag on GitHub
-  String previewOption = isCleanupPreview == 'true' ? '--no-comment=false' : ''
-  String deploymentName = ''
-  String statefulsetName = ''
-  String timeout = '11m'
+def deployPreview(String namespace, String charDir, String isCleanupPreview, String gitRepo, String isReferenceBranch ) {
+  echo """
+    ----------------------------------------
+    Deploy Preview environment in ${namespace}
+    ----------------------------------------
+  """
+  this.helmSetup()
   dir(charDir) {
-    echo """
-      ----------------------------------------
-      Deploy Preview environment in ${namespace}
-      ----------------------------------------
-    """
-    boolean nsExists = this.namespaceExists(namespace)
-    if (nsExists) {
-      // Previous preview deployment needs to be scaled to 0 to be replaced correctly
-      deploymentName = this.getResourceName('deployment', "${namespace}")
-      statefulsetName = this.getResourceName('statefulset', "${namespace}")
-      this.scaleResource("${namespace}", 'deployment', "${deploymentName}", '0')
-      this.scaleResource("${namespace}", 'statefulset', "${statefulsetName}", '0')
-    }
-    String traceCmd = """
-      mkdir -p ${WORKSPACE}/logs
-      ( sleep 80 ; kubectl logs -f --selector branch=${BRANCH_NAME} -n ${namespace} 2>&1 | tee ${WORKSPACE}/logs/preview.log  ) &
-    """
-    String previewCmd = isReferenceBranch == 'true' ?
-      // To avoid jx gc cron job,
-      //reference branch previews are deployed by calling jx step helm install instead of jx preview
-      "jx step helm install  --namespace ${namespace} --name ${namespace} --verbose ."
-      // When deploying a pr preview, we use jx preview which gc the merged pull requests
-      : "jx preview --namespace ${namespace}  --name ${namespace}  ${previewOption} --source-url=${gitRepo} --preview-health-timeout ${timeout}"
-
     try {
+      boolean nsExists = this.namespaceExists(namespace)
+      if (nsExists) {
+        echo 'Scale down nuxeo preview deployment before release upgrade'
+        // Previous preview deployment needs to be scaled to 0 to be replaced correctly
+        this.scaleResource("${namespace}", 'deployment', "${PREVIEW_HELM_RELEASE}", '0')
+        this.scaleResource("${namespace}", 'statefulset', 'postgresql-postgresql', '0')
+      } else {
+        sh "kubectl create namespace ${namespace}"
+      }
+
+      this.helmUpgradePostgreSQL("${namespace}", "${HELM_VALUES_DIR}/values-postgresql.yaml~gen")
+      this.rolloutStatus('statefulset', 'postgresql-postgresql', '5m', "${namespace}")
+
+      echo '''
+        Upgrade nuxeo preview release
+      '''
+
       sh """
-        ${traceCmd}
-        ${previewCmd}
+        helm3 template nuxeo/nuxeo --version=~2.0.0 \
+          --values=${HELM_VALUES_DIR}/values-nuxeo.yaml~gen --output-dir=target
       """
+      this.helmUpgrade(
+        "${PREVIEW_HELM_RELEASE}", 'nuxeo', 'nuxeo', '~2.0.0',
+        "${namespace}", "${HELM_VALUES_DIR}/values-nuxeo.yaml~gen"
+      )
+      this.rolloutStatus('deployment', "${PREVIEW_HELM_RELEASE}", '11m', "${namespace}")
+
+      previewHost = sh(returnStdout: true, script: """
+        kubectl get ingress ${PREVIEW_HELM_RELEASE} \
+          --namespace=${namespace} \
+          -ojsonpath='{.spec.rules[*].host}'
+      """)
+      echo """
+        -----------------------------------------------
+        Preview available at: https://${previewHost}
+        -----------------------------------------------
+      """
+      //The notification will only be printed if the PR has "preview" tag on GitHub
+      if (isReferenceBranch == 'false' && isCleanupPreview == 'false') {
+        String message = """
+          :star: PR built and available in a preview environment **${namespace}** [here](https://${previewHost})
+        """
+        githubPRComment(comment: githubPRMessage("${message}"))
+      }
     } catch (err) {
       if (isCleanupPreview == 'true') {
         this.cleanupPreview("${namespace}")
       }
       throw err
     }
-
-    //statefulsetName deploymentName are empty if the first time the preview is enabled
-    if (!nsExists) {
-      deploymentName = this.getResourceName('deployment', "${namespace}")
-      statefulsetName = this.getResourceName('statefulset', "${namespace}")
-    }
-    // check deployment status, exits if not OK
-    rolloutStatus('statefulset', "${statefulsetName}", '1m', "${namespace}")
-    rolloutStatus('deployment', "${deploymentName}", "${timeout}", "${namespace}")
-    // We need to expose the nuxeo url by hand
-    previewUrl =
-      sh(returnStdout: true, script: "jx get urls -n ${namespace} | grep -oP https://.* | tr -d '\\n'")
-    echo """
-      ----------------------------------------
-      Preview available at: ${previewUrl}
-      ----------------------------------------
-    """
-  }
-}
-
-String getResourceName(String resource, String namespace) {
-  return sh(
-      script: "kubectl get ${resource} -n ${namespace} -o custom-columns=:metadata.name |tr '\\n' ' ' |  awk  -F' ' '{print \$1}' | sed '/^\$/d'",
-      returnStdout: true
-    ).trim()
-}
-
-void getPreviewLogs(String namespace) {
-  try {
-    String deployName = getResourceName('deployment', "${namespace}")
-    String kubcetlCmd =
-      "kubectl get pods -n ${namespace} --selector \"app=${deployName}\" -o custom-columns=:metadata.name |tr '\\n' ' ' | awk -F' ' '{print \$1}'"
-    String podName = sh(returnStdout: true, script: kubcetlCmd)
-    podName = podName.replaceAll('\\s', '')
-    sh """
-      kubectl -n ${namespace} cp ${podName}:/var/log/nuxeo ${WORKSPACE}/logs
-      kubectl logs ${podName} -n ${namespace} > ${WORKSPACE}/logs/${podName}.log
-    """
-  } catch (err) {
-    echo hudson.Functions.printThrowable(err)
-    echo 'NUXEO::RETENTION Cannot archive preview logs'
   }
 }
 
@@ -195,11 +168,11 @@ String getPullRequestVersion() {
   return "${readMavenPom().getVersion()}-${BRANCH_NAME}"
 }
 
-void gitCheckout(String reference) {
+def gitCheckout(String reference) {
   sh "git checkout ${reference}"
 }
 
-void gitCommit(String message, String option) {
+def gitCommit(String message, String option) {
   echo '''
     ----------------------------------------
     Git Commit
@@ -210,21 +183,85 @@ void gitCommit(String message, String option) {
   """
 }
 
-void gitPush(String reference) {
+def gitPush(String reference) {
   sh "git push origin ${reference}"
 }
 
-void gitTag(String tagname, String message) {
+def gitTag(String tagname, String message) {
   sh """
     git tag -a ${tagname} -m "${message}"
   """
+}
+
+def helmAddRepository(String name, String url) {
+  sh "helm3 repo add ${name} ${url}"
+}
+
+def helmGenerateValues(String srcFolder,String usage) {
+  sh """
+    for valuesFile in ${srcFolder}/*.yaml; do
+      USAGE=${usage} envsubst < \$valuesFile > \$valuesFile~gen
+    done
+  """
+}
+
+def helmUpgrade(String release, String repo, String chart, String version, String namespace, String values) {
+  sh """
+    helm3 upgrade ${release} ${repo}/${chart} \
+      --install \
+      --version=${version} \
+      --namespace=${namespace} \
+      --values=${values}
+  """
+}
+
+def helmUpgradeMongoDB(String namespace, String values) {
+  this.helmUpgrade('mongodb', 'bitnami', 'mongodb', '7.14.2', "${namespace}", "${values}")
+}
+
+def helmUpgradePostgreSQL(String namespace, String values) {
+  this.helmUpgrade('postgresql', 'bitnami', 'postgresql', '9.8.4', "${namespace}", "${values}")
+}
+
+def helmUpgradeRedis(String namespace, String values) {
+  helmUpgrade('redis', 'bitnami', 'redis', '11.2.1', "${namespace}", "${values}")
+}
+
+def helmSetup() {
+  this.helmAddRepository('bitnami', 'https://charts.bitnami.com/bitnami')
+  this.helmAddRepository('nuxeo', 'https://chartmuseum.platform.dev.nuxeo.com/')
+}
+
+def helmUninstall(String release, String namespace) {
+  try {
+    sh "helm3 uninstall ${release} --namespace=${namespace}"
+  } catch (err) {
+    echo hudson.Functions.printThrowable(err)
+    echo "NUXEO::RETENTION Cannot uninstall ${release}"
+  }
+}
+
+def setupUnitTestsEnv(String env, String namespace) {
+  boolean isDefaultEnv = env == 'default'
+  if (!isDefaultEnv) {
+    String values = "${HELM_VALUES_DIR}/values-${env}.yaml~gen"
+    if ("${env}" == 'mongodb') {
+      this.helmUpgradeMongoDB("${namespace}", "${values}")
+      this.rolloutStatus('deployment', "${env}", '5m', "${namespace}")
+    } else if ( "${env}" == 'postgresql') {
+      this.helmUpgradePostgreSQL("${namespace}", "${values}")
+      this.rolloutStatus('statefulset', "${env}-${env}", '5m', "${namespace}")
+    }
+  }
+  this.helmUpgradeRedis("${namespace}", "${HELM_VALUES_DIR}/values-redis.yaml~gen")
+  this.rolloutStatus('statefulset', 'redis-master', '5m', "${namespace}")
 }
 
 def isPullRequest() {
   return "${BRANCH_NAME}" =~ /PR-.*/
 }
 
-void lint() {
+def lint() {
   echo '''
     ----------------------------------------
     Run Linting Validations
@@ -253,32 +290,60 @@ boolean needsSaucelabs() {
   return this.isPullRequest() && pullRequest.labels.contains('saucelabs')
 }
 
-void rolloutStatus(String kind, String name, String timeout, String namespace) {
+def rolloutStatus(String kind, String name, String timeout, String namespace) {
   sh "kubectl rollout status ${kind} ${name} --timeout=${timeout} --namespace=${namespace}"
 }
 
-def runBackEndUnitTests() {
+def runBackEndUnitTests(String env, String containerName, String gitRepo, String context, String message) {
+  String namespace = "retention-utests-${BRANCH_NAME}-${env}-${BUILD_NUMBER}".toLowerCase()
+  String reportPath = "target-${env}"
+  boolean isDefaultEnv = env == 'default'
+  String mavenOpt = '-Pqa'
+  String redisHost = "redis-master.${namespace}.${TEST_SERVICE_DOMAIN_SUFFIX}"
+  String testCore = env == 'mongodb' ? 'mongodb' : 'vcs'
+
   return {
-    stage('Run Unit tests: BackEnd') {
-      container('maven') {
-        String context = 'retention/utests/backend'
-        String message = 'Unit tests - BackEnd'
+    stage("Run ${env} unit tests") {
+      container("${containerName}") {
         script {
-          this.setGitHubBuildStatus("${context}", "${message}", 'PENDING', "${GIT_URL}")
+          setGitHubBuildStatus("${context}", "${message}", 'PENDING', "${gitRepo}")
           try {
-            echo '''
-              ----------------------------------------
-              Run BackEnd Unit tests
-              ----------------------------------------
-            '''
-            sh """
-              cd ${BACKEND_FOLDER}
-              mvn ${MAVEN_ARGS} -V -T0.8C test
-            """
-            this.setGitHubBuildStatus("${context}", "${message}", 'SUCCESS', "${GIT_URL}")
+            sh "kubectl create namespace ${namespace}"
+            if (!isDefaultEnv) {
+              mavenOpt += ",customdb,${env} -Dalt.build.dir=${env}"
+              // prepare test framework system properties
+              sh """
+                cat ci/mvn/nuxeo-test-${env}.properties \
+                  > ci/mvn/nuxeo-test-${env}.properties~gen
+                NAMESPACE=${namespace} DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
+                  envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${JENKINS_HOME}/nuxeo-test-${env}.properties
+              """
+            } else {
+              sh "touch ${JENKINS_HOME}/nuxeo-test-${env}.properties"
+            }
+            this.helmSetup()
+            this.setupUnitTestsEnv("${env}", "${namespace}")
+            retry(2) {
+              sh """
+                cd ${BACKEND_FOLDER}
+                mvn ${MAVEN_ARGS} \
+                  -Dcustom.environment=${env} \
+                  -Dcustom.environment.log.dir=${reportPath} \
+                  -Dnuxeo.test.core=${testCore} \
+                  -Dnuxeo.test.redis.host=${redisHost} \
+                  test
+              """
+            }
+            setGitHubBuildStatus("${context}", "${message}", 'SUCCESS', "${gitRepo}")
           } catch (err) {
-            this.setGitHubBuildStatus("${context}", "${message}", 'FAILURE', "${GIT_URL}")
+            setGitHubBuildStatus("${context}", "${message}", 'FAILURE', "${gitRepo}")
             throw err
+          } finally {
+            try {
+              junit testResults: "**/${reportPath}/surefire-reports/*.xml"
+            } finally {
+              this.cleanupUnitTestsEnv("${env}", "${namespace}")
+            }
           }
         }
       }
@@ -286,7 +351,7 @@ def runBackEndUnitTests() {
   }
 }
 
-void runFunctionalTests(String ftestFolder, String namespace) {
+def runFunctionalTests(String ftestFolder, String namespace) {
   echo '''
     ----------------------------------------
     Run "default" functional tests
@@ -294,15 +359,15 @@ void runFunctionalTests(String ftestFolder, String namespace) {
   '''
   sh """
     cd ${ftestFolder}
-    npm run ftest -- --nuxeoUrl=http://preview.${namespace}.svc.cluster.local/nuxeo
+    npm run ftest -- --nuxeoUrl=http://preview.${namespace}.${TEST_SERVICE_DOMAIN_SUFFIX}/nuxeo
   """
 }
 
-void scaleResource(String namespace, String resource, String podName, String replicas) {
+def scaleResource(String namespace, String resource, String podName, String replicas) {
   sh "kubectl -n ${namespace} scale ${resource} ${podName} --replicas=${replicas}"
 }
 
-void setup() {
+def setup() {
   sh '''
     # create the Git credentials
     jx step git credentials
@@ -311,13 +376,13 @@ void setup() {
   env.MAVEN_ARGS = this.mavenArgs()
 }
 
-void setSlackBuildStatus(String channel, String message, String color) {
+def setSlackBuildStatus(String channel, String message, String color) {
   if ( env.DRY_RUN != 'true' ) {
     slackSend(channel: channel, color: color, message: message)
   }
 }
 
-void setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
+def setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
   if ( env.DRY_RUN != 'true' && ENABLE_GITHUB_STATUS == 'true') {
     step([
       $class: 'GitHubCommitStatusSetter',
@@ -330,7 +395,7 @@ void setGitHubBuildStatus(String context, String message, String state, String g
   }
 }
 
-void setLabels() {
+def setLabels() {
   echo '''
     ----------------------------------------
     Set Kubernetes resource labels
@@ -343,7 +408,7 @@ void setLabels() {
   sh "kubectl describe pod ${NODE_NAME}"
 }
 
-void uploadPackage(String version, String credential,  String connectUrl) {
+def uploadPackage(String version, String credential,  String connectUrl) {
   withCredentials(
     [usernameColonPassword(credentialsId: "${credential}", variable: 'CONNECT_PASS')]
   ) {
@@ -354,7 +419,7 @@ void uploadPackage(String version, String credential,  String connectUrl) {
   }
 }
 
-void updateVersion(String version) {
+def updateVersion(String version) {
   echo """
     ----------------------------------------
     Update version
@@ -374,7 +439,7 @@ void updateVersion(String version) {
  * - DOCKER_REGISTRY
  * - VERSION
  */
-void skaffoldBuild(String skaffoldFile) {
+def skaffoldBuild(String skaffoldFile) {
   sh """
     envsubst < ${skaffoldFile} > ${skaffoldFile}~gen
     skaffold build -f ${skaffoldFile}~gen

@@ -1,0 +1,33 @@
+image:
+  tag: "6.0.8"
+cluster:
+  enabled: false
+usePassword: false
+master:
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "16Mi"
+    limits:
+      cpu: "200m"
+      memory: "64Mi"
+  podLabels:
+    branch: "$BRANCH_NAME"
+    resource: pod
+    team: napps
+    usage: "$USAGE"
+  service:
+    labels:
+      branch: "$BRANCH_NAME"
+      resource: service
+      team: napps
+      usage: "$USAGE"
+  tolerations:
+    - key: team
+      operator: Equal
+      value: napps
+      effect: NoSchedule
+  nodeSelector:
+    team: napps

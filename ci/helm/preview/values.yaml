@@ -1,4 +1,3 @@
-
 expose:
   Annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -19,91 +18,98 @@ cleanup:
     helm.sh/hook: pre-delete
     helm.sh/hook-delete-policy: hook-succeeded
 
+fullnameOverride: nuxeo
+
 nuxeo:
-  fullnameOverride: preview
-  nuxeo:
-    podLabels:
+  podLabels:
+    branch: "$BRANCH_NAME"
+    team: napps
+    resource: pod
+    usage: "$USAGE"
+  service:
+    annotations:
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: |-
+        nginx.ingress.kubernetes.io/proxy-body-size: 0
+        nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
+    labels:
       branch: "$BRANCH_NAME"
       team: napps
-      resource: pod
-      usage: preview
-    service:
-      annotations:
-        fabric8.io/expose: "true"
-        fabric8.io/ingress.annotations: |-
-          nginx.ingress.kubernetes.io/proxy-body-size: 0
-          nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
-      labels:
-        branch: "$BRANCH_NAME"
-        team: napps
-        resource: service
-        usage: preview
-    image:
-      repository: ${DOCKER_REGISTRY}/${ORG}/nuxeo-retention
-      tag: ${VERSION}
-      pullPolicy: Always
-    persistence:
-      enabled: disable
-    packages: nuxeo-web-ui-3.1.0-rc.9 /packages/nuxeo-retention-package-*.zip
-    livenessProbe:
-      initialDelaySeconds: 420
+      resource: service
+      usage: "$USAGE"
+  image:
+    repository: ${DOCKER_REGISTRY}/${ORG}/nuxeo-retention
+    tag: ${VERSION}
+    pullPolicy: Always
+  persistence:
+    enabled: disable
+  packages: nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
+  livenessProbe:
+    initialDelaySeconds: 420
+    periodSeconds: 20
+    successThreshold: 1
+    failureThreshold: 5
+    timeoutSeconds: 10
+  readinessProbe:
       periodSeconds: 20
+      initialDelaySeconds: 420
       successThreshold: 1
-      failureThreshold: 5
       timeoutSeconds: 10
-    readinessProbe:
-        periodSeconds: 20
-        initialDelaySeconds: 420
-        successThreshold: 1
-        timeoutSeconds: 10
-        failureThreshold: 5
-    customParams: |-
+      failureThreshold: 5
+  customProperties:
+    retention: |-
       org.nuxeo.connect.url=https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/
-    customEnvs:
-      - name: NUXEO_CLID
-        valueFrom:
-          secretKeyRef:
-            name: instance-clid
-            key: CLID
-    tolerations:
-    - key: team
-      operator: Equal
-      value: napps
-      effect: NoSchedule
-    nodeSelector:
-      team: napps
-  mongodb:
-    deploy: false
+  customEnvs:
+    - name: NUXEO_CLID
+      valueFrom:
+        secretKeyRef:
+          name: instance-clid
+          key: CLID
+  tolerations:
+  - key: team
+    operator: Equal
+    value: napps
+    effect: NoSchedule
+  nodeSelector:
+    team: napps
   postgresql:
-    deploy: true
-    useStatefulSet: true
-    image:
-      tag: "11.7.0"
-    initdbScripts:
-      db-init.sql: |
-        CREATE ROLE nuxeo WITH PASSWORD 'nuxeo' LOGIN;
-        CREATE DATABASE nuxeo ENCODING 'UTF8' OWNER nuxeo;
-    persistence:
-      enabled: false
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        cpu: 1
-        memory: 2Gi
-    master:
-      labels:
-        branch: "$BRANCH_NAME"
-        resource: deployment
-        team: napps
-        usage: preview
-      tolerations:
+    enabled: true
+    host: "postgresql.$PREVIEW_NAMESPACE.svc.cluster.local"
+    username: nuxeo
+    password: nuxeo
+postgresql:
+  # Values overridden from the PostgreSQL chart: https://github.com/bitnami/charts/blob/master/bitnami/postgresql/values.yaml
+  image:
+    tag: "13.0.0"
+  postgresqlDatabase: "preview-nuxeo"
+  initdbScripts:
+    db-init.sql: |
+      CREATE ROLE nuxeo WITH PASSWORD 'nuxeo' LOGIN;
+      CREATE DATABASE nuxeo ENCODING 'UTF8' OWNER nuxeo;
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "250Mi"
+    limits:
+      cpu: "1"
+      memory: "500Mi"
+  master:
+    labels:
+      branch: "$BRANCH_NAME"
+      resource: statefulset
+      team: napps
+      usage: "$USAGE"
+    podLabels:
+      branch: "$BRANCH_NAME"
+      resource: pod
+      team: napps
+      usage: "$USAGE"
+    tolerations:
       - key: team
         operator: Equal
         value: napps
         effect: NoSchedule
-      nodeSelector:
-        team: napps
-  elasticsearch:
-    deploy: false
+    nodeSelector:
+      team: napps

@@ -1,0 +1,32 @@
+image:
+  tag: "4.4.1"
+usePassword: false
+serviceAccount:
+  create: false
+persistence:
+  enabled: false
+useStatefulSet: false
+resources:
+  requests:
+    cpu: "500m"
+    memory: "250Mi"
+  limits:
+    cpu: "1"
+    memory: "500Mi"
+labels:
+  branch: "$BRANCH_NAME"
+  resource: statefulset
+  team: napps
+  usage: "$USAGE"
+podLabels:
+  branch: "$BRANCH_NAME"
+  resource: pod
+  team: napps
+  usage: "$USAGE"
+tolerations:
+  - key: team
+    operator: Equal
+    value: napps
+    effect: NoSchedule
+nodeSelector:
+  team: napps
