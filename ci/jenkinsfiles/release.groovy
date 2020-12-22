@@ -74,8 +74,6 @@ pipeline {
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
-    REFERENCE_BRANCH = '2021'
-    IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
     VERSION = getReleaseVersion(CURRENT_VERSION)
   }
   stages {
@@ -239,7 +237,7 @@ pipeline {
         container('maven') {
           script {
             pipelineLib.deployPreview(
-              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
+              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", 'false'
             )
           }
         }
