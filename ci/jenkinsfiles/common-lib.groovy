@@ -42,6 +42,7 @@ void buildHelmChart(String charDir) {
   sh """
     export BUCKET_PREFIX=retention/${BRANCH_LC}
     cd ${charDir}
+    helm init --client-only --stable-repo-url=https://charts.helm.sh/stable
     mv values.yaml values.yaml.tosubst
     envsubst < values.yaml.tosubst > values.yaml
     #build and deploy the chart
