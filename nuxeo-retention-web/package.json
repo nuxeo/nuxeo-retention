@@ -1,6 +1,6 @@
 {
   "name": "nuxeo-retention-web",
-  "version": "0.1.0",
+  "version": "11.0.0-rc.10",
   "description": "Nuxeo Retention Management WebUI integration",
   "author": "Nuxeo",
   "license": "Apache-2.0",
