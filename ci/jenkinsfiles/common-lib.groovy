@@ -349,10 +349,22 @@ void uploadPackage(String version, String credential,  String connectUrl) {
   withCredentials(
     [usernameColonPassword(credentialsId: "${credential}", variable: 'CONNECT_PASS')]
   ) {
-    sh """
-      PACKAGE="nuxeo-retention-package/target/nuxeo-retention-package-${version}.zip"
-      curl -i -u "$CONNECT_PASS" -F package=@\$PACKAGE "$connectUrl"/site/marketplace/upload?batch=true
-    """
+    def httpCode = sh(
+      returnStdout: true,
+      script:
+        """
+          PACKAGE="nuxeo-retention-package/target/nuxeo-retention-package-${version}.zip"
+          curl -o /dev/null -s -w "%{http_code}\\n" -i -u "$CONNECT_PASS" -F package=@\$PACKAGE "$connectUrl"/site/marketplace/upload?batch=true
+        """
+      ).trim().replaceAll('(?m)^[ \\t]*\\r?\\n', '')
+      if ("${httpCode}" != '200') {
+        echo """
+          NUXEO::RETENTION Http code => ${httpCode}
+        """
+        currentBuild.result = 'FAILURE'
+        currentBuild.description = 'Error when uploading the package.'
+        error(currentBuild.description)
+      }
   }
 }
 
