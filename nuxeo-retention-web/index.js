@@ -18,6 +18,7 @@ import { importHTML } from '@nuxeo/nuxeo-ui-elements/import-href.js';
 import './elements/nuxeo-attach-rule-button.js';
 import './elements/nuxeo-hold-toggle-button.js';
 import './elements/nuxeo-retention-behavior.js';
+import './elements/nuxeo-retention-analytics.js';
 import './elements/nuxeo-retention-events.js';
 import './elements/nuxeo-retention-menu.js';
 import './elements/nuxeo-retain-button.js';
