@@ -64,6 +64,16 @@ limitations under the License.
   </template>
 </nuxeo-slot-content>
 
+<nuxeo-slot-content name="retentionAnalytics" slot="PAGES">
+  <template>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+        <nuxeo-retention-analytics name="retentionAnalytics"></nuxeo-retention-analytics>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
 <nuxeo-slot-content name="holdToggleDocumentAction" slot="DOCUMENT_ACTIONS" order="75">
   <template>
     <nuxeo-filter user="[[user]]" permissions="MakeRecord,ManageLegalHold">

@@ -49,6 +49,8 @@ class RetentionMenu extends mixinBehaviors([FiltersBehavior, I18nBehavior, Routi
         </nuxeo-menu-item>
         <nuxeo-menu-item label="retention.search" name="search" route="page:retentionSearch"> </nuxeo-menu-item>
         <nuxeo-menu-item label="retention.events" name="events" route="page:retentionEvents"> </nuxeo-menu-item>
+        <nuxeo-menu-item label="retention.analytics" name="analytics" route="page:retentionAnalytics">
+        </nuxeo-menu-item>
         <nuxeo-slot slot="ADDITIONAL_RETENTION_MENU_ITEMS"></nuxeo-slot>
       </div>
     `;
