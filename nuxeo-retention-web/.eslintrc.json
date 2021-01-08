@@ -1,5 +1,8 @@
 {
-  "extends": ["airbnb-base", "prettier"],
+  "extends": [
+    "@open-wc/eslint-config",
+    "eslint-config-prettier"
+  ],
   "rules": {
     "class-methods-use-this": "off",
     "import/extensions": ["error", "always", {"ignorePackages": true}],
