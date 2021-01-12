@@ -73,7 +73,7 @@ pipeline {
     NUXEO_VERSION = '2021.0'
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
-    PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
+    PREVIEW_NAMESPACE = "retention-${BRANCH_LC}-release"
     VERSION = getReleaseVersion(CURRENT_VERSION)
   }
   stages {
