@@ -61,7 +61,6 @@ pipeline {
     CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
     CHART_DIR = 'ci/helm/preview'
-    CONNECT_PREPROD_URL = 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
     ENABLE_GITHUB_STATUS = 'true'
     FRONTEND_FOLDER = "${WORKSPACE}/nuxeo-retention-web"
     JENKINS_HOME = '/root'
@@ -290,10 +289,10 @@ pipeline {
               script {
                 echo """
                   -------------------------------------------------
-                  Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
+                  Upload Retention Package ${VERSION} to ${env.CONNECT_PREPROD_URL}
                   -------------------------------------------------
                 """
-                pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${env.CONNECT_PREPROD_URL}")
               }
             }
           }

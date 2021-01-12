@@ -62,7 +62,6 @@ pipeline {
     BRANCH_NAME = GIT_BRANCH.replace('origin/', '')
     BRANCH_LC = "${BRANCH_NAME.toLowerCase().replace('.', '-')}"
     CLEANUP_PREVIEW = 'true'
-    CONNECT_PROD_URL = 'https://connect.nuxeo.com/nuxeo'
     CHART_DIR = 'ci/helm/preview'
     CURRENT_VERSION = currentVersion()
     ENABLE_GITHUB_STATUS = 'false'
@@ -312,11 +311,11 @@ pipeline {
               script {
                 echo """
                   -------------------------------------------------
-                  Upload Retention Package ${VERSION} to ${CONNECT_PROD_URL}
+                  Upload Retention Package ${VERSION} to ${env.CONNECT_PROD_URL}
                   -------------------------------------------------
                 """
                 if (DRY_RUN_RELEASE == 'false') {
-                  pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PROD_URL}")
+                  pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${env.CONNECT_PROD_URL}")
                 }
               }
             }
