@@ -28,7 +28,7 @@ const GLOBALS = {
 const IGNORES = [/^@(nuxeo|polymer)\//];
 
 // Keep these imports
-const KEEP = ['@nuxeo/nuxeo-ui-elements/import-href.js'];
+const KEEP = ['@nuxeo/nuxeo-ui-elements/import-href.js', '@nuxeo/moment/moment.js'];
 
 const TARGET = 'target/classes/web/nuxeo.war/ui';
 
