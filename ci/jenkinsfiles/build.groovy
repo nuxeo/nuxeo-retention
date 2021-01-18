@@ -73,6 +73,7 @@ pipeline {
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
     REFERENCE_BRANCH = 'master'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
+    DEFAULT_RETENTION_MODE = "compliance"
   }
   stages {
     stage('Load Common Library') {
@@ -204,6 +205,7 @@ pipeline {
         container('maven') {
           script {
             env.CLEANUP_PREVIEW = pipelineLib.needsPreviewCleanup()
+            env.RETENTION_MODE = pipelineLib.getRetentionMode()
             pipelineLib.deployPreview(
               "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
             )

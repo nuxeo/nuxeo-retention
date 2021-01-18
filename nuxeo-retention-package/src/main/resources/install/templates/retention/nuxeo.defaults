@@ -3,3 +3,4 @@ nuxeo.template.includes=
 retention.target=.
 
 nuxeo.retention.compliance.enabled=false
+nuxeo.retention.mode=compliance

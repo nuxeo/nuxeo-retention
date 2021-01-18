@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.retention.compliance.types">
+<component name="org.nuxeo.retention.contribution">
 <#if "${nuxeo.retention.compliance.enabled}" == "true">
   <require>org.nuxeo.retention.types</require>
 
@@ -13,4 +13,8 @@
     <facet name="Versionable" enabled="false" />
   </extension>
 </#if>
+<extension target="org.nuxeo.runtime.ConfigurationService" point="configuration">
+  <property name="nuxeo.retention.mode">${nuxeo.retention.mode}</property>
+  <property name="org.nuxeo.web.ui.retention.mode">${nuxeo.retention.mode}</property>
+</extension>
 </component>
