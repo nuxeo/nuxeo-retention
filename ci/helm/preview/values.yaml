@@ -23,7 +23,7 @@ nuxeo:
   fullnameOverride: preview
   nuxeo:
     podLabels:
-      branch: "$BRANCH_NAME"
+      branch: "${BRANCH_NAME}"
       team: napps
       resource: pod
       usage: preview
@@ -34,7 +34,7 @@ nuxeo:
           nginx.ingress.kubernetes.io/proxy-body-size: 0
           nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
       labels:
-        branch: "$BRANCH_NAME"
+        branch: "${BRANCH_NAME}"
         team: napps
         resource: service
         usage: preview
@@ -44,7 +44,7 @@ nuxeo:
       pullPolicy: Always
     persistence:
       enabled: disable
-    packages: nuxeo-web-ui-3.1.0-rc.9 /packages/nuxeo-retention-package-*.zip
+    packages: nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
     livenessProbe:
       initialDelaySeconds: 420
       periodSeconds: 20
@@ -94,7 +94,7 @@ nuxeo:
         memory: 2Gi
     master:
       labels:
-        branch: "$BRANCH_NAME"
+        branch: "${BRANCH_NAME}"
         resource: deployment
         team: napps
         usage: preview
