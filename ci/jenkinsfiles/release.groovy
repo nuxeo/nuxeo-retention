@@ -227,6 +227,9 @@ pipeline {
       steps {
         container('maven') {
           script {
+            def retentionParams = pipelineLib.getRetentionMode().split(',')
+            env.RETENTION_MODE = retentionParams[0]
+            env.COMPLIANCE_MODE_ENABLED = retentionParams[1]
             pipelineLib.buildHelmChart("${CHART_DIR}")
           }
         }

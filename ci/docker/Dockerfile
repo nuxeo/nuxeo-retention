@@ -11,6 +11,7 @@ LABEL org.nuxeo.scm-ref=$SCM_REF
 LABEL org.nuxeo.version=$VERSION
 
 COPY --chown=900:0 nuxeo-retention-package-*.zip /packages/
+COPY --chown=900:0 templates/s3-retention /opt/nuxeo/server/templates/s3-retention
 
 USER root
 RUN /install-packages.sh --offline /packages/*.zip

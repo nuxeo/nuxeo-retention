@@ -58,6 +58,7 @@ pipeline {
     APP_NAME = "${appName}"
     BACKEND_FOLDER = "${WORKSPACE}/nuxeo-retention"
     BRANCH_LC = "${BRANCH_NAME.toLowerCase()}"
+    BUCKET_PREFIX = "${appName}-${BRANCH_LC}-${BUILD_NUMBER}"
     CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
     CHART_DIR = 'ci/helm/preview'
@@ -186,6 +187,9 @@ pipeline {
         setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
+            def retentionParams = pipelineLib.getRetentionMode().split(',')
+            env.RETENTION_MODE = retentionParams[0]
+            env.COMPLIANCE_MODE_ENABLED = retentionParams[1]
             pipelineLib.buildHelmChart("${CHART_DIR}")
           }
         }
@@ -217,7 +221,8 @@ pipeline {
         container('maven') {
           script {
             try {
-              retry(2) {
+              echo 'Functional Tests disabled'
+              retry(3) {
                 pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
               }
             } catch(err) {
