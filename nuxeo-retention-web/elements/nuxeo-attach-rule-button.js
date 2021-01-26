@@ -185,16 +185,39 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
       this.$.attachRuleOp.input = this.document;
       this.$.attachRuleOp.async = false;
       this.$.attachRuleOp.params = { rule: this.rule.uid };
-      this.$.attachRuleOp.execute().then(() => {
+    }
+
+    this.$.attachRuleOp
+      .execute()
+      .then(() => {
+        if (!this.provider) {
+          this.dispatchEvent(
+            new CustomEvent('document-updated', {
+              composed: true,
+              bubbles: true,
+            }),
+          );
+        }
+        this._toggleDialog();
+      })
+      .catch(() => {
         this.dispatchEvent(
-          new CustomEvent('document-updated', {
+          new CustomEvent('notify', {
             composed: true,
             bubbles: true,
+            detail: { message: this.i18n('retention.rule.attachButton.attached.error', this.rule.title) },
           }),
         );
-        this._toggleDialog();
+        if (this.provider) {
+          this.dispatchEvent(
+            new CustomEvent('refresh', {
+              composed: true,
+              bubbles: true,
+            }),
+          );
+        }
+        this.$.dialog.close();
       });
-    }
   }
 
   _onPollStart() {

@@ -103,6 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Search rule name ...",
   "retention.rule.attachButton.label": "Attach retention rule",
   "retention.rule.attachButton.attached": "Retention rule attached",
+  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
   "retention.rule.attachButton.bulk.error": "An error occurred while attaching retention rule: {0}",
   "retention.rule.attachButton.bulk.label": "Bulk attach retention rule",
   "retention.rule.attachButton.bulk.poll": "Attaching retention rule",
