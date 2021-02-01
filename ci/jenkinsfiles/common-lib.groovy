@@ -350,10 +350,10 @@ void uploadPackage(String version, String credential,  String connectUrl) {
   withCredentials(
     [usernameColonPassword(credentialsId: "${credential}", variable: 'CONNECT_PASS')]
   ) {
-    sh '''
+    sh """
       PACKAGE="nuxeo-retention-package/target/nuxeo-retention-package-${version}.zip"
-      curl -i -u $CONNECT_PASS -F package=@\$PACKAGE "$connectUrl"/site/marketplace/upload?batch=true
-    '''
+      curl -i -u "$CONNECT_PASS" -F package=@\$PACKAGE "$connectUrl"/site/marketplace/upload?batch=true
+    """
   }
 }
 
