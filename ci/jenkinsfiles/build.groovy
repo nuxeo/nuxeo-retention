@@ -1,5 +1,5 @@
 /*
-* (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+* (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -37,16 +37,16 @@ properties([
   disableConcurrentBuilds(),
 ])
 
-void setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
-  if ( env.DRY_RUN != 'true' && ENABLE_GITHUB_STATUS == 'true') {
-    step([
-      $class: 'GitHubCommitStatusSetter',
-      reposSource: [$class: 'ManuallyEnteredRepositorySource', url: gitRepo],
-      contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
-      statusResultSource: [
-        $class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]]
-      ],
-    ])
+void retrieveSharedLibrary(String outputFile, String version = 'master') {
+  withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
+    withEnv(["OUTPUT_FILENAME=${outputFile}", "VERSION=${version}"]) {
+      sh '''
+      curl --fail -v -H "Authorization: token $GITHUB_TOKEN" \
+        -H 'Accept: application/vnd.github.v3.raw' \
+        -o $OUTPUT_FILENAME \
+        -L https://api.github.com/repos/nuxeo/nuxeo-napps-tools/contents/vars/commonLibraries.groovy?ref=$VERSION
+      '''
+    }
   }
 }
 
@@ -62,10 +62,10 @@ pipeline {
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
     CHART_DIR = 'ci/helm/preview'
     CONNECT_PREPROD_URL = 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
+    DEFAULT_CONTAINER = 'maven'
     ENABLE_GITHUB_STATUS = 'true'
     FRONTEND_FOLDER = "${WORKSPACE}/nuxeo-retention-web"
     JENKINS_HOME = '/root'
-    MAVEN_DEBUG = '-e'
     MAVEN_OPTS = "${MAVEN_OPTS} -Xms512m -Xmx3072m"
     NUXEO_VERSION = '11.4.42'
     NUXEO_BASE_IMAGE = 'docker-private.packages.nuxeo.com/nuxeo/nuxeo:11.4.42'
@@ -73,25 +73,23 @@ pipeline {
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
     REFERENCE_BRANCH = 'master'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
+    SHARED_LIB_FILENAME = 'ci/jenkinsfiles/common-lib.groovy'
+    SLACK_CHANNEL = "${env.DRY_RUN == 'true' ? 'infra-napps' : 'pr-napps'}"
   }
   stages {
     stage('Load Common Library') {
       steps {
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
-            pipelineLib = load 'ci/jenkinsfiles/common-lib.groovy'
-            if (env.DRY_RUN == 'true') {
-              env.SLACK_CHANNEL = 'infra-napps'
-            } else {
-              env.SLACK_CHANNEL = 'pr-napps'
-            }
+            retrieveSharedLibrary("${SHARED_LIB_FILENAME}", 'task-NXBT-3447-napps-shared-libs')
+            pipelineLib = load "${SHARED_LIB_FILENAME}"
           }
         }
       }
     }
     stage('Set Labels') {
       steps {
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
             pipelineLib.setLabels()
           }
@@ -100,7 +98,7 @@ pipeline {
     }
     stage('Setup') {
       steps {
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
             pipelineLib.setup()
             env.VERSION = pipelineLib.getVersion()
@@ -111,7 +109,7 @@ pipeline {
     }
     stage('Update Version') {
       steps {
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
             pipelineLib.updateVersion("${VERSION}")
           }
@@ -120,37 +118,35 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        setGitHubBuildStatus('retention/compile', 'Compile', 'PENDING', "${repositoryUrl}")
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
-            pipelineLib.compile()
+            pipelineLib.setGitHubBuildStatus('retention/compile', "${repositoryUrl}")
+            pipelineLib.runMavenStep('Compile', '-V -T0.8C -DskipTests clean install')
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            pipelineLib.setGitHubBuildStatus('retention/compile', "${repositoryUrl}")
+          }
         }
       }
     }
     stage('Linting') {
       steps {
-        setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'PENDING', "${repositoryUrl}")
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
-            pipelineLib.lint()
+            pipelineLib.setGitHubBuildStatus('retention/lint', "${repositoryUrl}")
+            pipelineLib.lint("${FRONTEND_FOLDER}")
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            pipelineLib.setGitHubBuildStatus('retention/lint', "${repositoryUrl}")
+          }
         }
       }
     }
@@ -158,50 +154,59 @@ pipeline {
       steps {
         script {
           def stages = [:]
-          stages['backend'] = pipelineLib.runBackEndUnitTests()
+          stages['backend'] = pipelineLib.runBackEndUnitTests("${BACKEND_FOLDER}")
+          pipelineLib.setGitHubBuildStatus('retention/utests', "${repositoryUrl}")
           parallel stages
+        }
+      }
+      post {
+        always {
+          script {
+            pipelineLib.setGitHubBuildStatus('retention/utests', "${repositoryUrl}")
+          }
         }
       }
     }
     stage('Build Docker Image') {
       steps {
-        setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'PENDING', "${repositoryUrl}")
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
-            pipelineLib.buildDockerImage()
+            pipelineLib.setGitHubBuildStatus('retention/docker/build', "${repositoryUrl}")
+            pipelineLib.dockerBuild(
+              "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
+              "${WORKSPACE}/ci/docker", "${WORKSPACE}/ci/docker/skaffold.yaml"
+            )
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            pipelineLib.setGitHubBuildStatus('retention/docker/build', "${repositoryUrl}")
+          }
         }
       }
     }
     stage('Buid Helm Chart') {
       steps {
-        setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
-            pipelineLib.buildHelmChart("${CHART_DIR}")
+            pipelineLib.setGitHubBuildStatus('retention/helm/chart', "${repositoryUrl}")
+            pipelineLib.helmBuild("${CHART_DIR}")
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            pipelineLib.setGitHubBuildStatus('retention/helm/chart', "${repositoryUrl}")
+          }
         }
       }
     }
     stage('Deploy Retention Preview') {
       steps {
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
             env.CLEANUP_PREVIEW = pipelineLib.needsPreviewCleanup()
             pipelineLib.deployPreview(
@@ -213,12 +218,13 @@ pipeline {
     }
     stage('Run Functional Tests') {
       steps {
-        setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'PENDING', "${repositoryUrl}")
-        container('maven') {
+        container(DEFAULT_CONTAINER) {
           script {
+            pipelineLib.setGitHubBuildStatus('retention/ftests', "${repositoryUrl}")
             try {
+              def ftestOption = "--nuxeoUrl=http://preview.${PREVIEW_NAMESPACE}.svc.cluster.local/nuxeo"
               retry(3) {
-                pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
+                pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${ftestOption}")
               }
             } catch(err) {
               throw err
@@ -240,20 +246,15 @@ pipeline {
       }
       post {
         always {
-          container('maven') {
+          container(DEFAULT_CONTAINER) {
             script {
               //cleanup the preview
               if (env.CLEANUP_PREVIEW == 'true') {
                 pipelineLib.cleanupPreview("${PREVIEW_NAMESPACE}")
               }
+              pipelineLib.setGitHubBuildStatus('retention/ftests', "${repositoryUrl}")
             }
           }
-        }
-        success {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'FAILURE', "${repositoryUrl}")
         }
       }
     }
@@ -275,7 +276,7 @@ pipeline {
       stages {
         stage('Git Commit and Tag') {
           steps {
-            container('maven') {
+            container(DEFAULT_CONTAINER) {
               script {
                 pipelineLib.gitCommit("${MESSAGE}", '-a')
                 pipelineLib.gitTag("${TAG}", "${MESSAGE}")
@@ -285,15 +286,16 @@ pipeline {
         }
         stage('Publish Retention Package') {
           steps {
-            setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'PENDING', "${repositoryUrl}")
-            container('maven') {
+            container(DEFAULT_CONTAINER) {
               script {
+                pipelineLib.setGitHubBuildStatus('retention/publish/package', "${repositoryUrl}")
                 echo """
                   -------------------------------------------------
                   Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
                   -------------------------------------------------
                 """
-                pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                def packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
+                pipelineLib.uploadPackage("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
               }
             }
           }
@@ -303,18 +305,15 @@ pipeline {
                 allowEmptyArchive: true,
                 artifacts: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
               )
-            }
-            success {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'SUCCESS', "${repositoryUrl}")
-            }
-            unsuccessful {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'FAILURE', "${repositoryUrl}")
+              script {
+                pipelineLib.setGitHubBuildStatus('retention/publish/package', "${repositoryUrl}")
+              }
             }
           }
         }
         stage('Git Push') {
           steps {
-            container('maven') {
+            container(DEFAULT_CONTAINER) {
               echo """
                 --------------------------
                 Git push ${TAG}
