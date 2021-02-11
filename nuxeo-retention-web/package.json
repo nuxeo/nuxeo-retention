@@ -24,7 +24,7 @@
     "rollup-plugin-terser": "^7.0.2"
   },
   "dependencies": {
-    "@nuxeo/chart-elements": "^4.0.0-nx.0",
+    "@nuxeo/chart-elements": "^4.0.0-nx.1",
     "@nuxeo/moment": "^2.24.0-nx.0",
     "@nuxeo/nuxeo-elements": "^3.1.0-rc.0",
     "@nuxeo/nuxeo-dataviz-elements": "^3.1.0-rc.0",
