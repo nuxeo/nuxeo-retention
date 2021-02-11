@@ -162,11 +162,7 @@ class RetentionAnalytics extends mixinBehaviors([I18nBehavior, FormatBehavior], 
           </nuxeo-repository-data>
 
           <nuxeo-card heading="[[i18n('retentionAnalytics.retentionByDocType')]]">
-            <chart-pie
-              values="[[_values(allDocCategoriesCount)]]"
-              labels="[[_labels(allDocCategoriesCount)]]"
-              options="{_piechartOptions}"
-            >
+            <chart-pie values="[[_values(allDocCategoriesCount)]]" labels="[[_labels(allDocCategoriesCount)]]">
             </chart-pie>
           </nuxeo-card>
 
@@ -223,7 +219,6 @@ class RetentionAnalytics extends mixinBehaviors([I18nBehavior, FormatBehavior], 
             <chart-pie
               values="[[_valuesRetentionStatus(noRetention, activeRetention, expiredRetention, interminateRetention)]]"
               labels="[[_labelsRetentionStatus]]"
-              options="{_piechartOptions}"
             >
             </chart-pie>
           </nuxeo-card>
@@ -242,12 +237,7 @@ class RetentionAnalytics extends mixinBehaviors([I18nBehavior, FormatBehavior], 
           </nuxeo-repository-data>
 
           <nuxeo-card heading="[[i18n('retentionAnalytics.legalHoldByDocType')]]">
-            <chart-pie
-              values="[[_values(legalHoldByDocType)]]"
-              labels="[[_labels(legalHoldByDocType)]]"
-              options="{_piechartOptions}"
-            >
-            </chart-pie>
+            <chart-pie values="[[_values(legalHoldByDocType)]]" labels="[[_labels(legalHoldByDocType)]]"> </chart-pie>
           </nuxeo-card>
         </div>
 
@@ -308,10 +298,6 @@ class RetentionAnalytics extends mixinBehaviors([I18nBehavior, FormatBehavior], 
       _labelsRetentionStatus: {
         type: Array,
         value: ['No retention', 'Active retention', 'Expired retention', 'Interminate retention'],
-      },
-      _piechartOptions: {
-        type: Object,
-        value: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } }, animation: false },
       },
     };
   }
