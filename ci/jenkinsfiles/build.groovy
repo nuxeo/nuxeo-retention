@@ -58,6 +58,7 @@ pipeline {
     APP_NAME = "${appName}"
     BACKEND_FOLDER = "${WORKSPACE}/nuxeo-retention"
     BRANCH_LC = "${BRANCH_NAME.toLowerCase()}"
+    BUCKET_PREFIX = "${appName}-${BRANCH_LC}-${BUILD_NUMBER}"
     CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
     CHART_DIR = 'ci/helm/preview'
@@ -68,7 +69,7 @@ pipeline {
     MAVEN_DEBUG = '-e'
     MAVEN_OPTS = "${MAVEN_OPTS} -Xms512m -Xmx3072m"
     NUXEO_VERSION = '11.4.42'
-    NUXEO_BASE_IMAGE = 'docker-private.packages.nuxeo.com/nuxeo/nuxeo:11.4.42'
+    NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
     REFERENCE_BRANCH = 'master'
@@ -186,6 +187,9 @@ pipeline {
         setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
+            def retentionParams = pipelineLib.getRetentionMode().split(',')
+            env.RETENTION_MODE = retentionParams[0]
+            env.COMPLIANCE_MODE_ENABLED = retentionParams[1]
             pipelineLib.buildHelmChart("${CHART_DIR}")
           }
         }

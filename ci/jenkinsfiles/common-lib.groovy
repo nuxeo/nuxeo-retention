@@ -40,7 +40,6 @@ void buildHelmChart(String charDir) {
   """
   // first substitute environment variables in chart values
   sh """
-    export BUCKET_PREFIX=retention/${BRANCH_LC}
     cd ${charDir}
     helm init --client-only --stable-repo-url=https://charts.helm.sh/stable
     mv values.yaml values.yaml.tosubst
@@ -153,6 +152,17 @@ String getResourceName(String resource, String namespace) {
       script: "kubectl get ${resource} -n ${namespace} -o custom-columns=:metadata.name |tr '\\n' ' ' |  awk  -F' ' '{print \$1}' | sed '/^\$/d'",
       returnStdout: true
     ).trim()
+}
+
+String getRetentionMode() {
+  String retentionMode = 'compliance' //Default retention mode
+  String governanceMode = 'governance'
+  String ifComplianceMode = 'true'
+  if (this.isPullRequest() && pullRequest.labels.contains("${governanceMode}")) {
+    retentionMode = "${governanceMode}"
+    ifComplianceMode = 'false'
+  }
+  return "${retentionMode},${ifComplianceMode}"
 }
 
 void getPreviewLogs(String namespace) {

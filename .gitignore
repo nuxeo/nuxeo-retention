@@ -32,3 +32,8 @@ nashorn_code_cache/
 chromedriver.log
 *.log
 *.pyc
+
+# ci
+ci/aws
+ci/**/*.zip
+**/docker-compose*
