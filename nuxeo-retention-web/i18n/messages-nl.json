@@ -20,7 +20,7 @@
   "retentionAnalytics.legalHoldCount": "Onder juridisch vasthouden",
   "retentionAnalytics.from": "Vanaf",
   "retentionAnalytics.to": "Tot",
-  "retentionAnalytics.retentionByDocType": "Behoud per documenttype",
+  "retentionAnalytics.retentionByDocType": "Juridisch vasthouden per documenttype",
   "retentionAnalytics.legalHoldByDocType": "Juridisch vasthouden per documenttype",
   "retentionAnalytics.expirationNext12Months.heading": "Gepland voor retentie",
   "retentionAnalytics.retentionStatus": "Retentie zoeken",
