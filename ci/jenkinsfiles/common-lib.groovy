@@ -258,6 +258,13 @@ void rolloutStatus(String kind, String name, String timeout, String namespace) {
   sh "kubectl rollout status ${kind} ${name} --timeout=${timeout} --namespace=${namespace}"
 }
 
+String getRetentionMode() {
+  if (!this.isPullRequest() || !pullRequest.labels.contains('governance')) {
+    return DEFAULT_RETENTION_MODE
+  }
+  return "governance"
+}
+
 def runBackEndUnitTests() {
   return {
     stage('Run Unit tests: BackEnd') {

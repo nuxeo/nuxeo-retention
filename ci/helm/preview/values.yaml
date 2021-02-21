@@ -59,6 +59,7 @@ nuxeo:
         failureThreshold: 5
     customParams: |-
       org.nuxeo.connect.url=https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/
+      nuxeo.retention.model=${env:RETENTION_MODE}
     customEnvs:
       - name: NUXEO_CLID
         valueFrom:
