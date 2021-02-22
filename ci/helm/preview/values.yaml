@@ -70,8 +70,6 @@ nuxeo:
       effect: NoSchedule
     nodeSelector:
       team: napps
-  mongodb:
-    deploy: false
   postgresql:
     deploy: true
     useStatefulSet: true
@@ -95,12 +93,16 @@ nuxeo:
       limits:
         cpu: 1
         memory: 2Gi
-    tolerations:
-    - key: team
-      operator: Equal
-      value: napps
-      effect: NoSchedule
-    nodeSelector:
-      team: napps
-  elasticsearch:
-    deploy: false
+    master:
+      labels:
+        branch: "$BRANCH_NAME"
+        resource: deployment
+        team: napps
+        usage: preview
+      tolerations:
+      - key: team
+        operator: Equal
+        value: napps
+        effect: NoSchedule
+      nodeSelector:
+        team: napps
