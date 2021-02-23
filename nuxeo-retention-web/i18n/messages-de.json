@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "Dokumententypen auswählen",
   "retention.rule.label.applicationPolicy.placehodler": "Zugriffsrichtlinie wählen",
   "retention.rule.label.duration.heading": "Dauer der Aufbewahrung",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": "Jahre",
   "retention.rule.label.duration.months": "Monate",
   "retention.rule.label.duration.days": "Tage",

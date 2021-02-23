@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "Hautatu dokumentu motak",
   "retention.rule.label.applicationPolicy.placehodler": "Hautatu politika",
   "retention.rule.label.duration.heading": "Atxikitzearen iraupena",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": "Urteak",
   "retention.rule.label.duration.months": "Hilak",
   "retention.rule.label.duration.days": "Egunak",

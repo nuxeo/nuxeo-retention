@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "Documenttypen selecteren",
   "retention.rule.label.applicationPolicy.placehodler": "Selecteer het beleid",
   "retention.rule.label.duration.heading": "Retentie duur",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": "Jaren",
   "retention.rule.label.duration.months": "Maanden",
   "retention.rule.label.duration.days": "Dagen",

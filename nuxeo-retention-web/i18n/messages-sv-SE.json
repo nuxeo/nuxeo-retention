@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "Välj dokumenttyper",
   "retention.rule.label.applicationPolicy.placehodler": "Välj policy",
   "retention.rule.label.duration.heading": "Kvarhållande varaktighet",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": "År",
   "retention.rule.label.duration.months": "Månader",
   "retention.rule.label.duration.days": "Dagar",

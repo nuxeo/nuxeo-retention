@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "ドキュメントの種類を選択",
   "retention.rule.label.applicationPolicy.placehodler": "ポリシーを選択",
   "retention.rule.label.duration.heading": "保持期間",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": " 年",
   "retention.rule.label.duration.months": "月",
   "retention.rule.label.duration.days": "日間",

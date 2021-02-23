@@ -67,6 +67,7 @@
   "retention.rule.label.applicationPolicy.docTypes.placeholder": "Seleziona tipi di documento",
   "retention.rule.label.applicationPolicy.placehodler": "Seleziona la regola",
   "retention.rule.label.duration.heading": "Durata della ritenzione",
+  "retention.rule.label.duration.subHeading": "Select a duration",
   "retention.rule.label.duration.years": "Anni",
   "retention.rule.label.duration.months": "Mesi",
   "retention.rule.label.duration.days": "Giorni",
