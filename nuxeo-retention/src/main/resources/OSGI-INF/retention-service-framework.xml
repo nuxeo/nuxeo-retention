@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.retention.RetentionService">
   <require>org.nuxeo.ecm.platform.usermanager.UserService</require>
-  <require>org.nuxeo.ecm.platform.usermanager.UserManagerImpl</require>
   <require>org.nuxeo.retention.vocabularies</require>
 
   <implementation
