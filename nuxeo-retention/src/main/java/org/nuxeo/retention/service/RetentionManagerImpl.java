@@ -63,13 +63,13 @@ import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.workers.RuleEvaluationWorker;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentManager;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
  * @since 11.1
  */
-public class RetentionManagerImpl extends DefaultComponent implements RetentionManager {
+public class RetentionManagerImpl extends DefaultComponent implements RetentionManager, ComponentManager.Listener {
 
     private static final Logger log = LogManager.getLogger(RetentionManagerImpl.class);
 
@@ -333,13 +333,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     }
 
     @Override
-    public int getApplicationStartedOrder() {
-        // after directories
-        return 98;
-    }
-
-    @Override
-    public void start(ComponentContext context) {
+    public void afterRuntimeStart(ComponentManager mgr, boolean isResume) {
         Framework.doPrivileged(() -> {
             acceptedEvents = computeAcceptedEvents();
             UserManager userManager = Framework.getService(UserManager.class);
