@@ -21,21 +21,6 @@ def appName = 'nuxeo-retention'
 def pipelineLib
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
-properties([
-  [
-    $class: 'BuildDiscarderProperty',
-    strategy: [
-      $class: 'LogRotator',
-      daysToKeepStr: '15', numToKeepStr: '10',
-      artifactNumToKeepStr: '5'
-    ]
-  ],
-  [
-    $class: 'GithubProjectProperty', projectUrlStr: repositoryUrl
-  ],
-  disableConcurrentBuilds(),
-])
-
 String currentVersion() {
   return readMavenPom().getVersion()
 }
@@ -47,6 +32,10 @@ String getReleaseVersion(String version) {
 pipeline {
   agent {
     label 'builder-maven-nuxeo-11'
+  }
+  options {
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(daysToKeepStr: '15', numToKeepStr: '10', artifactNumToKeepStr: '5'))
   }
   parameters {
     string(name: 'rcVersion', description: 'Version to be promoted')
@@ -105,7 +94,7 @@ pipeline {
               env.SLACK_CHANNEL = 'infra-napps'
             }
           } else {
-            env.SLACK_CHANNEL = 'pr-napps'
+            env.SLACK_CHANNEL = 'napps-notifs'
             env.DRY_RUN_RELEASE = 'false'
           }
           env.RC_VERSION = params.rcVersion
