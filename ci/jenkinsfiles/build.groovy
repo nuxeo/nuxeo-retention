@@ -22,20 +22,6 @@ def appName = 'nuxeo-retention'
 def pipelineLib
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
-properties([
-  [
-    $class: 'BuildDiscarderProperty',
-    strategy: [
-      $class: 'LogRotator',
-      daysToKeepStr: '15', numToKeepStr: '10',
-      artifactNumToKeepStr: '5'
-    ]
-  ],
-  [
-    $class: 'GithubProjectProperty', projectUrlStr: repositoryUrl
-  ],
-  disableConcurrentBuilds(),
-])
 
 void setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
   if ( env.DRY_RUN != 'true' && ENABLE_GITHUB_STATUS == 'true') {
@@ -53,6 +39,10 @@ void setGitHubBuildStatus(String context, String message, String state, String g
 pipeline {
   agent {
     label 'builder-maven-nuxeo-11'
+  }
+  options {
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(daysToKeepStr: '15', numToKeepStr: '10', artifactNumToKeepStr: '5'))
   }
   environment {
     APP_NAME = "${appName}"
