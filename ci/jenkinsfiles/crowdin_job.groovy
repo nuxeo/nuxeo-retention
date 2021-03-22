@@ -142,4 +142,13 @@ pipeline {
       }
     }
   }
+  post {
+    unsuccessful {
+      script {
+        // update Slack Channel
+        String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
+        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+      }
+    }
+  }
 }
