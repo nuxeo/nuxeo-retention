@@ -18,6 +18,9 @@
  *     Nuno Cunha <ncunha@nuxeo.com>
  */
 
+/* Using a version specifier, such as branch, tag, etc */
+@Library('nuxeo-napps-tools@0.0.4') _
+
 appName='nuxeo-retention'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
