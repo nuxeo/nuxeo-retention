@@ -18,21 +18,35 @@
 *     Nuno Cunha <ncunha@nuxeo.com>
 */
 
+/* Using a version specifier, such as branch, tag, etc */
+@Library('nuxeo-napps-tools@0.0.4') _
+
 def appName = 'nuxeo-retention'
-def pipelineLib
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
-
-void setGitHubBuildStatus(String context, String message, String state, String gitRepo) {
-  if ( env.DRY_RUN != 'true' && ENABLE_GITHUB_STATUS == 'true') {
-    step([
-      $class: 'GitHubCommitStatusSetter',
-      reposSource: [$class: 'ManuallyEnteredRepositorySource', url: gitRepo],
-      contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
-      statusResultSource: [
-        $class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]]
-      ],
-    ])
+def runBackEndUnitTests() {
+  return {
+    stage('BackEnd') {
+      container('maven') {
+        script {
+          try {
+            echo '''
+              ----------------------------------------
+              Run BackEnd Unit tests
+              ----------------------------------------
+            '''
+            sh """
+              cd ${BACKEND_FOLDER}
+              mvn ${MAVEN_ARGS} -V -T0.8C test
+            """
+          } catch (err) {
+            throw err
+          } finally {
+            junit testResults: "**/target/surefire-reports/*.xml"
+          }
+        }
+      }
+    }
   }
 }
 
@@ -61,25 +75,16 @@ pipeline {
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
-    REFERENCE_BRANCH = 'master'
+    REFERENCE_BRANCH = 'lts-2021'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
     SLACK_CHANNEL = "${env.DRY_RUN == 'true' ? 'infra-napps' : 'napps-notifs'}"
   }
   stages {
-    stage('Load Common Library') {
-      steps {
-        container('maven') {
-          script {
-            pipelineLib = load 'ci/jenkinsfiles/common-lib.groovy'
-          }
-        }
-      }
-    }
     stage('Set Labels') {
       steps {
         container('maven') {
           script {
-            pipelineLib.setLabels()
+            nxNapps.setLabels()
           }
         }
       }
@@ -88,9 +93,8 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.setup()
-            env.VERSION = pipelineLib.getVersion()
-            sh 'env'
+            nxNapps.setup()
+            env.VERSION = nxNapps.getRCVersion()
           }
         }
       }
@@ -99,44 +103,42 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.updateVersion("${VERSION}")
+            nxNapps.updateVersion("${VERSION}")
           }
         }
       }
     }
     stage('Compile') {
       steps {
-        setGitHubBuildStatus('retention/compile', 'Compile', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
-            pipelineLib.compile()
+            gitHubBuildStatus.set('compile')
+            nxNapps.mavenCompile()
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/compile', 'Compile', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            gitHubBuildStatus.set('compile')
+          }
         }
       }
     }
     stage('Linting') {
       steps {
-        setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
-            pipelineLib.lint()
+            gitHubBuildStatus.set('lint')
+            nxNapps.lint("${FRONTEND_FOLDER}")
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/lint', 'Run Linting Validations', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            gitHubBuildStatus.set('lint')
+          }
         }
       }
     }
@@ -144,54 +146,79 @@ pipeline {
       steps {
         script {
           def stages = [:]
-          stages['backend'] = pipelineLib.runBackEndUnitTests()
+          stages['backend'] = runBackEndUnitTests()
+          gitHubBuildStatus.set('utests/backend')
           parallel stages
+        }
+      }
+      post {
+        always {
+          script {
+            gitHubBuildStatus.set('utests/backend')
+          }
+        }
+      }
+    }
+    stage('Package') {
+      steps {
+        container('maven') {
+          script {
+            gitHubBuildStatus.set('package')
+            nxNapps.mavenPackage()
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            gitHubBuildStatus.set('package')
+          }
         }
       }
     }
     stage('Build Docker Image') {
       steps {
-        setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
-            pipelineLib.buildDockerImage()
+            gitHubBuildStatus.set('docker/build')
+            nxNapps.dockerBuild(
+              "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
+              "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
+            )
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/docker/build', 'Build Docker Image', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            gitHubBuildStatus.set('docker/build')
+          }
         }
       }
     }
     stage('Buid Helm Chart') {
       steps {
-        setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
-            pipelineLib.buildHelmChart("${CHART_DIR}")
+            gitHubBuildStatus.set('helm/chart/build')
+            nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
           }
         }
       }
       post {
-        success {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/helm/chart', 'Build Helm Chart', 'FAILURE', "${repositoryUrl}")
+        always {
+          script {
+            gitHubBuildStatus.set('helm/chart/build')
+          }
         }
       }
     }
-    stage('Deploy Retention Preview') {
+    stage('Deploy Preview') {
       steps {
         container('maven') {
           script {
-            env.CLEANUP_PREVIEW = pipelineLib.needsPreviewCleanup()
-            pipelineLib.deployPreview(
-              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
+            nxKube.helmDeployPreview(
+              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
             )
           }
         }
@@ -199,21 +226,23 @@ pipeline {
     }
     stage('Run Functional Tests') {
       steps {
-        setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'PENDING', "${repositoryUrl}")
         container('maven') {
           script {
+            gitHubBuildStatus.set('ftests')
             try {
-              retry(2) {
-                pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
+              retry(3) {
+                nxNapps.runFunctionalTests(
+                  "${FRONTEND_FOLDER}", "--nuxeoUrl=http://preview.${PREVIEW_NAMESPACE}.svc.cluster.local/nuxeo"
+                )
               }
             } catch(err) {
               throw err
             } finally {
               //retrieve preview logs
-              pipelineLib.getPreviewLogs("${PREVIEW_NAMESPACE}")
+              nxKube.helmGetPreviewLogs("${PREVIEW_NAMESPACE}")
               cucumber (
                 fileIncludePattern: '**/*.json',
-                jsonReportDirectory: "${FRONTEND_FOLDER}/ftest/target/cucumber-reports/",
+                jsonReportDirectory: "${FRONTEND_FOLDER}/target/cucumber-reports/",
                 sortingMethod: 'NATURAL'
               )
               archiveArtifacts (
@@ -229,17 +258,15 @@ pipeline {
           container('maven') {
             script {
               //cleanup the preview
-              if (env.CLEANUP_PREVIEW == 'true') {
-                pipelineLib.cleanupPreview("${PREVIEW_NAMESPACE}")
+              try {
+                if (nxNapps.needsPreviewCleanup() == 'true') {
+                  nxKube.helmDeleteNamespace("${PREVIEW_NAMESPACE}")
+                }
+              } finally {
+                gitHubBuildStatus.set('ftests')
               }
             }
           }
-        }
-        success {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'SUCCESS', "${repositoryUrl}")
-        }
-        unsuccessful {
-          setGitHubBuildStatus('retention/ftests', 'Functional tests - default environment', 'FAILURE', "${repositoryUrl}")
         }
       }
     }
@@ -263,23 +290,24 @@ pipeline {
           steps {
             container('maven') {
               script {
-                pipelineLib.gitCommit("${MESSAGE}", '-a')
-                pipelineLib.gitTag("${TAG}", "${MESSAGE}")
+                nxNapps.gitCommit("${MESSAGE}", '-a')
+                nxNapps.gitTag("${TAG}", "${MESSAGE}")
               }
             }
           }
         }
-        stage('Publish Retention Package') {
+        stage('Package') {
           steps {
-            setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'PENDING', "${repositoryUrl}")
             container('maven') {
               script {
+                gitHubBuildStatus.set('publish/package')
                 echo """
                   -------------------------------------------------
                   Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
                   -------------------------------------------------
                 """
-                pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
+                connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
               }
             }
           }
@@ -289,12 +317,9 @@ pipeline {
                 allowEmptyArchive: true,
                 artifacts: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
               )
-            }
-            success {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'SUCCESS', "${repositoryUrl}")
-            }
-            unsuccessful {
-              setGitHubBuildStatus('retention/publish/package', 'Upload Retention Package', 'FAILURE', "${repositoryUrl}")
+              script {
+                gitHubBuildStatus.set('publish/package')
+              }
             }
           }
         }
@@ -307,7 +332,7 @@ pipeline {
                 --------------------------
               """
               script {
-                pipelineLib.gitPush("${TAG}")
+                nxNapps.gitPush("${TAG}")
               }
             }
           }
@@ -318,7 +343,7 @@ pipeline {
   post {
     always {
       script {
-        if (!pipelineLib.isPullRequest() && env.DRY_RUN != 'true') {
+        if (!nxNapps.isPullRequest() && env.DRY_RUN != 'true') {
           // update JIRA issue
           step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
           currentBuild.description = "Build ${VERSION}"
@@ -329,14 +354,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     unsuccessful {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }

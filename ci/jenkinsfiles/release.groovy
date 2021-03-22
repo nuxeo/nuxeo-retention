@@ -1,5 +1,5 @@
 /*
-* (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+* (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 *     Abdoul BA <aba@nuxeo.com>
 */
 
+/* Using a version specifier, such as branch, tag, etc */
+@Library('nuxeo-napps-tools@0.0.4') _
+
 def appName = 'nuxeo-retention'
-def pipelineLib
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
 String currentVersion() {
@@ -27,6 +29,32 @@ String currentVersion() {
 
 String getReleaseVersion(String version) {
   return version.replace('-SNAPSHOT', '')
+}
+
+def runBackEndUnitTests() {
+  return {
+    stage('BackEnd') {
+      container('maven') {
+        script {
+          try {
+            echo '''
+              ----------------------------------------
+              Run BackEnd Unit tests
+              ----------------------------------------
+            '''
+            sh """
+              cd ${BACKEND_FOLDER}
+              mvn ${MAVEN_ARGS} -V -T0.8C test
+            """
+          } catch (err) {
+            throw err
+          } finally {
+            junit testResults: "**/target/surefire-reports/*.xml"
+          }
+        }
+      }
+    }
+  }
 }
 
 pipeline {
@@ -115,29 +143,27 @@ pipeline {
         }
       }
     }
-    stage('Load Common Library') {
-      steps {
-        container('maven') {
-          script {
-            pipelineLib = load 'ci/jenkinsfiles/common-lib.groovy'
-          }
-        }
-      }
-    }
     stage('Notify promotion start on slack') {
       steps {
         script {
           String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-          pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
+          slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
     stage('Set Labels') {
       steps {
         container('maven') {
-          script {
-            pipelineLib.setLabels()
-          }
+          echo '''
+            ----------------------------------------
+            Set Kubernetes resource labels
+            ----------------------------------------
+          '''
+          echo "Set label 'branch: ${REFERENCE_BRANCH}' on pod ${NODE_NAME}"
+          sh "kubectl label pods ${NODE_NAME} branch=${REFERENCE_BRANCH}"
+          // output pod description
+          echo "Describe pod ${NODE_NAME}"
+          sh "kubectl describe pod ${NODE_NAME}"
         }
       }
     }
@@ -145,7 +171,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.setup()
+            nxNapps.setup()
             sh 'env'
           }
         }
@@ -162,7 +188,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.gitCheckout("v${RC_VERSION}")
+            nxNapps.gitCheckout("v${RC_VERSION}")
           }
         }
       }
@@ -171,7 +197,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.updateVersion("${VERSION}")
+            nxNapps.updateVersion("${VERSION}")
           }
         }
       }
@@ -180,7 +206,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.compile()
+            nxNapps.mavenCompile()
           }
         }
       }
@@ -189,7 +215,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.lint()
+            nxNapps.lint("${FRONTEND_FOLDER}")
           }
         }
       }
@@ -198,8 +224,17 @@ pipeline {
       steps {
         script {
           def stages = [:]
-          stages['backend'] = pipelineLib.runBackEndUnitTests()
+          stages['backend'] = runBackEndUnitTests()
           parallel stages
+        }
+      }
+    }
+    stage('Package') {
+      steps {
+        container('maven') {
+          script {
+            nxNapps.mavenPackage()
+          }
         }
       }
     }
@@ -207,7 +242,10 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.buildDockerImage()
+            nxNapps.dockerBuild(
+              "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
+              "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
+            )
           }
         }
       }
@@ -216,7 +254,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.buildHelmChart("${CHART_DIR}")
+            nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
           }
         }
       }
@@ -225,8 +263,8 @@ pipeline {
       steps {
         container('maven') {
           script {
-            pipelineLib.deployPreview(
-              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${CLEANUP_PREVIEW}", "${repositoryUrl}", 'false'
+            nxKube.helmDeployPreview(
+              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${repositoryUrl}", 'false'
             )
           }
         }
@@ -238,13 +276,14 @@ pipeline {
           script {
             try {
               retry(2) {
-                pipelineLib.runFunctionalTests("${FRONTEND_FOLDER}", "${PREVIEW_NAMESPACE}")
-              }
+                nxNapps.runFunctionalTests(
+                  "${FRONTEND_FOLDER}", "--nuxeoUrl=http://preview.${PREVIEW_NAMESPACE}.svc.cluster.local/nuxeo"
+                )              }
             } catch(err) {
               throw err
             } finally {
               //retrieve preview logs
-              pipelineLib.getPreviewLogs("${PREVIEW_NAMESPACE}")
+              nxKube.helmGetPreviewLogs("${PREVIEW_NAMESPACE}")
               cucumber (
                 fileIncludePattern: '**/*.json',
                 jsonReportDirectory: "${FRONTEND_FOLDER}/ftest/target/cucumber-reports/",
@@ -263,7 +302,7 @@ pipeline {
           container('maven') {
             script {
               //cleanup the preview
-              pipelineLib.cleanupPreview("${PREVIEW_NAMESPACE}")
+              nxKube.helmDeleteNamespace("${PREVIEW_NAMESPACE}")
             }
           }
         }
@@ -289,13 +328,13 @@ pipeline {
           steps {
             container('maven') {
               script {
-                pipelineLib.gitCommit("${MESSAGE}", '-a')
-                pipelineLib.gitTag("${TAG}", "${MESSAGE}")
+                nxNapps.gitCommit("${MESSAGE}", '-a')
+                nxNapps.gitTag("${TAG}", "${MESSAGE}")
               }
             }
           }
         }
-        stage('Publish Retention Package') {
+        stage('Package') {
           steps {
             container('maven') {
               script {
@@ -305,7 +344,8 @@ pipeline {
                   -------------------------------------------------
                 """
                 if (DRY_RUN_RELEASE == 'false') {
-                  pipelineLib.uploadPackage("${VERSION}", 'connect-preprod', "${CONNECT_PROD_URL}")
+                  String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
+                  connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
                 }
               }
             }
@@ -329,7 +369,7 @@ pipeline {
               """
               script {
                 if (DRY_RUN_RELEASE == 'false') {
-                  pipelineLib.gitPush("${TAG}")
+                  nxNapps.gitPush("${TAG}")
                 }
               }
             }
@@ -358,11 +398,11 @@ pipeline {
               Update ${REFERENCE_BRANCH} version from ${CURRENT_VERSION} to ${nextVersion}
               -----------------------------------------------
             """
-            pipelineLib.gitCheckout("${REFERENCE_BRANCH}")
-            pipelineLib.updateVersion("${nextVersion}")
-            pipelineLib.gitCommit("Release ${VERSION}, update ${CURRENT_VERSION} to ${nextVersion}", '-a')
+            nxNapps.gitCheckout("${REFERENCE_BRANCH}")
+            nxNapps.updateVersion("${nextVersion}")
+            nxNapps.gitCommit("Release ${VERSION}, update ${CURRENT_VERSION} to ${nextVersion}", '-a')
             if (DRY_RUN_RELEASE == 'false') {
-              pipelineLib.gitPush("${REFERENCE_BRANCH}")
+              nxNapps.gitPush("${REFERENCE_BRANCH}")
             }
           }
         }
@@ -379,14 +419,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "Successfully released ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL} :tada:"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     failure {
       script {
         // update Slack Channel
         String message = "Failed to release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-        pipelineLib.setSlackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }
