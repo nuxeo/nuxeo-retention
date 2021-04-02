@@ -23,7 +23,7 @@ nuxeo:
   fullnameOverride: preview
   nuxeo:
     podLabels:
-      branch: "$BRANCH_NAME"
+      branch: "lts-2021"
       team: napps
       resource: pod
       usage: preview
@@ -34,13 +34,13 @@ nuxeo:
           nginx.ingress.kubernetes.io/proxy-body-size: 0
           nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
       labels:
-        branch: "$BRANCH_NAME"
+        branch: "lts-2021"
         team: napps
         resource: service
         usage: preview
     image:
-      repository: ${DOCKER_REGISTRY}/${ORG}/nuxeo-retention
-      tag: ${VERSION}
+      repository: 10.63.243.100:5000/nuxeo/nuxeo-retention
+      tag: 2021.1.6
       pullPolicy: Always
     persistence:
       enabled: disable
@@ -82,7 +82,7 @@ nuxeo:
     persistence:
       enabled: false
     labels:
-      branch: "$BRANCH_NAME"
+      branch: "lts-2021"
       resource: deployment
       team: napps
       usage: preview
@@ -95,7 +95,7 @@ nuxeo:
         memory: 2Gi
     master:
       labels:
-        branch: "$BRANCH_NAME"
+        branch: "lts-2021"
         resource: deployment
         team: napps
         usage: preview
