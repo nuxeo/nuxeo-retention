@@ -103,6 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "ルール名を検索...",
   "retention.rule.attachButton.label": "保持ルールを添付",
   "retention.rule.attachButton.attached": "保持ルールが添付されました",
+  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
   "retention.rule.attachButton.bulk.error": "保持ルールの添付中にエラーが発生しました: {0}",
   "retention.rule.attachButton.bulk.label": "保持ルールを添付",
   "retention.rule.attachButton.bulk.poll": "保持ルールを添付",

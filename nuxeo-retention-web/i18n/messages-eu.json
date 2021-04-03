@@ -103,6 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Bilatu arauaren izena...",
   "retention.rule.attachButton.label": "Erantsi atxikitze-araua",
   "retention.rule.attachButton.attached": "Atxikitze-araua erantsia",
+  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
   "retention.rule.attachButton.bulk.error": "Errore bat gertatu da atxikitze-araua eranstean: {0}",
   "retention.rule.attachButton.bulk.label": "Erantsi atxikitze-arauak multzoan",
   "retention.rule.attachButton.bulk.poll": "Atxikitze-araua eransten",
