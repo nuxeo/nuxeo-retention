@@ -16,7 +16,7 @@
   "retention.action.retain.extend": "Retentieperiode verlengen",
   "retention.action.until": "Nieuwe vervaldatum",
   "retention.analytics": "Behoud analyse",
-  "retentionAnalytics.underActiveRetention": "Behoud gebruiker",
+  "retentionAnalytics.underActiveRetention": "Onder behoud",
   "retentionAnalytics.legalHoldCount": "Onder juridisch vasthouden",
   "retentionAnalytics.from": "Vanaf",
   "retentionAnalytics.to": "Tot",

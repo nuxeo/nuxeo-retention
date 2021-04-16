@@ -17,7 +17,7 @@
   "retention.action.until": "新しい有効期限日",
   "retention.analytics": "Retention Analytics",
   "retentionAnalytics.underActiveRetention": "Under retention",
-  "retentionAnalytics.legalHoldCount": "Under legal hold",
+  "retentionAnalytics.legalHoldCount": "法的な保留下に",
   "retentionAnalytics.from": "差出人",
   "retentionAnalytics.to": "宛先",
   "retentionAnalytics.retentionByDocType": "Retention by document type",
