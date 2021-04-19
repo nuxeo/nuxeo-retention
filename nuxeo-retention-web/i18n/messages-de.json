@@ -103,7 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Suche Regelname ...",
   "retention.rule.attachButton.label": "Aufbewahrungsregel anhängen ",
   "retention.rule.attachButton.attached": "Aufbewahrungsregel beigefügt",
-  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
+  "retention.rule.attachButton.attached.error": "Beim Anhängen der Aufbewahrungsregel ist ein Fehler aufgetreten: {0}",
   "retention.rule.attachButton.bulk.error": "Beim Anhängen der Aufbewahrungsregel ist ein Fehler aufgetreten: {0}",
   "retention.rule.attachButton.bulk.label": "Aufbewahrungsregel anhängen",
   "retention.rule.attachButton.bulk.poll": "Beifügen einer Aufbewahrungsregel",

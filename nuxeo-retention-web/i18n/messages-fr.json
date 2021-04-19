@@ -103,7 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Rechercher un nom de règle...",
   "retention.rule.attachButton.label": "Attacher la règle de rétention",
   "retention.rule.attachButton.attached": "Règle de rétention attachée",
-  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
+  "retention.rule.attachButton.attached.error": "Une erreur est survenue lors de l'attachement de la règle de rétention : {0}",
   "retention.rule.attachButton.bulk.error": "Une erreur est survenue lors de l'attachement de la règle de rétention : {0}",
   "retention.rule.attachButton.bulk.label": "Appliquer la règle de rétention à une liste de documents",
   "retention.rule.attachButton.bulk.poll": "Attacher la règle de rétention",

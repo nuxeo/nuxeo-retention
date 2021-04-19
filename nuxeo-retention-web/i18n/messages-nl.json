@@ -103,7 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Zoek regel naam ...",
   "retention.rule.attachButton.label": "Bevestig retentie-regel",
   "retention.rule.attachButton.attached": "Retentie regel gekoppeld",
-  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
+  "retention.rule.attachButton.attached.error": "Er is een fout opgetreden tijdens het koppelen van de eigenschapsregel: {0}",
   "retention.rule.attachButton.bulk.error": "Er is een fout opgetreden tijdens het koppelen van de eigenschapsregel: {0}",
   "retention.rule.attachButton.bulk.label": "Bulkbevestiging bewaarregel",
   "retention.rule.attachButton.bulk.poll": "Regel voor retentie koppelen",

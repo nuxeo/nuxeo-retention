@@ -103,7 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Ricerca nome regola...",
   "retention.rule.attachButton.label": "Allega regola di ritenzione",
   "retention.rule.attachButton.attached": "Regola di ritenzione allegata",
-  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
+  "retention.rule.attachButton.attached.error": "Si è verificato un errore durante l'associazione della regola di ritenzione: {0}",
   "retention.rule.attachButton.bulk.error": "Si è verificato un errore durante l'associazione della regola di ritenzione: {0}",
   "retention.rule.attachButton.bulk.label": "Regola di ritenzione allegata in blocco",
   "retention.rule.attachButton.bulk.poll": "Allega regola di ritenzione",

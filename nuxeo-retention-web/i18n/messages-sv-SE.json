@@ -103,7 +103,7 @@
   "retention.rule.attachButton.label.placeholder": "Sök regelnamn ...",
   "retention.rule.attachButton.label": "Bifoga kvarhållande regel",
   "retention.rule.attachButton.attached": "Kvarhållande regel bifogad",
-  "retention.rule.attachButton.attached.error": "An error occurred while attaching retention rule: : {0}",
+  "retention.rule.attachButton.attached.error": "Ett fel inträffade vid bifogande av kvarhållande regel: {0}",
   "retention.rule.attachButton.bulk.error": "Ett fel inträffade vid bifogande av kvarhållande regel: {0}",
   "retention.rule.attachButton.bulk.label": "Bifogar kvarhållande regel",
   "retention.rule.attachButton.bulk.poll": "Bifogar kvarhållande regel",
