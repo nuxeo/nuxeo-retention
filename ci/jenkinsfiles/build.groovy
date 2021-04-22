@@ -141,6 +141,29 @@ pipeline {
         }
       }
     }
+    stage('Sonar') {
+      environment {
+        SONAR_PROJECT = 'nuxeo_nuxeo-retention'
+        SONAR_BRANCH = "${BRANCH_LC}"
+      }
+      steps {
+        container('maven') {
+          script {
+            try {
+              if (nxNapps.isPullRequest()) {
+                env.SONAR_OPTION = "-Dsonar.branch.target=${CHANGE_TARGET}"
+              }
+              nxSonar('sonar-retention', "${SONAR_PROJECT}", "${SONAR_BRANCH}", "${SONAR_OPTION}")
+            } catch(err) {
+              throw err
+            } finally {
+              archive '**/target/failsafe-reports/*, **/target/*.png, **/target/**/*.log, **/target/**/log/*'
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/**/*.xml'
+            }
+          }
+        }
+      }
+    }
     stage('Run Unit Tests') {
       steps {
         script {
