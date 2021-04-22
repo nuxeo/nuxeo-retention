@@ -19,7 +19,7 @@
  */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+library identifier: "nuxeo-napps-tools@0.0.6"
 
 appName='nuxeo-retention'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
@@ -134,10 +134,10 @@ pipeline {
                 Run Translation
                 ----------------------------------------
               '''
-              sh """
-                echo "Start synchronization"
-                bash -xe ${WORKSPACE}/tools-nuxeo-crowdin/jenkins/sync_nuxeo_web_ui_crowdin.sh
-              """
+              sh '''
+                echo Start synchronization
+                bash -xe $WORKSPACE/tools-nuxeo-crowdin/jenkins/sync_nuxeo_web_ui_crowdin.sh
+              '''
             }
           }
         }
@@ -146,11 +146,16 @@ pipeline {
     }
   }
   post {
-    unsuccessful {
+    unstable {
       script {
-        // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'warning')
+      }
+    }
+    failure {
+      script {
+        String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }
