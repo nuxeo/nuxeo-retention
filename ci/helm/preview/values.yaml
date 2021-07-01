@@ -44,7 +44,7 @@ nuxeo:
       pullPolicy: Always
     persistence:
       enabled: disable
-    packages: nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
+    packages: nuxeo-web-ui-3.1.0-rc.060 /packages/nuxeo-retention-package-*.zip
     livenessProbe:
       initialDelaySeconds: 420
       periodSeconds: 20
@@ -63,7 +63,7 @@ nuxeo:
       - name: NUXEO_CLID
         valueFrom:
           secretKeyRef:
-            name: instance-clid
+            name: instance-clid-preprod
             key: CLID
     tolerations:
     - key: team
