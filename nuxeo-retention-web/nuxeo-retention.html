@@ -117,6 +117,88 @@ limitations under the License.
   </template>
 </nuxeo-slot-content>
 
+<nuxeo-slot-content name="deleteDocumentAction" slot="DOCUMENT_ACTIONS" order="30" priority="1">
+  <template>
+    <nuxeo-filter
+      document="[[document]]"
+      user="[[user]]"
+      expression="this.hasPermission(document, 'MakeRecord')
+        && this.hasPermission(document, 'RemoveRecords')
+        && !nuxeo.retention.compliance.enabled"
+    >
+      <template>
+        <nuxeo-delete-document-button document="[[document]]"></nuxeo-delete-document-button>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="deleteBlobAction" slot="BLOB_ACTIONS" order="30" priority="1">
+  <template>
+    <nuxeo-filter
+      document="[[document]]"
+      user="[[user]]"
+      expression="this.hasPermission(document, 'MakeRecord')
+        && this.hasPermission(document, 'RemoveRecords')
+        && !nuxeo.retention.compliance.enabled"
+    >
+      <template>
+        <nuxeo-delete-blob-button document="[[document]]" xpath="[[xpath]]"></nuxeo-delete-blob-button>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="deleteSelectionAction" slot="RESULTS_SELECTION_ACTIONS" order="30">
+  <template>
+    <nuxeo-filter
+      document="[[document]]"
+      user="[[user]]"
+      expression="this.hasPermission(document, 'MakeRecord')
+        && this.hasPermission(document, 'RemoveRecords')
+        && !nuxeo.retention.compliance.enabled"
+    >
+      <template>
+        <nuxeo-delete-documents-button documents="[[selectedItems]]"> </nuxeo-delete-documents-button>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<!-- TRASH RESULT SELECTION ACTIONS -->
+
+<nuxeo-slot-content name="untrashSelectionAction" slot="TRASH_RESULTS_SELECTION_ACTIONS" order="10">
+  <template>
+    <nuxeo-filter
+      document="[[document]]"
+      user="[[user]]"
+      expression="this.hasPermission(document, 'MakeRecord')
+        && this.hasPermission(document, 'RemoveRecords')
+        && !nuxeo.retention.compliance.enabled"
+    >
+      <template>
+        <nuxeo-untrash-documents-button documents="[[selectedItems]]"></nuxeo-untrash-documents-button>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="hardDeleteSelectionAction" slot="TRASH_RESULTS_SELECTION_ACTIONS" order="20">
+  <template>
+    <nuxeo-filter
+      document="[[document]]"
+      user="[[user]]"
+      expression="this.hasPermission(document, 'MakeRecord')
+        && this.hasPermission(document, 'RemoveRecords')
+        && !nuxeo.retention.compliance.enabled"
+    >
+      <template>
+        <nuxeo-delete-documents-button documents="[[selectedItems]]" hard></nuxeo-delete-documents-button>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
 <script type="module">
   // push RetentionRule and RetentionRules to list of document types that are not available for import
   window.nuxeo.importBlacklist.push('RetentionRule');
