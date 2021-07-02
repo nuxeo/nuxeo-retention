@@ -89,7 +89,7 @@ limitations under the License.
     <nuxeo-filter
       user="[[user]]"
       document="[[document]]"
-      expression="!this.document.retainUntil
+      expression="!document.retainUntil
                     && !this.hasFacet(document, 'Folderish')
                     && this.hasPermission(document, 'MakeRecord')
                     && this.hasPermission(document, 'SetRetention')"
@@ -106,7 +106,7 @@ limitations under the License.
     <nuxeo-filter
       user="[[user]]"
       document="[[document]]"
-      expression="this.document.retainUntil
+      expression="document.retainUntil
                     && this.hasPermission(document, 'MakeRecord')
                     && this.hasPermission(document, 'SetRetention')"
     >
