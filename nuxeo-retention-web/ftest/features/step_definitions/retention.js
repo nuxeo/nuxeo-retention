@@ -127,8 +127,7 @@ When('I have a "ContractEnd" retention event', () => {
   fixtures.vocabularies.createEntry('RetentionEvent', 'Retention.ContractEnd', {
     obsolete: 0,
     id: 'Retention.ContractEnd',
-    label_en: 'Contract End',
-    label_fr: 'Fin de contrat',
+    label: 'Contract End',
   });
 });
 

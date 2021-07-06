@@ -1,3 +1,4 @@
-id,label_en,label_fr,obsolete
-"documentMoved","Document Moved","Document Déplacé",0
-"documentModified","Document Modified","Document Modifié",0
+"id","label","obsolete","ordering"
+documentMoved,"label.directories.retention_event.moved",0,1
+documentModified,"label.directories.retention_event.modified",0,2
+
