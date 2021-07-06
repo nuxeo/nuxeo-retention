@@ -44,19 +44,7 @@ nuxeo:
       pullPolicy: Always
     persistence:
       enabled: disable
-    packages: nuxeo-web-ui
-    livenessProbe:
-      initialDelaySeconds: 420
-      periodSeconds: 20
-      successThreshold: 1
-      failureThreshold: 5
-      timeoutSeconds: 10
-    readinessProbe:
-        periodSeconds: 20
-        initialDelaySeconds: 420
-        successThreshold: 1
-        timeoutSeconds: 10
-        failureThreshold: 5
+    packages: nuxeo-web-ui /packages/nuxeo-coldstorage-retention-*.zip
     customEnvs:
       - name: NUXEO_CLID
         valueFrom:
@@ -89,12 +77,5 @@ nuxeo:
         effect: NoSchedule
     nodeSelector:
       team: napps
-    resources:
-      requests:
-        cpu: 500m
-        memory: 250Mi
-      limits:
-        cpu: 1
-        memory: 500Mi
 tags:
   mongodb: true
