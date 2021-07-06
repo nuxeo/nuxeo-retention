@@ -62,7 +62,6 @@ class RetentionEvents extends mixinBehaviors([I18nBehavior], Nuxeo.Element) {
             role="widget"
             value="{{_event}}"
             label="[[i18n('retention.rule.label.startPolicy.eventBased.event.description')]]"
-            dbl10n
             required
             query-results-filter="[[_filterEvents]]"
             directory-name="RetentionEvent"
