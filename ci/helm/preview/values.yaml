@@ -63,7 +63,7 @@ nuxeo:
       - name: NUXEO_CLID
         valueFrom:
           secretKeyRef:
-            name: instance-clid
+            name: instance-clid-preprod
             key: CLID
     tolerations:
     - key: team
