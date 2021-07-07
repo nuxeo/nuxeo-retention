@@ -309,7 +309,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     @Override
     public List<String> getAcceptedEvents() {
-        return acceptedEvents;
+        return acceptedEvents != null ? acceptedEvents : Collections.emptyList();
     }
 
     protected List<String> computeAcceptedEvents() {
