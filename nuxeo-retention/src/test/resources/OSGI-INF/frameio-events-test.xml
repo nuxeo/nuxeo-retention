@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.frameio.events">
+  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
+    <event name="frameioAssetContentAvailable" />
+  </extension>
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
+    <listener name="frameioAssetContentAvailable"
+              class="org.nuxeo.retention.test.DownloadFrameIOAssetListener">
+      <event>frameioAssetContentAvailable</event>
+    </listener>
+  </extension>
+</component>

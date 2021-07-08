@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.frameio.actions">
+  <extension target="org.nuxeo.ecm.core.bulk" point="actions">
+    <action name="downloadAssetAction" inputStream="frameio/downloadAssetAction" bucketSize="100" batchSize="20" />
+  </extension>
+  <!--For testing / POC purpose we are hardcoding the processor policy. We might consider extract them as a nuxeo properties to simply the tuning-->
+  <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
+    <streamProcessor name="downloadAsset" class="org.nuxeo.retention.test.DownloadAssetAction"
+                     defaultConcurrency="2" defaultPartitions="4">
+      <policy name="default" maxRetries="3" delay="1s" maxDelay="10s" continueOnFailure="true" />
+    </streamProcessor>
+  </extension>
+</component>
