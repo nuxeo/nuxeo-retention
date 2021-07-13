@@ -18,10 +18,10 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+library identifier: "nuxeo-napps-tools@0.0.7"
 
 def appName = 'nuxeo-retention'
-def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
+def containerLabel = 'maven'
 
 String currentVersion() {
   return readMavenPom().getVersion()
@@ -29,32 +29,6 @@ String currentVersion() {
 
 String getReleaseVersion(String version) {
   return version.replace('-SNAPSHOT', '')
-}
-
-def runBackEndUnitTests() {
-  return {
-    stage('BackEnd') {
-      container('maven') {
-        script {
-          try {
-            echo '''
-              ----------------------------------------
-              Run BackEnd Unit tests
-              ----------------------------------------
-            '''
-            sh """
-              cd ${BACKEND_FOLDER}
-              mvn ${MAVEN_ARGS} -V -T0.8C test
-            """
-          } catch (err) {
-            throw err
-          } finally {
-            junit testResults: "**/target/surefire-reports/*.xml"
-          }
-        }
-      }
-    }
-  }
 }
 
 pipeline {
@@ -91,6 +65,7 @@ pipeline {
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}-release"
+    SKAFFOLD_VERSION = 'v1.26.1'
     VERSION = getReleaseVersion(CURRENT_VERSION)
   }
   stages {
@@ -147,13 +122,13 @@ pipeline {
       steps {
         script {
           String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-          slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'gray')
+          slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
     stage('Set Labels') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           echo '''
             ----------------------------------------
             Set Kubernetes resource labels
@@ -169,7 +144,7 @@ pipeline {
     }
     stage('Setup') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.setup()
             sh 'env'
@@ -179,14 +154,14 @@ pipeline {
     }
     stage('Fetch Release Candidate') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           sh "git fetch origin 'refs/tags/v${RC_VERSION}*:refs/tags/v${RC_VERSION}*'"
         }
       }
     }
     stage('Checkout') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.gitCheckout("v${RC_VERSION}")
           }
@@ -195,7 +170,7 @@ pipeline {
     }
     stage('Update Version') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.updateVersion("${VERSION}")
           }
@@ -204,7 +179,7 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.mavenCompile()
           }
@@ -213,7 +188,7 @@ pipeline {
     }
     stage('Linting') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.lint("${FRONTEND_FOLDER}")
           }
@@ -224,14 +199,15 @@ pipeline {
       steps {
         script {
           def stages = [:]
-          stages['backend'] = runBackEndUnitTests()
+          def envVars = ["TEST=TEST"] // can't be empty
+          stages['backend'] = nxNapps.runBackendUnitTests(envVars)
           parallel stages
         }
       }
     }
     stage('Package') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.mavenPackage()
           }
@@ -240,11 +216,12 @@ pipeline {
     }
     stage('Build Docker Image') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
+            nxNapps.setupKaniko("${SKAFFOLD_VERSION}")
             nxNapps.dockerBuild(
               "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
-              "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
+              "${WORKSPACE}/ci/docker", "${WORKSPACE}/ci/docker/skaffold.yaml"
             )
           }
         }
@@ -252,19 +229,19 @@ pipeline {
     }
     stage('Buid Helm Chart') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
           }
         }
       }
     }
-    stage('Deploy Retention Preview') {
+    stage('Deploy Preview') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxKube.helmDeployPreview(
-              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${repositoryUrl}", 'false'
+              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${GIT_URL}", 'false'
             )
           }
         }
@@ -272,7 +249,7 @@ pipeline {
     }
     stage('Run Functional Tests') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             try {
               retry(2) {
@@ -299,7 +276,7 @@ pipeline {
       }
       post {
         always {
-          container('maven') {
+          container(containerLabel) {
             script {
               //cleanup the preview
               nxKube.helmDeleteNamespace("${PREVIEW_NAMESPACE}")
@@ -326,7 +303,7 @@ pipeline {
       stages {
         stage('Git Commit and Tag') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               script {
                 nxNapps.gitCommit("${MESSAGE}", '-a')
                 nxNapps.gitTag("${TAG}", "${MESSAGE}")
@@ -336,7 +313,7 @@ pipeline {
         }
         stage('Package') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               script {
                 echo """
                   -------------------------------------------------
@@ -361,7 +338,7 @@ pipeline {
         }
         stage('Git Push') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               echo """
                 --------------------------
                 Git push ${TAG}
@@ -386,7 +363,7 @@ pipeline {
         }
       }
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             //cleanup files updated by other stages
             sh 'git reset --hard'
