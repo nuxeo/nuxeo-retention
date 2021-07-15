@@ -21,7 +21,7 @@
   "retentionAnalytics.from": "Od",
   "retentionAnalytics.to": "Do",
   "retentionAnalytics.retentionByDocType": "Retencja według typu dokumentu",
-  "retentionAnalytics.legalHoldByDocType": "Blokada prawna według rodzaju dokumentu",
+  "retentionAnalytics.legalHoldByDocType": "Blokada prawna według typu dokumentu",
   "retentionAnalytics.expirationNext12Months.heading": "Planowana retencja",
   "retentionAnalytics.retentionStatus": "Status retencji",
   "retention.events": "Zdarzenia retencji",
