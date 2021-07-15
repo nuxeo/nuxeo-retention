@@ -54,6 +54,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.core.management")
+@Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-vocabularies.xml")

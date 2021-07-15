@@ -1,17 +1,13 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.retention.vocabularies" version="1.0">
+  
+  <require>org.nuxeo.ecm.directories</require>
+  
   <extension target="org.nuxeo.ecm.directory.GenericDirectory" point="directories">
-
-    <directory name="template-l10nvocabulary" template="true" extends="template-directory">
-      <!-- XXX move to default config on master -->
-      <schema>l10nvocabulary</schema>
-      <idField>id</idField>
-    </directory>
-
-    <directory extends="template-l10nvocabulary" name="RetentionEnd">
+    <directory extends="template-vocabulary" name="RetentionEnd">
       <dataFile>directories/retention_end.csv</dataFile>
     </directory>
-    <directory extends="template-l10nvocabulary" name="RetentionEvent">
+    <directory extends="template-vocabulary" name="RetentionEvent">
       <dataFile>directories/retention_event.csv</dataFile>
     </directory>
   </extension>
