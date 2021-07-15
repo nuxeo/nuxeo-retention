@@ -19,7 +19,7 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+library identifier: "nuxeo-napps-tools@0.0.6"
 
 def appName = 'nuxeo-retention'
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
@@ -111,7 +111,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('compile')
+            gitHubBuildStatus('compile')
             nxNapps.mavenCompile()
           }
         }
@@ -119,7 +119,7 @@ pipeline {
       post {
         always {
           script {
-            gitHubBuildStatus.set('compile')
+            gitHubBuildStatus('compile')
           }
         }
       }
@@ -128,7 +128,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('lint')
+            gitHubBuildStatus('lint')
             nxNapps.lint("${FRONTEND_FOLDER}")
           }
         }
@@ -136,7 +136,30 @@ pipeline {
       post {
         always {
           script {
-            gitHubBuildStatus.set('lint')
+            gitHubBuildStatus('lint')
+          }
+        }
+      }
+    }
+    stage('Sonar') {
+      environment {
+        SONAR_PROJECT = 'nuxeo_nuxeo-retention'
+        SONAR_BRANCH = "${BRANCH_LC}"
+      }
+      steps {
+        container('maven') {
+          script {
+            try {
+              if (nxNapps.isPullRequest()) {
+                env.SONAR_OPTION = "-Dsonar.branch.target=${CHANGE_TARGET}"
+              }
+              nxSonar('sonar-retention', "${SONAR_PROJECT}", "${SONAR_BRANCH}", "${SONAR_OPTION}")
+            } catch(err) {
+              throw err
+            } finally {
+              archive '**/target/failsafe-reports/*, **/target/*.png, **/target/**/*.log, **/target/**/log/*'
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/**/*.xml'
+            }
           }
         }
       }
@@ -146,14 +169,14 @@ pipeline {
         script {
           def stages = [:]
           stages['backend'] = runBackEndUnitTests()
-          gitHubBuildStatus.set('utests/backend')
+          gitHubBuildStatus('utests/backend')
           parallel stages
         }
       }
       post {
         always {
           script {
-            gitHubBuildStatus.set('utests/backend')
+            gitHubBuildStatus('utests/backend')
           }
         }
       }
@@ -162,7 +185,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('package')
+            gitHubBuildStatus('package')
             nxNapps.mavenPackage()
           }
         }
@@ -170,7 +193,7 @@ pipeline {
       post {
         always {
           script {
-            gitHubBuildStatus.set('package')
+            gitHubBuildStatus('package')
           }
         }
       }
@@ -179,7 +202,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('docker/build')
+            gitHubBuildStatus('docker/build')
             nxNapps.dockerBuild(
               "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
               "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
@@ -190,7 +213,7 @@ pipeline {
       post {
         always {
           script {
-            gitHubBuildStatus.set('docker/build')
+            gitHubBuildStatus('docker/build')
           }
         }
       }
@@ -199,7 +222,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('helm/chart/build')
+            gitHubBuildStatus('helm/chart/build')
             nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
           }
         }
@@ -207,7 +230,7 @@ pipeline {
       post {
         always {
           script {
-            gitHubBuildStatus.set('helm/chart/build')
+            gitHubBuildStatus('helm/chart/build')
           }
         }
       }
@@ -227,7 +250,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            gitHubBuildStatus.set('ftests')
+            gitHubBuildStatus('ftests')
             try {
               retry(3) {
                 nxNapps.runFunctionalTests(
@@ -262,7 +285,7 @@ pipeline {
                   nxKube.helmDeleteNamespace("${PREVIEW_NAMESPACE}")
                 }
               } finally {
-                gitHubBuildStatus.set('ftests')
+                gitHubBuildStatus('ftests')
               }
             }
           }
@@ -299,14 +322,14 @@ pipeline {
           steps {
             container('maven') {
               script {
-                gitHubBuildStatus.set('publish/package')
+                gitHubBuildStatus('publish')
                 echo """
-                  -------------------------------------------------
+                  --------------------------------------------------------------
                   Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
-                  -------------------------------------------------
+                  --------------------------------------------------------------
                 """
                 String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
-                connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                connectUploadPackage("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
               }
             }
           }
@@ -317,7 +340,7 @@ pipeline {
                 artifacts: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
               )
               script {
-                gitHubBuildStatus.set('publish/package')
+                gitHubBuildStatus('publish')
               }
             }
           }
@@ -353,14 +376,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     unsuccessful {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }
