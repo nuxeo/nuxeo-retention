@@ -26,7 +26,7 @@
   "retentionAnalytics.retentionStatus": "Status retencji",
   "retention.events": "Zdarzenia retencji",
   "retention.events.input": "Wejście zdarzenia",
-  "retention.events.fire": "Zainicjowanie zdarzenia",
+  "retention.events.fire": "Wyzwolenie zdarzenia",
   "retention.events.empty": "Brak przeszłych zdarzeń",
   "retention.events.fired.success": "Zdarzenie zostało pomyślnie zainicjowane",
   "retention.events.history": "Przeszłe zdarzenia retencji",
