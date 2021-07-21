@@ -42,6 +42,10 @@ public class RetentionConstants {
 
     public static final String EXPRESSION_PROP = "retention_def:expression";
 
+    /** 
+     * Right now is not being used but we may want to use it in the future for example 
+     * to send an email when a document becomes a record.
+     */
     public static final String BEGIN_ACTIONS_PROP = "retention_def:beginActions";
 
     public static final String END_ACTIONS_PROP = "retention_def:endActions";
