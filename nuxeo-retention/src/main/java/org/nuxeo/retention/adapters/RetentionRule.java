@@ -65,14 +65,6 @@ public class RetentionRule {
         return (String) document.getPropertyValue(RetentionConstants.APPLICATION_POLICY_PROP);
     }
 
-    public List<String> getBeginActions() {
-        Serializable propertyValue = document.getPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP);
-        if (propertyValue == null) {
-            return Collections.emptyList();
-        }
-        return Arrays.asList((String[]) propertyValue);
-    }
-
     public List<String> getDocTypes() {
         @SuppressWarnings("unchecked")
         List<String> propertyValue = (List<String>) document.getPropertyValue(RetentionConstants.DOC_TYPES_PROP);
@@ -193,10 +185,6 @@ public class RetentionRule {
 
     public void setApplicationPolicy(ApplicationPolicy policy) {
         document.setPropertyValue(RetentionConstants.APPLICATION_POLICY_PROP, policy.name().toLowerCase());
-    }
-
-    public void setBeginActions(List<String> actions) {
-        document.setPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP, (Serializable) actions);
     }
 
     public void setDocTypes(List<String> types) {

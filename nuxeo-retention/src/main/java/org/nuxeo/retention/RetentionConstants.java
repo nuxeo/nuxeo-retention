@@ -42,8 +42,6 @@ public class RetentionConstants {
 
     public static final String EXPRESSION_PROP = "retention_def:expression";
 
-    public static final String BEGIN_ACTIONS_PROP = "retention_def:beginActions";
-
     public static final String END_ACTIONS_PROP = "retention_def:endActions";
 
     public static final String DURATION_MILLIS_PROP = "retention_def:durationMillis";

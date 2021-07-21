@@ -121,7 +121,6 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         document.addFacet(RetentionConstants.RECORD_FACET);
         Record record = document.getAdapter(Record.class);
         record.setRule(rule, session);
-        executeRuleBeginActions(record, session);
         if (retainUntil != null) {
             session.setRetainUntil(document.getRef(), retainUntil, null);
         }
@@ -170,13 +169,6 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             log.info("Cannot attach rule {} on document {}", () -> rule.getDocument().getPathAsString(),
                     document::getPathAsString);
             return false;
-        }
-    }
-
-    public void executeRuleBeginActions(Record record, CoreSession session) {
-        RetentionRule rule = record.getRule(session);
-        if (rule != null) {
-            executeRuleActions(record.getDocument(), rule.getBeginActions(), session);
         }
     }
 

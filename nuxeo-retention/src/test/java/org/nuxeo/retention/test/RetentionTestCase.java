@@ -126,7 +126,6 @@ public abstract class RetentionTestCase {
         rule.setStartingPointExpression(startingPointExpression);
         rule.setStartingPointValue(startingPointValue);
         rule.setMetadataXpath(metadataXPath);
-        rule.setBeginActions(beginActions);
         rule.setEndActions(endActions);
         session.createDocument(doc);
         return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
