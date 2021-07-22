@@ -14,7 +14,7 @@ Feature: Legal Hold
     Then I cannot set the legal hold on the document
 
   Scenario: Set/Unset Legal Hold
-    Given user "John" exists
+    Given user "John" exists in group "RecordManager"
     And "John" has ManageLegalHold permission on the document
     When I login as "John"
     And I browse to the document
@@ -31,8 +31,15 @@ Feature: Legal Hold
     And I cannot unset the legal hold on the document
     When I logout
     And I login as "John"
+    And I navigate to Retention Search page
+    And I search for documents Under legal hold
+    Then I can see 1 document in search results
     And I browse to the document
     Then I see the document is under legal hold
     When I unset the legal hold on the document
     Then I see the document is not under legal hold
     And I can edit main blob
+    When I navigate to Retention Search page
+    And I clear the search filters
+    And I search for documents Under legal hold
+    Then I can see 0 document in search results
