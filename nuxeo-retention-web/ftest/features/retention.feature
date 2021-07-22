@@ -84,3 +84,6 @@ Feature: Retention
     And I fire the "Contract End" retention event with "foo" input
     And I browse to the document
     Then I see the document is under retention
+    And I navigate to Retention Search page
+    And I search for documents with Retention Rule "ContractFooEnded"
+    Then I can see 1 document in search results

@@ -1,6 +1,6 @@
-import { Then } from 'cucumber';
+import { When, Then } from 'cucumber';
 
-Then('I set a legal hold on the document with description {string}', function (desc) {
+When('I set a legal hold on the document with description {string}', function (desc) {
   this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button:not([hold])');
   const dialog = this.ui.browser.el.element('nuxeo-hold-toggle-button #dialog');
   dialog.waitForVisible();
@@ -10,7 +10,7 @@ Then('I set a legal hold on the document with description {string}', function (d
   dialog.click('paper-button[name = "hold"]');
 });
 
-Then('I unset the legal hold on the document', function () {
+When('I unset the legal hold on the document', function () {
   this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button[hold]');
 });
 
@@ -56,7 +56,7 @@ Then('I cannot see the retention menu', function () {
   this.ui.drawer.waitForNotVisible('nuxeo-menu-icon[name="retention"]');
 });
 
-Then('I go to the retention event', function () {
+When('I go to the retention event', function () {
   const menu = this.ui.drawer.open('retention');
   return driver.waitUntil(() => {
     try {
@@ -70,13 +70,27 @@ Then('I go to the retention event', function () {
   });
 });
 
-Then('I go to the retention rules location', function () {
+When('I go to the retention rules location', function () {
   const menu = this.ui.drawer.open('retention');
   return driver.waitUntil(() => {
     try {
       // XXX click sometimes hits nuxeo-browser, resulting in an error
       menu.waitForVisible('nuxeo-menu-item[name="rules"]');
       menu.click('nuxeo-menu-item[name="rules"]');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  });
+});
+
+When('I navigate to Retention Search page', function () {
+  const menu = this.ui.drawer.open('retention');
+  return driver.waitUntil(() => {
+    try {
+      // XXX click sometimes hits nuxeo-browser, resulting in an error
+      menu.waitForVisible('nuxeo-menu-item[name="search"]');
+      menu.click('nuxeo-menu-item[name="search"]');
       return true;
     } catch (e) {
       return false;
@@ -109,7 +123,7 @@ Then('I see the document is under indeterminate retention', function () {
   page.infoBar.waitForVisible('#retentionInfoBar #indeterminateRetention');
 });
 
-Then('I have a "ContractEnd" retention event', () => {
+When('I have a "ContractEnd" retention event', () => {
   fixtures.vocabularies.createEntry('RetentionEvent', 'Retention.ContractEnd', {
     obsolete: 0,
     id: 'Retention.ContractEnd',
@@ -118,7 +132,7 @@ Then('I have a "ContractEnd" retention event', () => {
   });
 });
 
-Then('I fire the {string} retention event with {string} input', function (eventName, eventInput) {
+When('I fire the {string} retention event with {string} input', function (eventName, eventInput) {
   this.ui.el.waitForVisible('nuxeo-retention-events');
   const evtsElement = this.ui.el.element('nuxeo-retention-events');
   evtsElement.waitForVisible('nuxeo-directory-suggestion[name="event"]');
@@ -129,4 +143,37 @@ Then('I fire the {string} retention event with {string} input', function (eventN
   fixtures.layouts.setValue(eventInputElt, eventInput);
   evtsElement.waitForEnabled('paper-button[name="fire"]');
   evtsElement.click('paper-button[name="fire"]');
+});
+
+When('I search for documents Under legal hold', function () {
+  this.ui.el.waitForVisible('nuxeo-search-page#retentionSearch');
+  const searchPage = this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const filterBtn = searchPage.element('nuxeo-retention-search-results nuxeo-quick-filters');
+  filterBtn.waitForVisible();
+  filterBtn.click();
+});
+
+When('I search for documents with Retention Rule {string}', function (retentionRule) {
+  this.ui.el.waitForVisible('nuxeo-search-page#retentionSearch');
+  const searchPage = this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const rulesSelectElt = searchPage.element('nuxeo-dropdown-aggregation');
+  fixtures.layouts.setValue(rulesSelectElt, retentionRule);
+});
+
+When('I clear the search filters', function () {
+  this.ui.el.waitForVisible('nuxeo-search-page#retentionSearch');
+  const searchPage = this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const clearBtn = searchPage.element('div.buttons paper-button');
+  clearBtn.click();
+});
+
+Then('I can see {int} document in search results', function (results) {
+  this.ui.el.waitForVisible('nuxeo-search-page#retentionSearch');
+  const searchPage = this.ui.el.element('nuxeo-search-page#retentionSearch');
+  if (results === 0) {
+    return !searchPage.element('nuxeo-retention-search-results span.resultsCount').isVisible();
+  }
+  return driver.waitUntil(() => {
+    return searchPage.element('nuxeo-retention-search-results span.resultsCount').getText() === `${results} result(s)`;
+  });
 });
