@@ -25,8 +25,6 @@ Feature: Retention
       | name         | value             |
       | title        | ImmediateRule     |
       | startPolicy  | Immediate         |
-      | years        | 1                 |
-      | months       | 1                 |
       | days         | 1                 |
     Given I have a File document
     And This document has file "sample.png" for content
@@ -46,9 +44,7 @@ Feature: Retention
       | title        | DcExpiredRule       |
       | startPolicy  | Based on a metadata |
       | xpath        | dc:expired          |
-      | years        | 1                   |
-      | months       | 0                   |
-      | days         | 0                   |
+      | days         | 2                   |
     Given I have a File document
     And This document has file "sample.png" for content
     And "John" has ManageRecord permission on the document
@@ -72,9 +68,7 @@ Feature: Retention
       | startPolicy  | Based on an event   |
       | event        | Contract End        |
       | eventInput   | foo                 |
-      | years        | 0                   |
-      | months       | 1                   |
-      | days         | 0                   |
+      | days         | 3                   |
     Given I have a File document
     And This document has file "sample.png" for content
     And "John" has ManageRecord permission on the document
