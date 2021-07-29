@@ -123,6 +123,10 @@ Then('I see the document is under indeterminate retention', function () {
   page.infoBar.waitForVisible('#retentionInfoBar #indeterminateRetention');
 });
 
+Then('I cannot see the trash button', function () {
+  this.ui.browser.trashDocumentButton.isVisible().should.be.equals(false);
+});
+
 When('I have a "ContractEnd" retention event', () => {
   fixtures.vocabularies.createEntry('RetentionEvent', 'Retention.ContractEnd', {
     obsolete: 0,
@@ -176,4 +180,8 @@ Then('I can see {int} document in search results', function (results) {
   return driver.waitUntil(() => {
     return searchPage.element('nuxeo-retention-search-results span.resultsCount').getText() === `${results} result(s)`;
   });
+});
+
+When('I wait {int} seconds', function (seconds) {
+  driver.pause(seconds * 1000);
 });
