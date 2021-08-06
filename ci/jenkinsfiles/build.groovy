@@ -19,36 +19,16 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+@Library('nuxeo-napps-tools@0.0.7') _
 
 def appName = 'nuxeo-retention'
-def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
-
-def runBackEndUnitTests() {
-  return {
-    stage('BackEnd') {
-      container('maven') {
-        script {
-          try {
-            echo '''
-              ----------------------------------------
-              Run BackEnd Unit tests
-              ----------------------------------------
-            '''
-            sh """
-              cd ${BACKEND_FOLDER}
-              mvn ${MAVEN_ARGS} -V -T0.8C test
-            """
-          } catch (err) {
-            throw err
-          } finally {
-            junit testResults: "**/target/surefire-reports/*.xml"
-          }
-        }
-      }
-    }
-  }
-}
+def containerLabel = 'maven'
+def mcontainers = [
+  'dev': 'maven-default',
+  'mongodb': 'maven-mongodb',
+  'pgsql': 'maven',
+]
+def targetTestEnvs = ['dev', 'mongodb', 'pgsql',]
 
 pipeline {
   agent {
@@ -77,11 +57,13 @@ pipeline {
     REFERENCE_BRANCH = 'master'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
     SLACK_CHANNEL = "${env.DRY_RUN == 'true' ? 'infra-napps' : 'napps-notifs'}"
+    SKAFFOLD_VERSION = 'v1.26.1'
+    UNIT_TEST_NAMESPACE_SUFFIX = "${APP_NAME}-${BRANCH_LC}".toLowerCase()
   }
   stages {
     stage('Set Labels') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.setLabels()
           }
@@ -90,7 +72,7 @@ pipeline {
     }
     stage('Setup') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.setup()
             env.VERSION = nxNapps.getRCVersion()
@@ -98,9 +80,17 @@ pipeline {
         }
       }
     }
+    stage('Summary') {
+      steps {
+        script {
+          println("Test environments: ${targetTestEnvs.join(' ')}")
+          println("Maven Args: ${MAVEN_ARGS}")
+        }
+      }
+    }
     stage('Update Version') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
             nxNapps.updateVersion("${VERSION}")
           }
@@ -109,77 +99,120 @@ pipeline {
     }
     stage('Compile') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('compile')
+            gitHubBuildStatus('compile')
             nxNapps.mavenCompile()
           }
         }
       }
       post {
         always {
-          script {
-            gitHubBuildStatus.set('compile')
-          }
+          gitHubBuildStatus('compile')
         }
       }
     }
     stage('Linting') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('lint')
+            gitHubBuildStatus('lint')
             nxNapps.lint("${FRONTEND_FOLDER}")
           }
         }
       }
       post {
         always {
-          script {
-            gitHubBuildStatus.set('lint')
-          }
+          gitHubBuildStatus('lint')
         }
       }
     }
-    stage('Run Unit Tests') {
+    stage('Run runtime unit tests') {
+      steps {
+        container(containerLabel) {
+          script {
+            def stages = [:]
+            def envVars = ["TEST=TEST"]
+            stages['backend'] = nxNapps.runBackendUnitTests(envVars)
+            gitHubBuildStatus('utests/backend')
+            parallel stages
+          }
+        }
+      }
+      post {
+        always {
+          gitHubBuildStatus('utests/backend')
+        }
+      }
+    }
+    stage('Deploy Env') {
       steps {
         script {
           def stages = [:]
-          stages['backend'] = runBackEndUnitTests()
-          gitHubBuildStatus.set('utests/backend')
+          targetTestEnvs.each { env ->
+            String containerName = mcontainers["${env}"]
+            stages["Deploy - ${env}"] =
+              nxKube.helmDeployUnitTestEnvStage(
+                "${containerName}", "${env}", "${UNIT_TEST_NAMESPACE_SUFFIX}-${env}", 'ci/helm/utests'
+              )
+          }
+          parallel stages
+        }
+      }
+    }
+    stage('Run unit tests') {
+      steps {
+        script {
+          gitHubBuildStatus('utests')
+          def stages = [:]
+          def parameters = [:]
+          targetTestEnvs.each { env ->
+            String containerName = mcontainers["${env}"]
+            String namespace  = "${UNIT_TEST_NAMESPACE_SUFFIX}-${env}"
+            stages["Run ${env} unit tests"] = nxNapps.runUnitTestStage("${containerName}", "${env}", "${WORKSPACE}", "${namespace}", ["TEST=TEST"])
+          }
           parallel stages
         }
       }
       post {
         always {
           script {
-            gitHubBuildStatus.set('utests/backend')
+            try {
+              targetTestEnvs.each { env ->
+                container('maven') {
+                  nxKube.helmDestroyUnitTestsEnv(
+                    "${UNIT_TEST_NAMESPACE_SUFFIX}-${env}"
+                  )
+                }
+              }
+            } finally {
+              gitHubBuildStatus('utests')
+            }
           }
         }
       }
     }
     stage('Package') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('package')
+            gitHubBuildStatus('package')
             nxNapps.mavenPackage()
           }
         }
       }
       post {
         always {
-          script {
-            gitHubBuildStatus.set('package')
-          }
+          gitHubBuildStatus('package')
         }
       }
     }
     stage('Build Docker Image') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('docker/build')
+            gitHubBuildStatus('docker/build')
+            nxNapps.setupKaniko("${SKAFFOLD_VERSION}")
             nxNapps.dockerBuild(
               "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
               "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
@@ -189,45 +222,48 @@ pipeline {
       }
       post {
         always {
-          script {
-            gitHubBuildStatus.set('docker/build')
-          }
+          gitHubBuildStatus('docker/build')
         }
       }
     }
     stage('Buid Helm Chart') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('helm/chart/build')
+            gitHubBuildStatus('helm/chart/build')
             nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
+            nxNapps.gitCheckout("${CHART_DIR}/requirements.yaml")
           }
         }
       }
       post {
         always {
-          script {
-            gitHubBuildStatus.set('helm/chart/build')
-          }
+          gitHubBuildStatus('helm/chart/build')
         }
       }
     }
     stage('Deploy Preview') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
+            gitHubBuildStatus('helm/chart/deploy')
             nxKube.helmDeployPreview(
-              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${repositoryUrl}", "${IS_REFERENCE_BRANCH}"
+              "${PREVIEW_NAMESPACE}", "${CHART_DIR}", "${GIT_URL}", "${IS_REFERENCE_BRANCH}"
             )
           }
+        }
+      }
+      post {
+        always {
+          gitHubBuildStatus('helm/chart/deploy')
         }
       }
     }
     stage('Run Functional Tests') {
       steps {
-        container('maven') {
+        container(containerLabel) {
           script {
-            gitHubBuildStatus.set('ftests')
+            gitHubBuildStatus('ftests')
             try {
               retry(3) {
                 nxNapps.runFunctionalTests(
@@ -254,7 +290,7 @@ pipeline {
       }
       post {
         always {
-          container('maven') {
+          container(containerLabel) {
             script {
               //cleanup the preview
               try {
@@ -262,7 +298,7 @@ pipeline {
                   nxKube.helmDeleteNamespace("${PREVIEW_NAMESPACE}")
                 }
               } finally {
-                gitHubBuildStatus.set('ftests')
+                gitHubBuildStatus('ftests')
               }
             }
           }
@@ -287,7 +323,7 @@ pipeline {
       stages {
         stage('Git Commit and Tag') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               script {
                 nxNapps.gitCommit("${MESSAGE}", '-a')
                 nxNapps.gitTag("${TAG}", "${MESSAGE}")
@@ -297,16 +333,16 @@ pipeline {
         }
         stage('Package') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               script {
-                gitHubBuildStatus.set('publish/package')
+                gitHubBuildStatus('publish/package')
                 echo """
-                  -------------------------------------------------
+                  -------------------------------------------------------------
                   Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
-                  -------------------------------------------------
+                  -------------------------------------------------------------
                 """
                 String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
-                connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                connectUploadPackage("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
               }
             }
           }
@@ -316,15 +352,13 @@ pipeline {
                 allowEmptyArchive: true,
                 artifacts: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
               )
-              script {
-                gitHubBuildStatus.set('publish/package')
-              }
+              gitHubBuildStatus('publish/package')
             }
           }
         }
         stage('Git Push') {
           steps {
-            container('maven') {
+            container(containerLabel) {
               echo """
                 --------------------------
                 Git push ${TAG}
@@ -353,14 +387,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     unsuccessful {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }

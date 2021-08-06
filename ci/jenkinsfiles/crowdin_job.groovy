@@ -19,10 +19,9 @@
  */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+@Library('nuxeo-napps-tools@0.0.7') _
 
-appName='nuxeo-retention'
-repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
+appName = 'nuxeo-retention'
 
 pipeline {
   agent {
@@ -146,11 +145,18 @@ pipeline {
     }
   }
   post {
-    unsuccessful {
+    failure {
       script {
         // update Slack Channel
         String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
+      }
+    }
+    unstable {
+      script {
+        // update Slack Channel
+        String message = "${JOB_NAME} - #${BUILD_NUMBER} ${currentBuild.currentResult} (<${BUILD_URL}|Open>)"
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
       }
     }
   }
