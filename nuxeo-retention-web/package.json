@@ -5,7 +5,7 @@
   "author": "Nuxeo",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@nuxeo/nuxeo-web-ui-ftest": "^3.1.0-rc.0",
+    "@nuxeo/nuxeo-web-ui-ftest": "3.0.4",
     "@open-wc/eslint-config": "^0.3.0",
     "@rollup/plugin-node-resolve": "^7.1.3",
     "cucumber": "^4.1.0",
