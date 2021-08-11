@@ -18,10 +18,9 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.4') _
+@Library('nuxeo-napps-tools@0.0.8') _
 
 def appName = 'nuxeo-retention'
-def repositoryUrl = 'https://github.com/nuxeo/nuxeo-retention/'
 
 String currentVersion() {
   return readMavenPom().getVersion()
@@ -29,32 +28,6 @@ String currentVersion() {
 
 String getReleaseVersion(String version) {
   return version.replace('-SNAPSHOT', '')
-}
-
-def runBackEndUnitTests() {
-  return {
-    stage('BackEnd') {
-      container('maven') {
-        script {
-          try {
-            echo '''
-              ----------------------------------------
-              Run BackEnd Unit tests
-              ----------------------------------------
-            '''
-            sh """
-              cd ${BACKEND_FOLDER}
-              mvn ${MAVEN_ARGS} -V -T0.8C test
-            """
-          } catch (err) {
-            throw err
-          } finally {
-            junit testResults: "**/target/surefire-reports/*.xml"
-          }
-        }
-      }
-    }
-  }
 }
 
 pipeline {
@@ -78,7 +51,6 @@ pipeline {
     BACKEND_FOLDER = "${WORKSPACE}/nuxeo-retention"
     BRANCH_NAME = GIT_BRANCH.replace('origin/', '')
     BRANCH_LC = "${BRANCH_NAME.toLowerCase().replace('.', '-')}"
-    CLEANUP_PREVIEW = 'true'
     CONNECT_PROD_URL = 'https://connect.nuxeo.com/nuxeo'
     CHART_DIR = 'ci/helm/preview'
     CURRENT_VERSION = currentVersion()
@@ -87,8 +59,7 @@ pipeline {
     JENKINS_HOME = '/root'
     MAVEN_DEBUG = '-e'
     MAVEN_OPTS = "${MAVEN_OPTS} -Xms512m -Xmx3072m"
-    NUXEO_VERSION = '2021.0'
-    NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
+    NUXEO_BASE_IMAGE = 'docker-private.packages.nuxeo.com/nuxeo/nuxeo:2021.6'
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}-release"
     VERSION = getReleaseVersion(CURRENT_VERSION)
@@ -147,7 +118,7 @@ pipeline {
       steps {
         script {
           String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-          slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'gray')
+          slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
@@ -220,12 +191,21 @@ pipeline {
         }
       }
     }
-    stage('Run Unit Tests') {
+    stage('Run runtime unit tests') {
       steps {
-        script {
-          def stages = [:]
-          stages['backend'] = runBackEndUnitTests()
-          parallel stages
+        container(containerLabel) {
+          script {
+            def stages = [:]
+            def envVars = ["TEST=TEST"]
+            stages['backend'] = nxNapps.runBackendUnitTests(envVars)
+            gitHubBuildStatus('utests/backend')
+            parallel stages
+          }
+        }
+      }
+      post {
+        always {
+          gitHubBuildStatus('utests/backend')
         }
       }
     }
@@ -255,11 +235,12 @@ pipeline {
         container('maven') {
           script {
             nxKube.helmBuildChart("${CHART_DIR}", 'values.yaml')
+            nxNapps.gitCheckout("${CHART_DIR}/requirements.yaml")
           }
         }
       }
     }
-    stage('Deploy Retention Preview') {
+    stage('Deploy Preview') {
       steps {
         container('maven') {
           script {
@@ -345,7 +326,7 @@ pipeline {
                 """
                 if (DRY_RUN_RELEASE == 'false') {
                   String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
-                  connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                connectUploadPackage("${packageFile}", 'connect-prod', "${CONNECT_PROD_URL}")
                 }
               }
             }
@@ -419,14 +400,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "Successfully released ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL} :tada:"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     failure {
       script {
         // update Slack Channel
         String message = "Failed to release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }
