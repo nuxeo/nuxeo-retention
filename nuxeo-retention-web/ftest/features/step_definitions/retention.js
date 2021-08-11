@@ -110,12 +110,9 @@ Then('I attach the {string} rule to the document', function (ruleName) {
 });
 
 Then('I see the document is under retention', function () {
-  driver.waitUntil(() => {
-    driver.refresh();
-    const page = this.ui.browser.documentPage(this.doc.type);
-    page.infoBar.waitForVisible('#retentionInfoBar #retention');
-    return true;
-  });
+  this.ui.reload();
+  const page = this.ui.browser.documentPage(this.doc.type);
+  page.infoBar.waitForVisible('#retentionInfoBar #retention');
 });
 
 Then('I see the document is under indeterminate retention', function () {
