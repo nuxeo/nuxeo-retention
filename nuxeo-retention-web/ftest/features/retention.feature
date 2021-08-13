@@ -19,6 +19,7 @@ Feature: Retention
   Scenario: Immediate Manual Rule
     When I login as "John"
     And I go to the retention rules location
+    Then I see the RetentionRule page
     When I click the Create Document button
     And I select RetentionRule from the Document Type menu
     And I create a document with the following properties:
@@ -37,6 +38,7 @@ Feature: Retention
   Scenario: Metadata-based Manual Rule
     When I login as "John"
     And I go to the retention rules location
+    Then I see the RetentionRule page
     When I click the Create Document button
     And I select RetentionRule from the Document Type menu
     And I create a document with the following properties:
@@ -60,6 +62,7 @@ Feature: Retention
     Given I have a "ContractEnd" retention event
     When I login as "John"
     And I go to the retention rules location
+    Then I see the RetentionRule page
     When I click the Create Document button
     And I select RetentionRule from the Document Type menu
     And I create a document with the following properties:
