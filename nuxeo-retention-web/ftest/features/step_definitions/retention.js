@@ -157,6 +157,7 @@ When('I search for documents with Retention Rule {string}', function (retentionR
   this.ui.el.waitForVisible('nuxeo-search-page#retentionSearch');
   const searchPage = this.ui.el.element('nuxeo-search-page#retentionSearch');
   const rulesSelectElt = searchPage.element('nuxeo-dropdown-aggregation');
+  rulesSelectElt.waitForVisible();
   fixtures.layouts.setValue(rulesSelectElt, retentionRule);
 });
 
