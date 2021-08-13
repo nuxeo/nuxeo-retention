@@ -1,4 +1,4 @@
-import { When, Then } from 'cucumber';
+import { When, Then } from '@cucumber/cucumber';
 
 When('I set a legal hold on the document with description {string}', function (desc) {
   this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button:not([hold])');
