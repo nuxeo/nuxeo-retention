@@ -24,9 +24,9 @@
 def appName = 'nuxeo-retention'
 def containerLabel = 'maven'
 def mcontainers = [
-  'dev': 'maven-default',
+  'dev': 'maven',
   'mongodb': 'maven-mongodb',
-  'pgsql': 'maven',
+  'pgsql': 'maven-pgsql',
 ]
 def targetTestEnvs = ['dev', 'mongodb', 'pgsql',]
 
