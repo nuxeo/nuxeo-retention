@@ -1,0 +1,47 @@
+aws:
+  enable: false
+debug: true
+npm:
+  install:
+    enable: true
+    command: |
+      cd nuxeo-retention-web
+      npm install
+  lint:
+    enable: true
+package: 'nuxeo-retention-package/target/nuxeo-retention-package-*.zip'
+preview:
+  enable: true
+  docker:
+    context: 'ci/docker'
+    skaffold: 'ci/docker/skaffold.yaml'
+publish:
+  connect:
+    enable: true
+    release:
+      connect-prod: 'https://connect.nuxeo.com/nuxeo'
+      connect-preprod: 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
+    integration:
+     #connect-prod: 'https://connect.nuxeo.com/nuxeo'
+     connect-preprod: 'https://nos-preprod-connect.nuxeocloud.com/nuxeo'
+  github: true
+  maven: true
+runFtest:
+  enable: true
+runUtest:
+  backend:
+    enable: true
+  frontend:
+    enable: false
+  multipleEnv: true
+mcontainers:
+  dev: 'maven'
+  mongodb: 'maven-mongodb'
+  pgsql: 'maven-pgsql'
+targetTestEnvs:
+  - dev
+  - mongodb
+  - pgsql
+slack:
+  enable: true
+  channel: 'napps-notifs'
