@@ -19,7 +19,10 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-@Library('nuxeo-napps-tools@0.0.7') _
+library identifier: 'nuxeo-napps-tools@0.0.9', retriever: modernSCM(
+        [$class       : 'GitSCMSource',
+         credentialsId: 'jx-pipeline-git-github',
+         remote       : 'https://github.com/nuxeo/nuxeo-napps-tools.git'])
 
 def appName = 'nuxeo-retention'
 def containerLabel = 'maven'
