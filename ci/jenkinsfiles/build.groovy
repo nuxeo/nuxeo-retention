@@ -19,7 +19,7 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-library identifier: 'nuxeo-napps-tools@improv-NXBT-3531-update-maven-workflow', retriever: modernSCM(
+library identifier: 'nuxeo-napps-tools@0.0.10', retriever: modernSCM(
         [$class       : 'GitSCMSource',
          credentialsId: 'jx-pipeline-git-github',
          remote       : 'https://github.com/nuxeo/nuxeo-napps-tools.git'])
@@ -27,7 +27,7 @@ library identifier: 'nuxeo-napps-tools@improv-NXBT-3531-update-maven-workflow', 
 def appName = 'nuxeo-retention'
 def configFile = 'ci/workflow.yaml'
 def defaultContainer = 'maven'
-def nxVersion = '2021.0'
+def nxVersion = '2021.4.16'
 def referenceBranch = 'lts-2021'
 def podLabel = 'builder-maven-nuxeo-lts-2021'
 
