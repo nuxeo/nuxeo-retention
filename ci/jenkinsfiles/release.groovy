@@ -18,7 +18,7 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-library identifier: 'nuxeo-napps-tools@0.0.9', retriever: modernSCM(
+library identifier: 'nuxeo-napps-tools@0.0.10', retriever: modernSCM(
         [$class       : 'GitSCMSource',
          credentialsId: 'jx-pipeline-git-github',
          remote       : 'https://github.com/nuxeo/nuxeo-napps-tools.git'])
@@ -150,7 +150,7 @@ pipeline {
       steps {
         script {
           String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-          slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'gray')
+          slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
@@ -348,7 +348,7 @@ pipeline {
                 """
                 if (DRY_RUN_RELEASE == 'false') {
                   String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
-                  connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                  connectUploadPackage.set("${packageFile}", 'connect-prod', "${CONNECT_PROD_URL}")
                 }
               }
             }
@@ -422,14 +422,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "Successfully released ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL} :tada:"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     failure {
       script {
         // update Slack Channel
         String message = "Failed to release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }

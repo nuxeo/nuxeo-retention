@@ -19,7 +19,7 @@
 */
 
 /* Using a version specifier, such as branch, tag, etc */
-library identifier: 'nuxeo-napps-tools@0.0.9', retriever: modernSCM(
+library identifier: 'nuxeo-napps-tools@0.0.10', retriever: modernSCM(
         [$class       : 'GitSCMSource',
          credentialsId: 'jx-pipeline-git-github',
          remote       : 'https://github.com/nuxeo/nuxeo-napps-tools.git'])
@@ -61,7 +61,6 @@ pipeline {
     REFERENCE_BRANCH = 'lts-2021'
     IS_REFERENCE_BRANCH = "${BRANCH_NAME == REFERENCE_BRANCH}"
     SLACK_CHANNEL = "${env.DRY_RUN == 'true' ? 'infra-napps' : 'napps-notifs'}"
-    SKAFFOLD_VERSION = 'v1.26.1'
     UNIT_TEST_NAMESPACE_SUFFIX = "${APP_NAME}-${BRANCH_LC}".toLowerCase()
   }
   stages {
@@ -216,7 +215,6 @@ pipeline {
         container(containerLabel) {
           script {
             gitHubBuildStatus('docker/build')
-            nxNapps.setupKaniko("${SKAFFOLD_VERSION}")
             nxNapps.dockerBuild(
               "${WORKSPACE}/nuxeo-retention-package/target/nuxeo-retention-package-*.zip",
               "${WORKSPACE}/ci/docker","${WORKSPACE}/ci/docker/skaffold.yaml"
@@ -340,7 +338,7 @@ pipeline {
             container(containerLabel) {
               script {
                 gitHubBuildStatus('publish/package')
-                                echo """
+                echo """
                   -------------------------------------------------------------
                   Upload Retention Package ${VERSION} to ${CONNECT_PREPROD_URL}
                   -------------------------------------------------------------
