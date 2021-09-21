@@ -44,7 +44,7 @@ nuxeo:
       pullPolicy: Always
     persistence:
       enabled: disable
-    packages: nuxeo-web-ui
+    packages: nuxeo-web-ui amazon-s3-online-storage
     livenessProbe:
       initialDelaySeconds: 420
       periodSeconds: 20
@@ -57,12 +57,52 @@ nuxeo:
         successThreshold: 1
         timeoutSeconds: 10
         failureThreshold: 5
+    customParams: |-
+      # AWS
+      nuxeo.aws.accessKeyId=${env:AWS_ACCESS_KEY}
+      nuxeo.aws.secretKey=${env:AWS_ACCESS_SECRET}
+      nuxeo.aws.region=${env:AWS_REGION}
+      nuxeo.s3storage.bucket_prefix=$BUCKET_PREFIX
+      nuxeo.s3storage.bucket=${env:AWS_S3_BUCKET}
+      # RETENTION
+      nuxeo.retention.s3storage=true
+      nuxeo.retention.bucket=${env:AWS_S3_RETENTION_BUCKET}
+      nuxeo.retention.bucket_prefix=$BUCKET_PREFIX
+      nuxeo.retention.mode=governance
+      nuxeo.retention.compliance.enabled=false
     customEnvs:
       - name: NUXEO_CLID
         valueFrom:
           secretKeyRef:
             name: instance-clid
             key: CLID
+      - name: AWS_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-iam-user-credentials
+            key: access_key_id
+      - name: AWS_ACCESS_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: aws-iam-user-credentials
+            key: secret_access_key
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef:
+            name: aws-config-napps
+            key: region
+      - name: AWS_S3_BUCKET
+        valueFrom:
+          secretKeyRef:
+            name: aws-config-napps
+            key: retention.bucket
+      - name: AWS_S3_RETENTION_BUCKET
+        valueFrom:
+          secretKeyRef:
+            name: aws-config-napps
+            key: retention.bucket.governance
+      - name: AWS_S3_BUCKET_PREFIX
+        value: $BUCKET_PREFIX
     tolerations:
     - key: team
       operator: Equal

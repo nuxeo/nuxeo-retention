@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<component name="records-s3-compliance">
+<#if "${nuxeo.retention.s3storage}" == "true">
+  <require>default-repository-config</require>
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="records">
+      <class>org.nuxeo.ecm.blob.s3.S3BlobProvider</class>
+      <property name="record">true</property>
+      <property name="awsid">${nuxeo.aws.accessKeyId}</property>
+      <property name="awssecret">${nuxeo.aws.secretKey}</property>
+      <property name="bucket">${nuxeo.retention.bucket}</property>
+      <property name="region">${nuxeo.aws.region}</property>
+      <property name="bucket_prefix">${nuxeo.retention.bucket_prefix}/</property>
+      <!-- min file age, in second, to be removed from cache if the size max size is reached, default is 3600 -->
+      <property name="cachesize">${nuxeo.s3storage.cachesize}</property>
+      <property name="connection.max">${nuxeo.s3storage.connection.max}</property>
+      <property name="connection.retry">${nuxeo.s3storage.connection.retry}</property>
+      <property name="connection.timeout">${nuxeo.s3storage.connection.timeout}</property>
+      <property name="socket.timeout">${nuxeo.s3storage.socket.timeout}</property>
+    </blobprovider>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher>
+      <class>org.nuxeo.ecm.core.blob.DefaultBlobDispatcher</class>
+      <property name="records">records</property>
+      <property name="default">default</property>
+    </blobdispatcher>
+  </extension>
+</#if>
+</component>

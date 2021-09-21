@@ -3,3 +3,19 @@ nuxeo.template.includes=
 retention.target=.
 
 nuxeo.retention.compliance.enabled=false
+
+
+# mandatory
+nuxeo.retention.bucket=
+nuxeo.core.binarymanager=org.nuxeo.ecm.blob.s3.S3BlobProvider
+
+# optional
+nuxeo.retention.bucket_prefix=
+nuxeo.s3storage.cachesize=100MB
+nuxeo.s3storage.connection.max=50
+nuxeo.s3storage.connection.retry=3
+nuxeo.s3storage.connection.timeout=50000
+nuxeo.s3storage.socket.timeout=50000
+nuxeo.core.blobstore.digestAsync=false
+
+nuxeo.retention.s3storage = false
