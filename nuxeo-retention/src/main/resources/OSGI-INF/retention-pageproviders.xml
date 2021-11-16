@@ -34,6 +34,7 @@
       <whereClause docType="RetentionSearch">
         <fixedPart>
           file:content/name IS NOT NULL
+          AND ecm:isVersion = 0
           AND ecm:mixinType != 'HiddenInNavigation'
         </fixedPart>
         <predicate parameter="ecm:fulltext" operator="FULLTEXT">
