@@ -149,8 +149,10 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
       this.$.opHold.async = true;
       this.$.opHold.params = {
         action: 'holdDocumentsAction',
-        parameters: JSON.stringify({ description: this.description }),
       };
+      if (this.description) {
+        this.$.opHold.params.parameters = JSON.stringify({ description: this.description });
+      }
       this.$.opHold.execute().then(() => {
         this._toggleDialog();
       });
@@ -158,7 +160,9 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
       this.$.opHold.op = 'Document.Hold';
       this.$.opHold.input = this.document;
       this.$.opHold.async = false;
-      this.$.opHold.params = { description: this.description };
+      if (this.description) {
+        this.$.opHold.params = { description: this.description };
+      }
       this.$.opHold.execute().then(() => {
         this._toggleDialog();
         this.dispatchEvent(
