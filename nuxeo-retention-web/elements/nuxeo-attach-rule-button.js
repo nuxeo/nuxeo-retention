@@ -43,6 +43,8 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
         }
       </style>
 
+      <nuxeo-operation id="waitEs" op="Elasticsearch.WaitForIndexing" params='{ "timeoutSecond": 5, "refresh": true }'>
+      </nuxeo-operation>
       <nuxeo-operation id="attachRuleOp" on-poll-start="_onPollStart" on-response="_onResponse"> </nuxeo-operation>
 
       <dom-if if="[[_isAvailable(provider, document)]]">
@@ -208,19 +210,21 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _onResponse() {
-    this.dispatchEvent(
-      new CustomEvent('notify', {
-        composed: true,
-        bubbles: true,
-        detail: { message: this.i18n('retention.rule.attachButton.attached') },
-      }),
-    );
-    this.dispatchEvent(
-      new CustomEvent('refresh', {
-        composed: true,
-        bubbles: true,
-      }),
-    );
+    this.$.waitEs.execute().then(() => {
+      this.dispatchEvent(
+        new CustomEvent('notify', {
+          composed: true,
+          bubbles: true,
+          detail: { message: this.i18n('retention.rule.attachButton.attached') },
+        }),
+      );
+      this.dispatchEvent(
+        new CustomEvent('refresh', {
+          composed: true,
+          bubbles: true,
+        }),
+      );
+    });
   }
 
   _isValid() {
