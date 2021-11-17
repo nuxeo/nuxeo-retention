@@ -39,6 +39,8 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
         }
       </style>
 
+      <nuxeo-operation id="waitEs" op="Elasticsearch.WaitForIndexing" params='{ "timeoutSecond": 5, "refresh": true }'>
+      </nuxeo-operation>
       <nuxeo-operation id="opHold" on-poll-start="_onHoldPollStart" on-response="_onHoldResponse"> </nuxeo-operation>
       <nuxeo-operation id="opUnhold" on-poll-start="_onUnholdPollStart" on-response="_onUnholdResponse">
       </nuxeo-operation>
@@ -244,19 +246,21 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _onHoldResponse() {
-    this.dispatchEvent(
-      new CustomEvent('notify', {
-        composed: true,
-        bubbles: true,
-        detail: { message: this.i18n('retention.holdToggleButton.bulk.hold') },
-      }),
-    );
-    this.dispatchEvent(
-      new CustomEvent('refresh', {
-        composed: true,
-        bubbles: true,
-      }),
-    );
+    this.$.waitEs.execute().then(() => {
+      this.dispatchEvent(
+        new CustomEvent('notify', {
+          composed: true,
+          bubbles: true,
+          detail: { message: this.i18n('retention.holdToggleButton.bulk.hold') },
+        }),
+      );
+      this.dispatchEvent(
+        new CustomEvent('refresh', {
+          composed: true,
+          bubbles: true,
+        }),
+      );
+    });
   }
 
   _onUnholdPollStart() {
@@ -270,19 +274,21 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _onUnholdResponse() {
-    this.dispatchEvent(
-      new CustomEvent('notify', {
-        composed: true,
-        bubbles: true,
-        detail: { message: this.i18n('retention.holdToggleButton.bulk.unhold') },
-      }),
-    );
-    this.dispatchEvent(
-      new CustomEvent('refresh', {
-        composed: true,
-        bubbles: true,
-      }),
-    );
+    this.$.waitEs.execute().then(() => {
+      this.dispatchEvent(
+        new CustomEvent('notify', {
+          composed: true,
+          bubbles: true,
+          detail: { message: this.i18n('retention.holdToggleButton.bulk.unhold') },
+        }),
+      );
+      this.dispatchEvent(
+        new CustomEvent('refresh', {
+          composed: true,
+          bubbles: true,
+        }),
+      );
+    });
   }
 }
 customElements.define(RetentionHoldToggleButton.is, RetentionHoldToggleButton);
