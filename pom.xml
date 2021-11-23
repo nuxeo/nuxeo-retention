@@ -16,10 +16,6 @@
     in order to perform advanced record management.
   </description>
 
-  <properties>
-    <nuxeo.target.version>2021.*</nuxeo.target.version>
-  </properties>
-
   <modules>
     <module>nuxeo-retention</module>
     <module>nuxeo-retention-package</module>
