@@ -150,7 +150,7 @@ pipeline {
       steps {
         script {
           String message = "Starting release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-          slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'gray')
+          slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'gray')
         }
       }
     }
@@ -422,14 +422,14 @@ pipeline {
       script {
         // update Slack Channel
         String message = "Successfully released ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL} :tada:"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'good')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'good')
       }
     }
     failure {
       script {
         // update Slack Channel
         String message = "Failed to release ${VERSION} from build ${env.RC_VERSION}: ${BUILD_URL}"
-        slackBuildStatus.set("${SLACK_CHANNEL}", "${message}", 'danger')
+        slackBuildStatus("${SLACK_CHANNEL}", "${message}", 'danger')
       }
     }
   }
