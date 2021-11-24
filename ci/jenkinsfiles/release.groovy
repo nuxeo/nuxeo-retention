@@ -348,7 +348,7 @@ pipeline {
                 """
                 if (DRY_RUN_RELEASE == 'false') {
                   String packageFile = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
-                  connectUploadPackage.set("${packageFile}", 'connect-preprod', "${CONNECT_PREPROD_URL}")
+                  connectUploadPackage("${packageFile}", 'connect-preprod', "${CONNECT_PROD_URL}")
                 }
               }
             }
