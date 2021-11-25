@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>2021.2-SNAPSHOT</version>
+    <version>2021.2-rc.0</version>
   </parent>
 
   <artifactId>nuxeo-retention-package</artifactId>
