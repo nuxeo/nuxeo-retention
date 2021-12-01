@@ -54,7 +54,7 @@ pipeline {
     JENKINS_HOME = '/root'
     MAVEN_DEBUG = '-e'
     MAVEN_OPTS = "${MAVEN_OPTS} -Xms512m -Xmx3072m"
-    NUXEO_VERSION = '2021.10'
+    NUXEO_VERSION = '2021.12'
     NUXEO_BASE_IMAGE = "docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}"
     ORG = 'nuxeo'
     PREVIEW_NAMESPACE = "retention-${BRANCH_LC}"
