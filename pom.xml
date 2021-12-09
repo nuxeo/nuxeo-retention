@@ -10,7 +10,7 @@
   <groupId>org.nuxeo.retention</groupId>
   <artifactId>nuxeo-retention-parent</artifactId>
   <name>Nuxeo Retention Management Parent</name>
-  <version>2021.2-SNAPSHOT</version>
+  <version>2021.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>The Nuxeo Retention Management addon adds the capability to create and attach retention rules to documents
     in order to perform advanced record management.
