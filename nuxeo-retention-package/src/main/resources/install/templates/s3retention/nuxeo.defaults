@@ -4,7 +4,7 @@ s3retention.target=.
 
 # mandatory
 nuxeo.retention.s3storage.bucket=
-nuxeo.retention.core.binarymanager=org.nuxeo.ecm.core.storage.sql.S3BinaryManager
+nuxeo.retention.core.binarymanager=org.nuxeo.ecm.blob.s3.S3BlobProvider
 nuxeo.retention.core.blobstore.digestAsync=${nuxeo.core.blobstore.digestAsync}
 
 # usually taken from system environement
