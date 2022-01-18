@@ -29,7 +29,7 @@
   </extension>
 
   <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
-    <blobdispatcher>
+    <blobdispatcher merge="true">
       <class>org.nuxeo.ecm.core.blob.DefaultBlobDispatcher</class>
       <property name="records">records</property>
       <property name="default">default</property>
