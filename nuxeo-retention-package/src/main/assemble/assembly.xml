@@ -92,7 +92,7 @@
       <available file="${outdir}/package/install/templates"/>
       <then>
         <!-- get the list of templates -->
-        <dirset id="templates.list" dir="${outdir}/package/install/templates" includes="*"/>
+        <dirset id="templates.list" dir="${outdir}/package/install/templates" includes="*" excludes="s3retention"/>
         <pathconvert pathsep="," property="templates.list" refid="templates.list">
           <map from="${outdir}/package/install/templates/" to=""/>
         </pathconvert>
