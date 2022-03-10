@@ -66,7 +66,13 @@ limitations under the License.
 
 <nuxeo-slot-content name="holdToggleDocumentAction" slot="DOCUMENT_ACTIONS" order="75">
   <template>
-    <nuxeo-filter user="[[user]]" permissions="MakeRecord,ManageLegalHold">
+    <nuxeo-filter
+      user="[[user]]"
+      document="[[document]]"
+      expression="!this.hasFacet(document, 'ColdStorage')
+                    && this.hasPermission(document, 'MakeRecord')
+                    && this.hasPermission(document, 'ManageLegalHold')"
+    >
       <template>
         <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
       </template>
@@ -80,6 +86,7 @@ limitations under the License.
       user="[[user]]"
       document="[[document]]"
       expression="!document.retainUntil
+                    && !this.hasFacet(document, 'ColdStorage')
                     && !this.hasFacet(document, 'Folderish')
                     && this.hasPermission(document, 'MakeRecord')
                     && this.hasPermission(document, 'SetRetention')"
@@ -97,6 +104,7 @@ limitations under the License.
       user="[[user]]"
       document="[[document]]"
       expression="document.retainUntil
+                    && !this.hasFacet(document, 'ColdStorage')
                     && this.hasPermission(document, 'MakeRecord')
                     && this.hasPermission(document, 'SetRetention')"
     >
