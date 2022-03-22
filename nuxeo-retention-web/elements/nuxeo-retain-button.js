@@ -70,7 +70,7 @@ class RetentionRetainButton extends mixinBehaviors([FiltersBehavior, FormatBehav
           </nuxeo-date-picker>
         </paper-dialog-scrollable>
         <div class="buttons">
-          <paper-button dialog-dismiss="" class="secondary">[[i18n('command.close')]]</paper-button>
+          <paper-button name="cancel" dialog-dismiss="" class="secondary">[[i18n('command.close')]]</paper-button>
           <paper-button name="add" class="primary" on-tap="_retain" disabled$="[[!_isValid(document, until)]]">
             [[i18n('retention.action.retain')]]
           </paper-button>
