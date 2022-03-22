@@ -118,6 +118,17 @@ Then('I see the document is under retention', function () {
   });
 });
 
+Then('I see the document is under retention for {int} days', function (days) {
+  driver.waitUntil(() => {
+    this.ui.reload();
+    const page = this.ui.browser.documentPage(this.doc.type);
+    page.infoBar.waitForVisible('#retentionInfoBar #retention');
+    const infoBarText = page.infoBar.element('#retentionInfoBar #retention').getText();
+    const expectedDate = moment().add(days, 'days').format(global.dateFormat);
+    return infoBarText.indexOf(expectedDate) > 0;
+  });
+});
+
 Then('I see the document is under indeterminate retention', function () {
   const page = this.ui.browser.documentPage(this.doc.type);
   page.infoBar.waitForVisible('#retentionInfoBar #indeterminateRetention');
@@ -180,6 +191,24 @@ Then('I can see {int} document in search results', function (results) {
   return driver.waitUntil(() => {
     return searchPage.element('nuxeo-retention-search-results span.resultsCount').getText() === `${results} result(s)`;
   });
+});
+
+Then('I can see the extend retention action', function () {
+  this.ui.browser.clickDocumentActionMenu('nuxeo-retain-button');
+  const dialog = this.ui.browser.el.element('nuxeo-retain-button #dialog');
+  dialog.waitForVisible();
+  dialog.click('paper-button[name = "cancel"]');
+});
+
+Then('I set the retention to expire in {int} days', function (days) {
+  this.ui.browser.clickDocumentActionMenu('nuxeo-retain-button');
+  const dialog = this.ui.browser.el.element('nuxeo-retain-button #dialog');
+  dialog.waitForVisible();
+  const dateInput = dialog.element('#picker');
+  const futureDate = moment().add(days, 'days').format(global.dateFormat);
+  fixtures.layouts.setValue(dateInput, futureDate);
+  dialog.waitForEnabled('paper-button[name="add"]');
+  dialog.click('paper-button[name = "add"]');
 });
 
 When('I wait {int} seconds', function (seconds) {

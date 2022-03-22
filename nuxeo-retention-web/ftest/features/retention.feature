@@ -83,11 +83,14 @@ Feature: Retention
     And I fire the "Contract End" retention event with "bar" input
     And I browse to the document
     Then I see the document is under indeterminate retention
+    And I can see the extend retention action
     When I go to the retention event
     And I fire the "Contract End" retention event with "foo" input
     And I browse to the document
-    Then I see the document is under retention
-    And I navigate to Retention Search page
+    Then I see the document is under retention for 3 days
+    When I set the retention to expire in 5 days
+    Then I see the document is under retention for 5 days
+    When I navigate to Retention Search page
     And I wait 2 seconds
     And I search for documents with Retention Rule "ContractFooEnded"
     Then I can see 1 document in search results
