@@ -16,7 +16,8 @@
   },
   "globals": {
     "Nuxeo": false,
-    "Polymer": false
+    "Polymer": false,
+    "moment": false
   },
   "overrides": [
     {
