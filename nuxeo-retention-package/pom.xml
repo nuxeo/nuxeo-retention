@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.retention</groupId>
+    <groupId>cloud.docbyte.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>2021.2.2-SNAPSHOT</version>
+    <version>2022.5.13-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-retention-package</artifactId>
@@ -12,16 +12,16 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.retention</groupId>
+      <groupId>cloud.docbyte.nuxeo.retention</groupId>
       <artifactId>nuxeo-retention</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.retention</groupId>
+      <groupId>cloud.docbyte.nuxeo.retention</groupId>
       <artifactId>nuxeo-retention-web</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.ecm.distribution</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
       <artifactId>nuxeo-nxr-server</artifactId>
       <type>zip</type>
       <scope>provided</scope>
