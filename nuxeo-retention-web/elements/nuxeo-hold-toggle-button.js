@@ -144,6 +144,19 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
     return this.provider || this.canSetLegalHold(this.document);
   }
 
+  /**
+   * Override function from FiltersBehavior in order to disable check on file:content
+   * @param document
+   * @returns {false|*|boolean}
+   */
+  canSetLegalHold(document) {
+    return (
+      !this.isVersion(document) &&
+      this.hasPermission(document, 'MakeRecord') &&
+      this.hasPermission(document, 'ManageLegalHold')
+    );
+  }
+
   _hold() {
     if (this.provider) {
       this.$.opHold.op = 'Bulk.RunAction';

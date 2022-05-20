@@ -163,6 +163,22 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
     return this.provider || this.canSetRetention(this.document);
   }
 
+  /**
+   * Override function from FiltersBehavior in order to not check on file:content
+   * @param document
+   * @returns {false|*}
+   */
+  canSetRetention(document) {
+    return (
+      document &&
+      !this.hasRunningWorkflows(document) &&
+      !document.hasLegalHold &&
+      !this.isVersion(document) &&
+      this.hasPermission(document, 'MakeRecord') &&
+      this.hasPermission(document, 'SetRetention')
+    );
+  }
+
   _computeLabel() {
     return this.i18n('retention.rule.attachButton.label.heading');
   }

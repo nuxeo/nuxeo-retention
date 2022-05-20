@@ -121,6 +121,22 @@ class RetentionRetainButton extends mixinBehaviors([FiltersBehavior, FormatBehav
     return this.canSetRetention(document);
   }
 
+  /**
+   * Override function from FiltersBehavior in order to not check on file:content
+   * @param document
+   * @returns {false|*}
+   */
+  canSetRetention(document) {
+    return (
+      document &&
+      !this.hasRunningWorkflows(document) &&
+      !document.hasLegalHold &&
+      !this.isVersion(document) &&
+      this.hasPermission(document, 'MakeRecord') &&
+      this.hasPermission(document, 'SetRetention')
+    );
+  }
+
   _computeLabel() {
     return this.i18n('retention.action.retain');
   }
