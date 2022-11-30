@@ -19,7 +19,7 @@ phases:
     commands:
       - aws s3 sync s3://db-dev-buildartifacts/tools/ ~/tools/
       - chmod a+x -R ~/tools/
-      - . ./tools/prepEnv-new.sh
+      - . ~/tools/prepEnv-new.sh
       - echo Build Started
   pre_build:
     commands:
