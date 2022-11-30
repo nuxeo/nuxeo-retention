@@ -3,7 +3,8 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>2022.5.13-SNAPSHOT</version>
+    <version>${revision}${sha1}${changelist}</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>nuxeo-retention</artifactId>

@@ -4,19 +4,22 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-parent</artifactId>
-    <version>2022.5.13-SNAPSHOT</version>
+    <version>2022.10.18-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.retention</groupId>
   <artifactId>nuxeo-retention-parent</artifactId>
   <name>Nuxeo Retention Management Parent</name>
-  <version>2022.5.13-SNAPSHOT</version>
+  <version>${revision}${sha1}${changelist}</version>
   <packaging>pom</packaging>
   <description>The Nuxeo Retention Management addon adds the capability to create and attach retention rules to documents
     in order to perform advanced record management.
   </description>
 
   <properties>
+    <revision>2022.11.30</revision>
+    <sha1></sha1>
+    <changelist>-SNAPSHOT</changelist>
     <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
   </properties>
 
@@ -81,5 +84,32 @@
     <developerConnection>scm:git:ssh://git@github.com:nuxeo/nuxeo-retention.git</developerConnection>
     <url>https://github.com/nuxeo/nuxeo-retention</url>
   </scm>
+
+  <build>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>flatten-maven-plugin</artifactId>
+          <version>1.2.7</version>
+          <executions>
+            <execution>
+              <id>flatten</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>flatten</goal>
+              </goals>
+            </execution>
+            <!-- ensure proper cleanup -->
+            <execution>
+              <id>flatten.clean</id>
+              <phase>clean</phase>
+              <goals>
+                <goal>clean</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+  </build>
 
 </project>

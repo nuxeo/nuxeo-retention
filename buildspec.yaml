@@ -21,14 +21,16 @@ phases:
       - chmod a+x -R tools/
       - . ./tools/prepEnv-new.sh
       - echo Build Started
-  pre_build:
-    commands:
-      - VERSION=2022.5.19-SNAPSHOT
-      - mvn -DskipTests -T4C -nsu -ntp versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false
+
 
   build:
     commands:
-      - echo $GRAALVM_HOME
+      - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)
+      - if [ "$CODEBUILD_ACCOUNT_ID" == "286714674749" -a "$CODEBUILD_GIT_BRANCH" == "development" ];
+        then
+        CHANGELIST=-$CODEBUILD_BUILD_NUMBER;
+        fi
+      - MAVEN_ARGS="-Dchangelist=$CHANGELIST -Drevision=$VERSION -DskipTests -T4C -nsu -ntp -Dnuxeo.skip.enforcer=true"
       - echo Build started on `date`
-      - mvn clean compile install deploy -DskipTests -T4C -nsu -ntp -Dnuxeo.skip.enforcer=true
+      - mvn clean compile install deploy $MAVEN_ARGS
       - echo Deployment done `date`
