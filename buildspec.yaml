@@ -17,9 +17,9 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - aws s3 sync s3://dev.tools.s3.devops.docbyte.cloud/ ~/tools/
+      - aws s3 sync s3://db-dev-buildartifacts/tools/ ~/tools/
       - chmod a+x -R ~/tools/
-      - . ~/tools/prepEnv.sh
+      - . ./tools/prepEnv-new.sh
       - echo Build Started
   pre_build:
     commands:
