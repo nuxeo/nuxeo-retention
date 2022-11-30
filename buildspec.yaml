@@ -26,7 +26,7 @@ phases:
   build:
     commands:
       - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)
-      - if [ "$CODEBUILD_ACCOUNT_ID" == "286714674749" -a "$CODEBUILD_GIT_BRANCH" == "development" ];
+      - if [ "$CODEBUILD_GIT_BRANCH" == "development" ];
         then
         CHANGELIST=-$CODEBUILD_BUILD_NUMBER;
         fi
