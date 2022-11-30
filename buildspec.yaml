@@ -17,12 +17,13 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - aws s3 sync s3://db-dev-buildartifacts/tools/ tools/
-      - chmod a+x -R tools/
-      - . ./tools/prepEnv-new.sh
+      - aws s3 sync s3://dev.tools.s3.devops.docbyte.cloud/ ~/tools/
+      - chmod a+x -R ~/tools/
+      - . ~/tools/prepEnv.sh
       - echo Build Started
-
-
+  pre_build:
+    commands:
+      - . ~/tools/codebuild-gittools.sh
   build:
     commands:
       - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)
