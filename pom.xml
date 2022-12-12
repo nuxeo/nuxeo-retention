@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.nuxeo</groupId>
-    <artifactId>nuxeo-parent</artifactId>
-    <version>2021.15</version>
+    <artifactId>nuxeo-ecm</artifactId>
+    <version>2021.30-SNAPSHOT</version>
   </parent>
 
   <groupId>org.nuxeo.retention</groupId>
