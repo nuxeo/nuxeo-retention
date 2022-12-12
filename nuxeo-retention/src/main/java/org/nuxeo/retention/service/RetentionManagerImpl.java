@@ -21,6 +21,7 @@ package org.nuxeo.retention.service;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.primitives.DateType;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.directory.Directory;
@@ -123,7 +125,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         record.setRule(rule, session);
         executeRuleBeginActions(record, session);
         if (retainUntil != null) {
-            session.setRetainUntil(document.getRef(), retainUntil, null);
+            setRetainUntil(session, record, retainUntil, null);
         }
         notifyAttachRule(record, rule, session);
         return session.getDocument(document.getRef());
@@ -290,7 +292,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             String expression = rule.getStartingPointExpression();
             boolean startNow = evaluateConditionExpression(actionContext, expression);
             if (startNow) {
-                session.setRetainUntil(record.getDocument().getRef(), rule.getRetainUntilDateFromNow(), null);
+                setRetainUntil(session, record, rule.getRetainUntilDateFromNow(), null);
                 log.debug("Evaluating event-based rules: expression {} matched on event {}", expression,
                         startingPointEvent);
             } else {
@@ -303,6 +305,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     @Override
     public void proceedRetentionExpired(Record record, CoreSession session) {
         executeRuleEndActions(record, session);
+        resetRetainedProperties(session, record);
     }
 
     protected List<String> acceptedEvents;
@@ -354,6 +357,38 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                 log.debug("Created new {} group", RetentionConstants.RECORD_MANAGER_GROUP_NAME);
             }
         });
+    }
+
+    @Override
+    public void setLegalHold(CoreSession session, Record record, boolean hold, String comment) {
+        if (hold) {
+            session.makeRecord(record.getDocument().getRef());
+            setRetainedProperties(session, record);
+        } else {
+            resetRetainedProperties(session, record);
+        }
+        session.setLegalHold(record.getDocument().getRef(), hold, comment);
+    }
+
+    @Override
+    public void setRetainUntil(CoreSession session, Record record, Calendar retainUntil, String comment) {
+        setRetainedProperties(session, record);
+        session.setRetainUntil(record.getDocument().getRef(), retainUntil, comment);
+    }
+
+    protected void setRetainedProperties(CoreSession session, Record record) {
+        SchemaManager schemaManager = Framework.getService(SchemaManager.class);
+        List<String> props = new ArrayList<>();
+        for (String schema : record.getDocument().getSchemas()) {
+            for (String prop : schemaManager.getRetainableProperties(schema)) {
+                props.add(prop);
+            }
+        }
+        record.setRetainedProperties(props, session);
+    }
+
+    protected void resetRetainedProperties(CoreSession session, Record record) {
+        record.setRetainedProperties(null, session);
     }
 
 }

@@ -18,6 +18,7 @@
  */
 package org.nuxeo.retention.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -29,7 +30,6 @@ import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -39,6 +39,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
@@ -84,6 +85,12 @@ public abstract class RetentionTestCase {
         file = session.createDocumentModel("/", "File", "File");
         file = session.createDocument(file);
         file = session.saveDocument(file);
+    }
+
+    protected void assertRetainedProperties(String[] expected, Record record) {
+        List<String> retainedProps = record.getRetainedProperties();
+        assertEquals(expected.length, retainedProps.size());
+        retainedProps.containsAll(List.of(expected));
     }
 
     protected void assertStillUnderRetentionAfter(DocumentModel doc, RetentionRule rule, int timeoutMillis)

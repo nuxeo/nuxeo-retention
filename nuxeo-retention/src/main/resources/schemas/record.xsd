@@ -17,4 +17,5 @@
     </xs:simpleType>
   </xs:element>
   <xs:element name="retainUntil" type="xs:date" />
+  <xs:element name="retainedProperties" type="nxs:stringList" />
 </xs:schema>

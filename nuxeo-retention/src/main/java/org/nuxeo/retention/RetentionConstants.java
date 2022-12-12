@@ -74,6 +74,8 @@ public class RetentionConstants {
 
     public static final String RECORD_RULE_IDS_PROP = "record:ruleIds";
 
+    public static final String RECORD_RETAINED_PROPERTIES_PROP = "record:retainedProperties";
+
     public static final String INPUT_PROPERTY_KEY = "input";
 
     public static final String RETAIN_UNTIL_PROP = "record:retainUntil";

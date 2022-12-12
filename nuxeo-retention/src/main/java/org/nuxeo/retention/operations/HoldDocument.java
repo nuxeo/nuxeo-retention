@@ -25,8 +25,9 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.retention.RetentionConstants;
+import org.nuxeo.retention.adapters.Record;
+import org.nuxeo.retention.service.RetentionManager;
 
 /**
  * @since 11.1
@@ -39,19 +40,19 @@ public class HoldDocument {
     @Context
     protected CoreSession session;
 
+    @Context
+    protected RetentionManager retentionManager;
+
     @Param(name = "description", required = false, description = "Optional description of the hold")
     protected String description;
 
     @OperationMethod(collector = DocumentModelCollector.class)
-    public DocumentModel run(DocumentRef doc) {
-        session.makeRecord(doc);
-        session.setLegalHold(doc, true, description);
-        return session.getDocument(doc);
-    }
-
-    @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentModel doc) {
-        return run(doc.getRef());
+        session.makeRecord(doc.getRef());
+        doc.addFacet(RetentionConstants.RECORD_FACET);
+        Record record = doc.getAdapter(Record.class);
+        retentionManager.setLegalHold(session, record, true, description);
+        return session.getDocument(doc.getRef());
     }
 
 }

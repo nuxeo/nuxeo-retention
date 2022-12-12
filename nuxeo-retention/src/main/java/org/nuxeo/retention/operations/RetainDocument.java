@@ -27,8 +27,9 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.retention.RetentionConstants;
+import org.nuxeo.retention.adapters.Record;
+import org.nuxeo.retention.service.RetentionManager;
 
 /**
  * @since 11.1
@@ -44,16 +45,17 @@ public class RetainDocument {
     @Param(name = "until", required = false, description = "If empty, the input document will be retained indeterminately")
     protected Calendar until;
 
-    @OperationMethod(collector = DocumentModelCollector.class)
-    public DocumentModel run(DocumentRef doc) {
-        session.makeRecord(doc);
-        session.setRetainUntil(doc, until != null ? until : CoreSession.RETAIN_UNTIL_INDETERMINATE, null);
-        return session.getDocument(doc);
-    }
+    @Context
+    protected RetentionManager retentionManager;
 
     @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentModel doc) {
-        return run(doc.getRef());
+        session.makeRecord(doc.getRef());
+        doc.addFacet(RetentionConstants.RECORD_FACET);
+        Record record = doc.getAdapter(Record.class);
+        retentionManager.setRetainUntil(session, record, until != null ? until : CoreSession.RETAIN_UNTIL_INDETERMINATE,
+                null);
+        return session.getDocument(doc.getRef());
     }
 
 }

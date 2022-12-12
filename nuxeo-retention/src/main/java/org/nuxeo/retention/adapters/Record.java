@@ -84,6 +84,18 @@ public class Record {
         return Arrays.asList((String[]) propertyValue);
     }
 
+    /**
+     * @since 2023
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> getRetainedProperties() {
+        Serializable propertyValue = document.getPropertyValue(RetentionConstants.RECORD_RETAINED_PROPERTIES_PROP);
+        if (propertyValue == null) {
+            return Collections.emptyList();
+        }
+        return (List<String>) propertyValue;
+    }
+
     public Calendar getSavedRetainUntil() {
         Serializable savedRetainUntil = document.getPropertyValue(RetentionConstants.RETAIN_UNTIL_PROP);
         if (savedRetainUntil != null) {
@@ -136,6 +148,14 @@ public class Record {
 
     protected void setRuleIds(final List<String> ruleIds) {
         document.setPropertyValue(RetentionConstants.RECORD_RULE_IDS_PROP, (Serializable) ruleIds);
+    }
+
+    /**
+     * @since 2023
+     */
+    public void setRetainedProperties(final List<String> properties, CoreSession session) {
+        document.setPropertyValue(RetentionConstants.RECORD_RETAINED_PROPERTIES_PROP, (Serializable) properties);
+        save(session);
     }
 
 }

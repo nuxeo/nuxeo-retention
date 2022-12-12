@@ -18,12 +18,14 @@
  */
 package org.nuxeo.retention.service;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 
@@ -50,6 +52,14 @@ public interface RetentionManager {
     DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session);
 
     /**
+     * Triggers the evaluation of event-based retention rules that may be attached to the document ids.
+     *
+     * @param docsToCheckAndEvents map of document ids and set of events
+     * @since 11.1
+     */
+    void evalRules(Map<String, Set<String>> docsToCheckAndEvents);
+
+    /**
      * Checks that the session has sufficient permission to attach the rule to the document.
      *
      * @param document the document
@@ -59,14 +69,6 @@ public interface RetentionManager {
      * @since 11.1
      */
     boolean canAttachRule(DocumentModel document, RetentionRule rule, CoreSession session);
-
-    /**
-     * Triggers the evaluation of event-based retention rules that may be attached to the document ids.
-     *
-     * @param docsToCheckAndEvents map of document ids and set of events
-     * @since 11.1
-     */
-    void evalRules(Map<String, Set<String>> docsToCheckAndEvents);
 
     /**
      * Evaluates the event-based retention rules that may be attached to the given record document.
@@ -101,5 +103,21 @@ public interface RetentionManager {
      * @since 11.1
      */
     void proceedRetentionExpired(Record record, CoreSession coreSession);
+
+    /**
+     * Save properties to be retained in Records facet and call
+     * {@link CoreSession#setLegalHold(DocumentRef, boolean, String)}.
+     *
+     * @since 2023
+     */
+    void setLegalHold(CoreSession session, Record record, boolean hold, String comment);
+
+    /**
+     * Save properties to be retained in Records facet and call
+     * {@link CoreSession#setRetainUntil(DocumentRef, Calendar, String)}.
+     *
+     * @since 2023
+     */
+    void setRetainUntil(CoreSession session, Record record, Calendar retainUntil, String comment);
 
 }

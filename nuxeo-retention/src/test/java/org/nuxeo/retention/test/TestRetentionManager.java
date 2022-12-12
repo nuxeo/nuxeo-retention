@@ -29,7 +29,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -142,15 +141,34 @@ public class TestRetentionManager extends RetentionTestCase {
         assertEquals("Update Title From Scripting", file.getTitle());
     }
 
-    @Ignore(value = "NXP-29002")
     @Test
     public void testManualImmediateRule() throws InterruptedException {
-        RetentionRule testRule = createManualImmediateRuleMillis(100);
+        RetentionRule testRule = createManualImmediateRuleMillis(500);
 
         file = service.attachRule(file, testRule, session);
         assertTrue(file.isRecord());
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertFalse(file.isLocked());
+        assertRetainedProperties(new String[0], file.getAdapter(Record.class));
+
+        awaitRetentionExpiration(1000);
+
+        file = session.getDocument(file.getRef());
+
+        // it has no retention anymore
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+    }
+
+    @Test
+    @Deploy("org.nuxeo.retention.core.test:OSGI-INF/retention-retainable-files-contrib-test.xml")
+    public void testManualImmediateRuleWithAttachments() throws InterruptedException {
+        RetentionRule testRule = createManualImmediateRuleMillis(500);
+
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertFalse(file.isLocked());
+        assertRetainedProperties(new String[] { "files/*/file" }, file.getAdapter(Record.class));
 
         awaitRetentionExpiration(1000);
 
