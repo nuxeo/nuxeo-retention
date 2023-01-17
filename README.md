@@ -1,5 +1,4 @@
-[![Build Status](https://jenkins.napps.dev.nuxeo.com/buildStatus/icon?job=nuxeo%2Fnuxeo-retention%2Flts-2021)](https://jenkins.napps.dev.nuxeo.com/job/nuxeo/job/nuxeo-retention/job/lts-2021/)
-[![Preview Link](https://img.shields.io/badge/preview-available-blue)](https://preview-retention-lts-2021.napps.dev.nuxeo.com/)
+[![Build Status](https://jenkins.platform.dev.nuxeo.com/buildStatus/icon?job=nuxeo%2Fnuxeo-retention%2Flts-2021)](https://jenkins.platform.dev.nuxeo.com/job/retention/job/nuxeo-retention/job/lts-2021/)
 
 # Nuxeo Retention
 
@@ -16,7 +15,7 @@ It is bundled as a marketplace package that includes all the backend and fronten
 
 - **ci**: CI/CD files and configurations responsible to generate preview environments and running Retention pipeline
 - **nuxeo-retention**: Backend contribution for Nuxeo Platform
-- **nuxeo-retention-package**: Builder for [nuxeo-retention](https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/marketplace/package/nuxeo-retention) marketplace package. This package will install all the necessary mechanisms to integrate Retention capabilities into Nuxeo
+- **nuxeo-retention-package**: Builder for [nuxeo-retention](https://connect.nuxeo.com/nuxeo/site/marketplace/package/nuxeo-retention) marketplace package. This package will install all the necessary mechanisms to integrate Retention capabilities into Nuxeo
 - **nuxeo-retention-web**: Frontend contribution for Nuxeo Web UI
 
 ## Build
@@ -65,7 +64,7 @@ npm run ftest
 ```
 
 To run the functional tests, [Nuxeo Web UI Functional Testing Framework](https://github.com/nuxeo/nuxeo-web-ui/tree/maintenance-3.0.x/packages/nuxeo-web-ui-ftest) is used.
-Due to its inner dependencies, it only works using NodeJS `lts/dubnium`, i.e., `v10`.
+Due to its inner dependencies, it only works using NodeJS `v14`.
 
 ## Development Workflow
 
@@ -107,18 +106,16 @@ Since it already contemplates the possibility of integrating packages/addons, it
 
 Continuous Integration & Continuous Deployment(and Delivery) are an important part of the development process.
 
-Nuxeo Retention integrates [Jenkins pipelines](https://jenkins.napps.dev.nuxeo.com/job/nuxeo/job/nuxeo-retention/) for each maintenance branch, for _LTS_ (fast track) and also for each opened PR. 
+Nuxeo Retention integrates [Jenkins pipelines](https://jenkins.platform.dev.nuxeo.com/job/retention/job/nuxeo-retention/) for each maintenance branch and for each opened PR. 
 
 The following features are available:
-- Possibility of having a dedicated preview environment for a PR by using the tag GitHub PR tag `preview`
 - Each PR merge to _lts-2021_ branch will generate a "release candidate" package
-- A preview aligned on _lts-2021_ branch code is available
 
 ### Localization Management
 
-Nuxeo Retention, as well as Nuxeo Web UI, handles multilingual content. In order to manage all that in an effective way and integration with [Crowdin](https://crowdin.com/) is used.
+Nuxeo Retention manages multilingual content with a [Crowdin](https://crowdin.com/) integration.
 
-This integration is also handled under our CI/CD context with [a dedicated pipeline](https://jenkins.napps.dev.nuxeo.com/job/crowdin/job/nuxeo-retention/) benefiting from automatic translations and correspondent commits.
+The [Crowdin](.github/workflows/crowdin.yml) GitHub Actions workflow handles automatic translations and related pull requests.
 
 # About Nuxeo
 

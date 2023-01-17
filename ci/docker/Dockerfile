@@ -1,19 +1,13 @@
-ARG BASE_IMAGE
+ARG NUXEO_VERSION=2021
 
-FROM ${BASE_IMAGE}
+FROM docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}
 
-ARG BUILD_TAG
-ARG SCM_REF
-ARG VERSION
+ARG BUILD_TAG=unknown
+ARG SCM_REF=unknown
+ARG VERSION=unknown
 
-LABEL org.nuxeo.build-tag=$BUILD_TAG
-LABEL org.nuxeo.scm-ref=$SCM_REF
-LABEL org.nuxeo.version=$VERSION
+LABEL org.nuxeo.retention.build-tag=$BUILD_TAG
+LABEL org.nuxeo.retention.scm-ref=$SCM_REF
+LABEL org.nuxeo.retention.version=$VERSION
 
-COPY --chown=900:0 nuxeo-retention-package-*.zip /packages/
-
-USER root
-RUN /install-packages.sh --offline /packages/*.zip
-RUN chown -R 900:0 $NUXEO_HOME \
-  && chmod -R g+rwX $NUXEO_HOME
-USER 900
+COPY --chown=900:0 target/nuxeo-retention-package-$VERSION.zip /packages/
