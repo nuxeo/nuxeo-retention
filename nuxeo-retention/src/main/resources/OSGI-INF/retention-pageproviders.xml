@@ -31,7 +31,8 @@
 
     <genericPageProvider name="retention_search"
       class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
-      <whereClause docType="RetentionSearch">
+      <searchDocumentType>RetentionSearch</searchDocumentType>
+      <whereClause>
         <fixedPart>
           file:content/name IS NOT NULL
           AND ecm:isVersion = 0
