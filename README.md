@@ -109,7 +109,7 @@ Continuous Integration & Continuous Deployment(and Delivery) are an important pa
 Nuxeo Retention integrates [Jenkins pipelines](https://jenkins.platform.dev.nuxeo.com/job/retention/job/nuxeo-retention/) for each maintenance branch and for each opened PR. 
 
 The following features are available:
-- Each PR merge to _lts-2021_ branch will generate a "release candidate" package
+- Each PR merge to _lts-2021_/_lts-2023_ branch will generate a "release candidate" package
 
 ### Localization Management
 
