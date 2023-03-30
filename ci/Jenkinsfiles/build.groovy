@@ -151,9 +151,8 @@ pipeline {
               nxWithHelmfileDeployment(namespace: testNamespace, environment: "functionalTests", envVars: ["CONNECT_CLID_SECRET=${clidSecret}"],
                   secrets: [[name: clidSecret, namespace: 'platform']]) {
                 dir('nuxeo-retention-web') {
-                  retry(3) {
-                    sh "npm run ftest -- --nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo"
-                  }
+                  // do retry ftests as a test assert a number of documents and those are not cleaned at teardown
+                  sh "npm run ftest -- --nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo"
                 }
               }
             }
