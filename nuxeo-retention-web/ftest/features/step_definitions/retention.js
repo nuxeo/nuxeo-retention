@@ -139,11 +139,17 @@ Then('I cannot see the trash button', function () {
 });
 
 When('I have a "ContractEnd" retention event', () => {
-  fixtures.vocabularies.createEntry('RetentionEvent', 'Retention.ContractEnd', {
-    obsolete: 0,
-    id: 'Retention.ContractEnd',
-    label: 'Contract End',
-  });
+  fixtures.vocabularies
+    .createEntry('RetentionEvent', 'Retention.ContractEnd', {
+      obsolete: 0,
+      id: 'Retention.ContractEnd',
+      label: 'Contract End',
+    })
+    .then(() => {
+      console.log(
+        `After vocabulary creation, addedVocabularyEntries: ${JSON.stringify(global.addedVocabularyEntries, null, 2)}`,
+      );
+    });
 });
 
 When('I fire the {string} retention event with {string} input', function (eventName, eventInput) {

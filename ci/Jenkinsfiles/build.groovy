@@ -127,7 +127,7 @@ pipeline {
           }
           stages['Backend - MongoDB'] = buildUnitTestStage('mongodb')
           stages['Backend - PostgreSQL'] = buildUnitTestStage('postgresql')
-          parallel stages
+          //parallel stages
         }
       }
     }
