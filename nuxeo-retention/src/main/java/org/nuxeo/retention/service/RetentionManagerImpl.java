@@ -43,10 +43,12 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventCategories;
 import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
@@ -56,6 +58,9 @@ import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.actions.ELActionContext;
+import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
+import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
+import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.retention.RetentionConstants;
@@ -76,7 +81,11 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     @Override
     public DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
         checkCanAttachRule(document, rule, session);
-        session.makeRecord(document.getRef());
+        if (rule.isMakeFlexibleRecords()) {
+            session.makeFlexibleRecord(document.getRef());
+        } else {
+            session.makeRecord(document.getRef());
+        }
         final Calendar retainUntil;
         if (rule.isImmediate()) {
             retainUntil = rule.getRetainUntilDateFromNow();
@@ -129,6 +138,21 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         return session.getDocument(document.getRef());
     }
 
+    @Override
+    public DocumentModel unattachRule(DocumentModel document, CoreSession session) {
+        checkCanUnattachRule(document, session);
+        Record record = document.getAdapter(Record.class);
+        record.unsetRule(session);
+        session.unsetRetainUntil(document.getRef());
+        document.removeFacet(RetentionConstants.RECORD_FACET);
+        document.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, true);
+        document.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
+        document.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+        document.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, true);
+        document.putContextData(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE, true);
+        return session.saveDocument(document);
+    }
+
     protected void notifyAttachRule(Record record, RetentionRule rule, CoreSession session) {
         DocumentModel doc = record.getDocument();
         DocumentEventContext ctx = new DocumentEventContext(session, session.getPrincipal(), doc);
@@ -158,6 +182,20 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
         if (document.hasFacet(RetentionConstants.RECORD_FACET)) {
             throw new NuxeoException("Document is already a record");
+        }
+    }
+
+    protected void checkCanUnattachRule(DocumentModel document, CoreSession session) {
+        NuxeoPrincipal principal = session.getPrincipal();
+        if (!principal.isAdministrator() && !principal.isMemberOf(RetentionConstants.RECORD_MANAGER_GROUP_NAME)) {
+            if (!session.hasPermission(document.getRef(), SecurityConstants.UNSET_RETENTION))
+                throw new NuxeoException("User is not authorized to unattach retention rule", SC_FORBIDDEN);
+        }
+        if (!document.hasFacet(RetentionConstants.RECORD_FACET)) {
+            throw new NuxeoException("Document is not a record");
+        }
+        if (!document.isFlexibleRecord()) {
+            throw new PropertyException("Document is not a flexible record");
         }
     }
 
