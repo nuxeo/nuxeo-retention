@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.List;
 
@@ -36,6 +37,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
+import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.event.RetentionEventContext;
@@ -306,6 +308,35 @@ public class TestRetentionManager extends RetentionTestCase {
         Calendar saved = record.getSavedRetainUntil();
         assertNotNull(saved);
         assertEquals(original.getTimeInMillis(), saved.getTimeInMillis());
+    }
+
+    @Test
+    public void testAttachRuleUnattachAndReattachRule() throws InterruptedException {
+        RetentionRule testRule = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(file.isFlexibleRecord());
+        assertFalse(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        // Unattach the rule
+        file = service.unattachRule(file, session);
+        assertTrue(file.isRecord());
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertFalse(file.hasFacet(RetentionConstants.RECORD_FACET));
+
+        // Reattach another rule and wait it expires
+        RetentionRule otherRule = createManualImmediateFlexibleRuleMillis(100);
+        file = service.attachRule(file, otherRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(file.isFlexibleRecord());
+        assertFalse(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        awaitRetentionExpiration(500);
+        file = session.getDocument(file.getRef());
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
     }
 
 }

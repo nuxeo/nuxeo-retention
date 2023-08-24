@@ -61,6 +61,20 @@ public class RetentionRule {
         document.setPropertyValue(RetentionConstants.ENABLED_PROP, true);
     }
 
+    /**
+     * @since 2023.1
+     */
+    public void makeFlexibleRecord() {
+        document.setPropertyValue(RetentionConstants.MAKE_FLEXIBLE_RECORDS_PROP, true);
+    }
+
+    /**
+     * @since 2023.1
+     */
+    public void makeEnforcedRecord() {
+        document.setPropertyValue(RetentionConstants.MAKE_FLEXIBLE_RECORDS_PROP, false);
+    }
+
     public String getApplicationPolicy() {
         return (String) document.getPropertyValue(RetentionConstants.APPLICATION_POLICY_PROP);
     }
@@ -171,6 +185,14 @@ public class RetentionRule {
 
     public boolean isEnabled() {
         Boolean enabled = (Boolean) document.getPropertyValue(RetentionConstants.ENABLED_PROP);
+        return Boolean.TRUE.equals(enabled);
+    }
+
+    /**
+     * @since 2023.1
+     */
+    public boolean isMakeFlexibleRecords() {
+        Boolean enabled = (Boolean) document.getPropertyValue(RetentionConstants.MAKE_FLEXIBLE_RECORDS_PROP);
         return Boolean.TRUE.equals(enabled);
     }
 
