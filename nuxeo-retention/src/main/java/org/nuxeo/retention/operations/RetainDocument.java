@@ -44,9 +44,16 @@ public class RetainDocument {
     @Param(name = "until", required = false, description = "If empty, the input document will be retained indeterminately")
     protected Calendar until;
 
+    @Param(name = "flexible", required = false, description = "If true the document will be turned into a flexible record, enforced otherwise")
+    protected boolean flexible;
+
     @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentRef doc) {
-        session.makeRecord(doc);
+        if (flexible) {
+            session.makeFlexibleRecord(doc);
+        } else {
+            session.makeRecord(doc);
+        }
         session.setRetainUntil(doc, until != null ? until : CoreSession.RETAIN_UNTIL_INDETERMINATE, null);
         return session.getDocument(doc);
     }
