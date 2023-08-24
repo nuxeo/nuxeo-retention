@@ -29,7 +29,6 @@ import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
