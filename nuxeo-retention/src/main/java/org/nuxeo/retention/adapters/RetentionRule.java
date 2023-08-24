@@ -154,7 +154,6 @@ public class RetentionRule {
             return StartingPointPolicy.valueOf(value.toUpperCase());
         }
         return null;
-
     }
 
     public boolean isAfterDelay() {
