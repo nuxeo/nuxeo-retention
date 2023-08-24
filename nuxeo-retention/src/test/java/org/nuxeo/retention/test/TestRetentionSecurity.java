@@ -21,6 +21,7 @@ package org.nuxeo.retention.test;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -31,6 +32,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.security.impl.ACLImpl;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
 import org.nuxeo.retention.RetentionConstants;
@@ -73,9 +75,8 @@ public class TestRetentionSecurity extends RetentionTestCase {
         }
     }
 
-
     @Test
-    public void shouldBeAuthorizedToAttachRule() {
+    public void shouldBeAuthorizedToAttachAndUnattachRule() {
         ACP acp = new ACPImpl();
         ACE allowAttachRule = new ACE("user", RetentionConstants.MANAGE_RECORD_PERMISSION, true);
         ACL acl = new ACLImpl();
@@ -84,7 +85,28 @@ public class TestRetentionSecurity extends RetentionTestCase {
         file.setACP(acp, true);
         file = session.saveDocument(file);
         CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
-        file = service.attachRule(file, createManualImmediateRuleMillis(5000), userSession);
+        file = service.attachRule(file, createManualImmediateFlexibleRuleMillis(5000), userSession);
+        assertTrue(userSession.isUnderRetentionOrLegalHold(file.getRef()));
+        file = service.unattachRule(file, userSession);
+        assertFalse(userSession.isUnderRetentionOrLegalHold(file.getRef()));
+    }
+
+    @Test
+    public void shouldNotBeAuthorizedToUnattachRule() {
+        ACP acp = new ACPImpl();
+        ACE allowReadWrite = new ACE("user", SecurityConstants.READ_WRITE, true);
+        ACE allowMakeRecord = new ACE("user", SecurityConstants.MAKE_RECORD, true);
+        ACE allowSetRetention = new ACE("user", SecurityConstants.SET_RETENTION, true);
+        ACL acl = new ACLImpl();
+        acl.setACEs(new ACE[] { allowReadWrite, allowMakeRecord, allowSetRetention });
+        acp.addACL(acl);
+        file.setACP(acp, true);
+        file = session.saveDocument(file);
+        CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
+        file = service.attachRule(file, createManualImmediateFlexibleRuleMillis(5000), userSession);
+        assertTrue(userSession.isUnderRetentionOrLegalHold(file.getRef()));
+        assertThrows("User does have UnseRetention granted", NuxeoException.class,
+                () -> service.unattachRule(file, userSession));
         assertTrue(userSession.isUnderRetentionOrLegalHold(file.getRef()));
     }
 
@@ -106,7 +128,7 @@ public class TestRetentionSecurity extends RetentionTestCase {
     public void shouldNotBeAllowedToAttachTwoRules() {
         RetentionRule rr = createManualImmediateRuleMillis(100);
         file = service.attachRule(file, rr, session);
-        try  {
+        try {
             service.attachRule(file, rr, session);
             fail("Should not be abe to attach rule twice");
         } catch (NuxeoException e) {
