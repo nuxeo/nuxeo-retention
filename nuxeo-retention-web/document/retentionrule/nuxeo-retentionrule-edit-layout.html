@@ -46,6 +46,10 @@ limitations under the License.
       [[i18n('retention.rule.label.enabled')]]
     </paper-checkbox>
 
+    <paper-checkbox role="widget" name="flexible" checked="{{document.properties.retention_rule:flexibleRecords}}">
+      [[i18n('retention.rule.label.flexibleRecords')]]
+    </paper-checkbox>
+
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <nuxeo-select
         id="applicationPolicyDropdown"

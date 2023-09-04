@@ -31,6 +31,13 @@
         <label hidden$="[[document.properties.retention_rule:enabled]]"
           >[[i18n('retention.rule.label.disabled')]]</label
         >
+
+        <label hidden$="[[document.properties.retention_rule:flexibleRecords]]"
+          >[[i18n('retention.rule.label.enforcedRecords')]]</label
+        >
+        <label hidden$="[[!document.properties.retention_rule:flexibleRecords]]"
+          >[[i18n('retention.rule.label.flexibleRecords')]]</label
+        >
       </div>
     </nuxeo-card>
 

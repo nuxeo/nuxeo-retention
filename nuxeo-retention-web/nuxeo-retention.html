@@ -115,6 +115,22 @@ limitations under the License.
   </template>
 </nuxeo-slot-content>
 
+<nuxeo-slot-content name="retentionDocumentInfoBar" slot="DOCUMENT_INFO_BAR">
+  <template>
+    <nuxeo-filter
+      user="[[user]]"
+      document="[[document]]"
+      expression="document.isFlexibleRecord && document.retainUntil
+                    && this.hasFacet(document, 'Record')
+                    && this.hasPermission(document, 'UnsetRetention')"
+    >
+      <template>
+        <nuxeo-retention-infobar document="[[document]]"></nuxeo-retention-infobar>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
 <script type="module">
   // push RetentionRule and RetentionRules to list of document types that are not available for import
   window.nuxeo.importBlacklist.push('RetentionRule');
