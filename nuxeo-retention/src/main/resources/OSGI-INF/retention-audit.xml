@@ -11,5 +11,6 @@
         <extendedInfo expression="${message.properties.retainUntil}" key="retainUntil" />
       </extendedInfos>
     </event>
+    <event name="afterUnsetRetention" />
   </extension>
 </component>
