@@ -21,6 +21,7 @@ package org.nuxeo.retention.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -336,6 +337,63 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
         awaitRetentionExpiration(500);
         file = session.getDocument(file.getRef());
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+    }
+
+    @Test
+    public void testReattachFlexibleRuleOnExpiredFlexibleRecord() {
+        RetentionRule testRule = createManualImmediateFlexibleRuleMillis(1);
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(file.isFlexibleRecord());
+        assertFalse(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        testRule = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(file.isFlexibleRecord());
+        assertFalse(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+    }
+
+    @Test
+    public void testReattachEnforcedRuleOnExpiredFlexibleRecord() {
+        RetentionRule testRule = createManualImmediateFlexibleRuleMillis(1);
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(file.isFlexibleRecord());
+        assertFalse(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        testRule = createManualImmediateRuleMillis(Duration.ofDays(1).toMillis());
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertFalse(file.isFlexibleRecord());
+        assertTrue(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+    }
+
+    @Test
+    public void testReattachFlexibleRuleOnExpiredEnforcedRecord() throws InterruptedException {
+        RetentionRule testRule = createManualImmediateRuleMillis(1);
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertFalse(file.isFlexibleRecord());
+        assertTrue(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        RetentionRule testRule1Day = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
+        assertThrows(IllegalStateException.class, () -> service.attachRule(file, testRule1Day, session));
+        assertTrue(file.isRecord());
+        assertFalse(file.isFlexibleRecord());
+        assertTrue(file.isEnforcedRecord());
+        assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
     }
 

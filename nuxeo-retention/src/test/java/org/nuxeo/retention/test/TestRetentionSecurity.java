@@ -125,15 +125,11 @@ public class TestRetentionSecurity extends RetentionTestCase {
     }
 
     @Test
-    public void shouldNotBeAllowedToAttachTwoRules() {
+    public void shouldNotBeAllowedToAttachRuleOnDocAlreadyUnderRetention() {
         RetentionRule rr = createManualImmediateRuleMillis(100);
         file = service.attachRule(file, rr, session);
-        try {
-            service.attachRule(file, rr, session);
-            fail("Should not be abe to attach rule twice");
-        } catch (NuxeoException e) {
-            assertEquals("Document is already a record", e.getMessage());
-        }
+        assertThrows("Document is already under retention or legal hold", NuxeoException.class,
+                () -> service.attachRule(file, rr, session));
     }
 
 }
