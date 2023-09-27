@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
+import java.util.Calendar;
 
 import javax.inject.Inject;
 
@@ -123,14 +124,27 @@ public class TestRetentionOperation extends RetentionTestCase {
         DocumentModel file = session.createDocumentModel("/", "File", "File");
         file = session.createDocument(file);
         file = session.saveDocument(file);
+        Calendar retainUnitl = Calendar.getInstance();
         try (OperationContext ctx = new OperationContext(session)) {
             ctx.setInput(file);
             OperationChain chain = new OperationChain("testChain");
-            chain.add(RetainDocument.ID).set("flexible", true);
+            retainUnitl.add(Calendar.HOUR, 1);
+            chain.add(RetainDocument.ID).set("flexible", true).set("until", retainUnitl);
+            file = (DocumentModel) service.run(ctx, chain);
+            assertTrue(file.isRecord());
+            assertTrue(file.isFlexibleRecord());
+            assertTrue(file.isUnderRetentionOrLegalHold());
+        }
+        try (OperationContext ctx = new OperationContext(session)) {
+            ctx.setInput(file);
+            OperationChain chain = new OperationChain("testChain");
+            retainUnitl.add(Calendar.HOUR, 1);
+            chain.add(RetainDocument.ID).set("until", retainUnitl);
             file = (DocumentModel) service.run(ctx, chain);
             assertTrue(file.isRecord());
             assertTrue(file.isFlexibleRecord());
             assertTrue(file.isUnderRetentionOrLegalHold());
         }
     }
+
 }
