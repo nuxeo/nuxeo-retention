@@ -180,8 +180,8 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             document.getProperty(rule.getMetadataXpath());
             // above throw an exception if property not found
         }
-        if (document.hasFacet(RetentionConstants.RECORD_FACET)) {
-            throw new NuxeoException("Document is already a record");
+        if (document.isUnderRetentionOrLegalHold()) {
+            throw new NuxeoException("Document is already under retention or legal hold");
         }
     }
 
