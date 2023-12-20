@@ -145,35 +145,39 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
   }
 
   _hold() {
-    if (this.provider) {
-      this.$.opHold.op = 'Bulk.RunAction';
-      this.$.opHold.input = this.provider;
-      this.$.opHold.async = true;
-      this.$.opHold.params = {
-        action: 'holdDocumentsAction',
-      };
-      if (this.description) {
-        this.$.opHold.params.parameters = JSON.stringify({ description: this.description });
+    const { isFlexibleRecord } = this.document;
+    const response = isFlexibleRecord ? window.confirm(this.i18n('retention.holdToggleButton.confirm.hold')) : true;
+    if (response) {
+      if (this.provider) {
+        this.$.opHold.op = 'Bulk.RunAction';
+        this.$.opHold.input = this.provider;
+        this.$.opHold.async = true;
+        this.$.opHold.params = {
+          action: 'holdDocumentsAction',
+        };
+        if (this.description) {
+          this.$.opHold.params.parameters = JSON.stringify({ description: this.description });
+        }
+        this.$.opHold.execute().then(() => {
+          this._toggleDialog();
+        });
+      } else {
+        this.$.opHold.op = 'Document.Hold';
+        this.$.opHold.input = this.document;
+        this.$.opHold.async = false;
+        if (this.description) {
+          this.$.opHold.params = { description: this.description };
+        }
+        this.$.opHold.execute().then(() => {
+          this._toggleDialog();
+          this.dispatchEvent(
+            new CustomEvent('document-updated', {
+              composed: true,
+              bubbles: true,
+            }),
+          );
+        });
       }
-      this.$.opHold.execute().then(() => {
-        this._toggleDialog();
-      });
-    } else {
-      this.$.opHold.op = 'Document.Hold';
-      this.$.opHold.input = this.document;
-      this.$.opHold.async = false;
-      if (this.description) {
-        this.$.opHold.params = { description: this.description };
-      }
-      this.$.opHold.execute().then(() => {
-        this._toggleDialog();
-        this.dispatchEvent(
-          new CustomEvent('document-updated', {
-            composed: true,
-            bubbles: true,
-          }),
-        );
-      });
     }
   }
 
