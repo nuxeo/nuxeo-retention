@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>2023.3-SNAPSHOT</version>
+    <version>2023.3.3</version>
   </parent>
   <artifactId>nuxeo-retention-web</artifactId>
   <name>Nuxeo Retention Management WebUI integration</name>
