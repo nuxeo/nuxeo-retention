@@ -235,11 +235,11 @@ class RetentionAttachRuleButton extends mixinBehaviors([FiltersBehavior, FormatB
     if (this.provider) {
       return true;
     }
-    const acceptedTypes = rule.properties['retention_rule:docTypes'];
-    if (!acceptedTypes || !Array.isArray(acceptedTypes) || acceptedTypes.length === 0) {
+    const acceptedType = rule.properties['retention_rule:docTypes'];
+    if (!acceptedType || !Array.isArray(acceptedType) || acceptedType.length === 0) {
       return true;
     }
-    return acceptedTypes.indexOf(this.document.type) !== -1;
+    return acceptedType.indexOf(this.document.type) !== -1;
   }
 
   _ruleResultFormatter(doc) {
