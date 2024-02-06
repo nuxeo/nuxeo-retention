@@ -5,7 +5,6 @@
   "author": "Nuxeo",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@cucumber/cucumber": "^7.0.0",
     "@esm-bundle/chai": "^4.3.4",
     "@nuxeo/nuxeo-web-ui-ftest": "~3.1.2-rc.002",
     "@nuxeo/testing-helpers": "^3.1.5",
@@ -28,8 +27,7 @@
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-minify-html-literals": "^1.2.5",
     "rollup-plugin-terser": "^7.0.2",
-    "sinon": "17.0.1",
-    "sinon-chai": "^3.7.0"
+    "sinon": "17.0.1"
   },
   "dependencies": {
     "@nuxeo/moment": "^2.24.0-nx.0",
