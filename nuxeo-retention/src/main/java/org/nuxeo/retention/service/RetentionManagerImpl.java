@@ -19,14 +19,20 @@
 package org.nuxeo.retention.service;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
+import static org.nuxeo.retention.RetentionConstants.EVENT_BASED_RULE_INPUT;
+import static org.nuxeo.retention.RetentionConstants.EVENT_INPUT_REGEX;
+import static org.nuxeo.retention.RetentionConstants.RECORD_MANAGER_GROUP_NAME;
 
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,6 +56,7 @@ import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.event.Event;
+import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.schema.types.primitives.DateType;
@@ -58,6 +65,8 @@ import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.actions.ELActionContext;
+import org.nuxeo.ecm.platform.audit.api.AuditLogger;
+import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
@@ -66,6 +75,7 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
+import org.nuxeo.retention.event.RetentionEventContext;
 import org.nuxeo.retention.workers.RuleEvaluationWorker;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
@@ -77,6 +87,8 @@ import org.nuxeo.runtime.model.DefaultComponent;
 public class RetentionManagerImpl extends DefaultComponent implements RetentionManager {
 
     private static final Logger log = LogManager.getLogger(RetentionManagerImpl.class);
+
+    protected static final Pattern EVENT_INPUT_PATTERN = Pattern.compile(EVENT_INPUT_REGEX);
 
     @Override
     public DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
@@ -185,6 +197,34 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
     }
 
+    @Override
+    public void fireRetentionEvent(String eventName, String eventInput, boolean audit, CoreSession session) {
+        NuxeoPrincipal principal = session.getPrincipal();
+        if (!principal.isAdministrator() && !principal.isMemberOf(RECORD_MANAGER_GROUP_NAME)) {
+            throw new NuxeoException(
+                    String.format("User: %s is not authorized to fire retention event", principal.getName()),
+                    SC_FORBIDDEN);
+        }
+        if (StringUtils.isNotBlank(eventInput) && !EVENT_INPUT_PATTERN.matcher(eventInput).matches()) {
+            throw new IllegalArgumentException("Invalid retention event input: " + eventInput
+                    + "  is not following the expected pattern:" + EVENT_INPUT_REGEX);
+        }
+        RetentionEventContext evctx = new RetentionEventContext(session.getPrincipal());
+        evctx.setInput(eventInput);
+        Event event = evctx.newEvent(eventName);
+        Framework.getService(EventProducer.class).fireEvent(event);
+        if (audit) {
+            AuditLogger logger = Framework.getService(AuditLogger.class);
+            LogEntry entry = logger.newLogEntry();
+            entry.setEventId(name);
+            entry.setEventDate(new Date());
+            entry.setCategory(RetentionConstants.EVENT_CATEGORY);
+            entry.setPrincipalName(session.getPrincipal().getName());
+            entry.setComment(evctx.getInput());
+            logger.addLogEntries(Collections.singletonList(entry));
+        }
+    }
+
     protected void checkCanUnattachRule(DocumentModel document, CoreSession session) {
         NuxeoPrincipal principal = session.getPrincipal();
         if (!principal.isAdministrator() && !principal.isMemberOf(RetentionConstants.RECORD_MANAGER_GROUP_NAME)) {
@@ -218,13 +258,6 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
     }
 
-    public void executeRuleEndActions(Record record, CoreSession session) {
-        RetentionRule rule = record.getRule(session);
-        if (rule != null) {
-            executeRuleActions(record.getDocument(), rule.getEndActions(), session);
-        }
-    }
-
     protected void executeRuleActions(DocumentModel doc, List<String> actionIds, CoreSession session) {
         if (actionIds != null) {
             AutomationService automationService = Framework.getService(AutomationService.class);
@@ -234,23 +267,23 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                 // Also, if it's time to delete, unlock it first, etc.
                 // (more generally, be ready to handle specific operations and context)
                 switch (operationId) {
-                case LockDocument.ID:
-                    if (doc.isLocked()) {
-                        continue;
-                    }
-                    break;
-                case UnlockDocument.ID:
-                    if (!doc.isLocked()) {
-                        continue;
-                    }
-                    break;
-                case DeleteDocument.ID:
-                case TrashDocument.ID:
-                    if (doc.isLocked()) {
-                        session.removeLock(doc.getRef());
-                        doc = session.getDocument(doc.getRef());
-                    }
-                    break;
+                    case LockDocument.ID:
+                        if (doc.isLocked()) {
+                            continue;
+                        }
+                        break;
+                    case UnlockDocument.ID:
+                        if (!doc.isLocked()) {
+                            continue;
+                        }
+                        break;
+                    case DeleteDocument.ID:
+                    case TrashDocument.ID:
+                        if (doc.isLocked()) {
+                            session.removeLock(doc.getRef());
+                            doc = session.getDocument(doc.getRef());
+                        }
+                        break;
                 }
                 OperationContext context = getExecutionContext(doc, session);
                 try {
@@ -279,68 +312,89 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         Framework.getService(WorkManager.class).schedule(work, WorkManager.Scheduling.ENQUEUE);
     }
 
-    protected ELActionContext initActionContext(DocumentModel doc, CoreSession session) {
-        ELActionContext ctx = new ELActionContext(new ExpressionContext(), new ExpressionFactoryImpl());
-        ctx.setCurrentPrincipal(session.getPrincipal());
-        doc.detach(true);
-        ctx.setCurrentDocument(doc);
-        return ctx;
-    }
-
-    protected boolean evaluateConditionExpression(ELActionContext ctx, String expression) {
-        Calendar now = Calendar.getInstance();
+    protected boolean evaluateConditionExpression(Record record, String eventInput, CoreSession session) {
+        String expression = record.getRule(session).getStartingPointExpression();
         if (StringUtils.isEmpty(expression)) {
-            return false;
+            return true;
         }
+        ELActionContext ctx = new ELActionContext(new ExpressionContext(), new ExpressionFactoryImpl());
+        record.getDocument().detach(true);
+        ctx.setCurrentDocument(record.getDocument());
+        Calendar now = Calendar.getInstance();
         ctx.putLocalVariable("currentDate", now);
+        ctx.putLocalVariable(EVENT_BASED_RULE_INPUT, eventInput);
+        // Only restricted user can fill expression and eventInput
         return ctx.checkCondition(expression);
     }
 
     @Override
-    public void evalExpressionEventBasedRules(Record record, Set<String> events, CoreSession session) {
-        if (record == null) {
-            return; // nothing to do
-        }
+    public boolean applyEventBasedRules(Record record, String event, String eventInput, CoreSession session) {
         RetentionRule rule = record.getRule(session);
         if (rule == null) {
-            return; // nothing to do
+            return false; // nothing to do
         }
+        String rulePath = rule.getDocument().getPathAsString(), recordPath = record.getDocument().getPathAsString();
         if (!rule.isEventBased()) {
-            log.trace("Record is not event-based");
-            return;
+            log.trace("Rule {} for Record {} is not event-based", rulePath, recordPath);
+            return false;
         }
-        log.debug("Evaluating event-based rules for record {}", () -> record.getDocument().getPathAsString());
+        log.debug("Evaluating event-based rule {} for record {}", rulePath, recordPath);
         if (record.isRetentionExpired()) {
             // retention expired, nothing to do
-            log.debug("Evaluating event-based found retention expired");
+            log.debug("Evaluating event-based, found retention expired for record {}", recordPath);
             proceedRetentionExpired(record, session);
-            return;
-
+            return false;
         }
         String startingPointEvent = rule.getStartingPointEvent();
         if (StringUtils.isBlank(startingPointEvent)) {
-            log.warn("Evaluating event-based rules  on record {} found no event specified",
-                    () -> record.getDocument().getPathAsString());
-            return;
+            log.warn("Evaluating event-based rule on record {} found no event specified", recordPath);
+            return false;
         }
-        if (events.contains(startingPointEvent)) {
-            ELActionContext actionContext = initActionContext(record.getDocument(), session);
-            String expression = rule.getStartingPointExpression();
-            boolean startNow = evaluateConditionExpression(actionContext, expression);
-            if (startNow) {
-                session.setRetainUntil(record.getDocument().getRef(), rule.getRetainUntilDateFromNow(), null);
-                log.debug("Evaluating event-based rules: expression {} matched on event {}", expression,
+        if (!startingPointEvent.equals(event)) {
+            log.debug("Evaluating event-based rule: startingPointEvent {} does not match on event {}",
+                    startingPointEvent, event);
+            return false;
+        }
+        boolean startNow;
+        String startingPointValue = rule.getStartingPointValue();
+        if (StringUtils.isNotEmpty(startingPointValue)) {
+            if (startingPointValue.equals(eventInput)) {
+                log.debug("Evaluating event-based rule: startingPointEvent {} matched on event {}", startingPointEvent,
                         startingPointEvent);
+                startNow = true;
             } else {
-                log.debug("Evaluating event-based rules: expression {} did not match on event {}", expression,
+                log.debug("Evaluating event-based rule: startingPointEvent {} does not match on event {}",
+                        startingPointEvent, startingPointEvent);
+                startNow = false;
+            }
+        } else {
+            String expression = rule.getStartingPointExpression();
+            if (evaluateConditionExpression(record, eventInput, session)) {
+                log.debug("Evaluating event-based rule: expression {} matched on event {}", expression,
                         startingPointEvent);
+                startNow = true;
+            } else {
+                log.debug("Evaluating event-based rule: expression {} does not match on event {}", expression,
+                        startingPointEvent);
+                startNow = false;
             }
         }
+        if (startNow) {
+            Calendar retainUntil = rule.getRetainUntilDateFromNow();
+            log.debug("Evaluating event-based rule: setting retain until {} on record {}",
+                    () -> formatISODateTime(retainUntil), () -> recordPath);
+            session.setRetainUntil(record.getDocument().getRef(), retainUntil, null);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void proceedRetentionExpired(Record record, CoreSession session) {
-        executeRuleEndActions(record, session);
+        RetentionRule rule = record.getRule(session);
+        if (rule != null) {
+            executeRuleActions(record.getDocument(), rule.getEndActions(), session);
+        }
     }
 
     protected List<String> acceptedEvents;
