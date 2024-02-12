@@ -18,22 +18,13 @@
  */
 package org.nuxeo.retention.operations;
 
-import java.util.Collections;
-import java.util.Date;
-
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.event.Event;
-import org.nuxeo.ecm.core.event.EventProducer;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.retention.RetentionConstants;
-import org.nuxeo.retention.event.RetentionEventContext;
-import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.retention.service.RetentionManager;
 
 /**
  * @since 11.1
@@ -47,9 +38,9 @@ public class FireRetentionEvent {
     protected OperationContext ctx;
 
     @Context
-    protected EventProducer service;
+    protected RetentionManager retentionManager;
 
-    @Param(name = "name")
+    @Param(name = "name", required = true)
     protected String name;
 
     @Param(name = "audit", required = false)
@@ -57,24 +48,8 @@ public class FireRetentionEvent {
 
     @OperationMethod
     public void run() {
-        CoreSession session = ctx.getCoreSession();
-        Object input = ctx.getInput();
-        RetentionEventContext evctx = new RetentionEventContext(session.getPrincipal());
-        if (input instanceof String) {
-            evctx.setInput((String) input);
-        }
-        Event event = evctx.newEvent(name);
-        service.fireEvent(event);
-        if (audit) {
-            AuditLogger logger = Framework.getService(AuditLogger.class);
-            LogEntry entry = logger.newLogEntry();
-            entry.setEventId(name);
-            entry.setEventDate(new Date());
-            entry.setCategory(RetentionConstants.EVENT_CATEGORY);
-            entry.setPrincipalName(session.getPrincipal().getName());
-            entry.setComment(evctx.getInput());
-            logger.addLogEntries(Collections.singletonList(entry));
-        }
+        retentionManager.fireRetentionEvent(name, ctx.getInput() instanceof String input ? input : null, audit,
+                ctx.getCoreSession());
     }
 
 }

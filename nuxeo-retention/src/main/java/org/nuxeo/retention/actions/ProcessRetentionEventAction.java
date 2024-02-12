@@ -56,6 +56,10 @@ public class ProcessRetentionEventAction implements StreamProcessorTopology {
 
     public static final String ACTION_FULL_NAME = "retention/" + ACTION_NAME;
 
+    public static final String ACTION_EVENT_INPUT_PARAM = "eventInput";
+
+    public static final String ACTION_EVENT_ID_PARAM = "eventId";
+
     @Override
     public Topology getTopology(Map<String, String> options) {
         return Topology.builder()
@@ -72,6 +76,10 @@ public class ProcessRetentionEventAction implements StreamProcessorTopology {
 
         protected RetentionManager retentionManager;
 
+        protected String eventId;
+
+        protected String eventInput;
+
         public ProcessRetentionEventComputation() {
             super(ACTION_FULL_NAME);
         }
@@ -82,6 +90,8 @@ public class ProcessRetentionEventAction implements StreamProcessorTopology {
             Serializable auditParam = command.getParam(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
             disableAudit = auditParam != null && Boolean.parseBoolean(auditParam.toString());
             retentionManager = Framework.getService(RetentionManager.class);
+            eventInput = command.getParam(ACTION_EVENT_INPUT_PARAM);
+            eventId = command.getParam(ACTION_EVENT_ID_PARAM);
         }
 
         @Override
@@ -108,7 +118,10 @@ public class ProcessRetentionEventAction implements StreamProcessorTopology {
                  .append(" = '" + rule.getDocument().getId() + "'");
             for (String repositoryName : repositoryService.getRepositoryNames()) {
                 BulkCommand command = new BulkCommand.Builder(EvalInputEventBasedRuleAction.ACTION_NAME,
-                        query.toString(), SecurityConstants.SYSTEM_USERNAME).repository(repositoryName).build();
+                        query.toString(), SecurityConstants.SYSTEM_USERNAME).param(ACTION_EVENT_ID_PARAM, eventId)
+                                                                            .param(ACTION_EVENT_INPUT_PARAM, eventInput)
+                                                                            .repository(repositoryName)
+                                                                            .build();
                 bulkService.submit(command);
             }
         }
