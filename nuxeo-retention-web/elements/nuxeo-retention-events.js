@@ -27,6 +27,7 @@ import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-directory-suggestion.js';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-input.js';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-user-tag.js';
 import '@polymer/paper-button/paper-button.js';
+import moment from '@nuxeo/moment';
 
 /**
 `nuxeo-retention-events`
