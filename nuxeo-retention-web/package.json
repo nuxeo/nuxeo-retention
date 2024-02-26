@@ -4,6 +4,7 @@
   "description": "Nuxeo Retention Management WebUI integration",
   "author": "Nuxeo",
   "license": "Apache-2.0",
+ 
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4",
     "@nuxeo/nuxeo-web-ui-ftest": "~3.1.2-rc.002",
@@ -36,7 +37,8 @@
     "@polymer/paper-button": "^3.0.0",
     "@polymer/paper-dialog-scrollable": "^3.0.0",
     "@polymer/paper-icon-button": "^3.0.0",
-    "@polymer/polymer": "3.3.1"
+    "@polymer/polymer": "3.3.1",
+    "jsdom": "^24.0.0"
   },
   "husky": {
     "hooks": {
