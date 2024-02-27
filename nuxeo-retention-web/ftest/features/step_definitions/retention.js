@@ -2,8 +2,9 @@
 import { When, Then } from '@cucumber/cucumber';
 
 When('I set a legal hold on the document with description {string}', async function (desc) {
-  await this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button:not([hold])');
-  const dialog = await this.ui.browser.el.element('nuxeo-hold-toggle-button #dialog');
+  const browser = await this.ui.browser;
+  await browser.clickDocumentActionMenu('nuxeo-hold-toggle-button:not([hold])');
+  const dialog = await browser.el.element('nuxeo-hold-toggle-button #dialog');
   await dialog.waitForVisible();
   const descInput = await dialog.element('nuxeo-textarea[name="description"]');
   await fixtures.layouts.setValue(descInput, desc);
@@ -13,11 +14,13 @@ When('I set a legal hold on the document with description {string}', async funct
 });
 
 When('I unset the legal hold on the document', async function () {
-  await this.ui.browser.clickDocumentActionMenu('nuxeo-hold-toggle-button[hold]');
+  const browser = await this.ui.browser;
+  await browser.clickDocumentActionMenu('nuxeo-hold-toggle-button[hold]');
 });
 
 Then('I see the document is under legal hold', async function () {
-  const documentPage = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const documentPage = await browser.documentPage(this.doc.type);
   const infoBar = await documentPage.infoBar;
   await infoBar.waitForVisible();
   const ele = await infoBar.element('#retentionInfoBar #legalHold');
@@ -25,41 +28,47 @@ Then('I see the document is under legal hold', async function () {
 });
 
 Then('I see the document is not under legal hold', async function () {
-  const page = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const page = await browser.documentPage(this.doc.type);
   const infoBar = await page.infoBar;
   await infoBar.waitForExist('#legalHold', false);
 });
 
 Then('I can unset the legal hold on the document', async function () {
-  const ele = await this.ui.browser.el;
+  const browser = await this.ui.browser;
+  const ele = await browser.el;
   await ele.waitForExist('nuxeo-hold-toggle-button[hold]');
 });
 
 Then('I cannot set the legal hold on the document', async function () {
-  const ele = await this.ui.browser.el;
+  const browser = await this.ui.browser;
+  const ele = await browser.el;
   await ele.waitForExist('nuxeo-hold-toggle-button', false);
 });
 
 Then('I cannot unset the legal hold on the document', async function () {
-  const ele = await this.ui.browser.el;
+  const browser = await this.ui.browser;
+  const ele = await browser.el;
   await ele.waitForExist('nuxeo-hold-toggle-button[hold]', false);
 });
 
 Then('I cannot edit main blob', async function () {
-  const page = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const page = await browser.documentPage(this.doc.type);
   await page.el.waitForExist('nuxeo-replace-blob-button', false);
   await page.el.waitForExist('nuxeo-delete-blob-button', false);
 });
 
 Then('I can edit main blob', async function () {
-  const page = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const page = await browser.documentPage(this.doc.type);
   await page.el.waitForExist('nuxeo-replace-blob-button');
   await page.el.waitForExist('nuxeo-delete-blob-button');
 });
 
 Then('I can see the retention menu', async function () {
   const drawer = await this.ui.drawer;
-  const ele = await drawer.el.$('nuxeo-menu-icon[name="retention"]');
+  const ele = await drawer.el.element('nuxeo-menu-icon[name="retention"]');
   await ele.waitForVisible;
 });
 
@@ -69,7 +78,8 @@ Then('I cannot see the retention menu', async function () {
 });
 
 When('I go to the retention event', async function () {
-  const menu = await this.ui.drawer.open('retention');
+  const drawer = await this.ui.drawer;
+  const menu = await drawer.open('retention');
   try {
     // XXX click sometimes hits nuxeo-browser, resulting in an error
     const menuElement = await menu.element('nuxeo-menu-item[name="events"]');
@@ -82,7 +92,8 @@ When('I go to the retention event', async function () {
 });
 
 When('I go to the retention rules location', async function () {
-  const menu = await this.ui.drawer.open('retention');
+  const drawer = await this.ui.drawer;
+  const menu = await drawer.open('retention');
   try {
     // XXX click sometimes hits nuxeo-browser, resulting in an error
     const menuElement = await menu.element('nuxeo-menu-item[name="rules"]');
@@ -95,7 +106,8 @@ When('I go to the retention rules location', async function () {
 });
 
 When('I navigate to Retention Search page', async function () {
-  const menu = await this.ui.drawer.open('retention');
+  const drawer = await this.ui.drawer;
+  const menu = await drawer.open('retention');
   try {
     // XXX click sometimes hits nuxeo-browser, resulting in an error
     const menuElement = await menu.element('nuxeo-menu-item[name="search"]');
@@ -107,8 +119,9 @@ When('I navigate to Retention Search page', async function () {
 });
 
 Then('I attach the {string} rule to the document', async function (ruleName) {
-  await this.ui.browser.clickDocumentActionMenu('nuxeo-attach-rule-button');
-  const dialog = await this.ui.browser.el.element('nuxeo-attach-rule-button #dialog');
+  const browser = await this.ui.browser;
+  await browser.clickDocumentActionMenu('nuxeo-attach-rule-button');
+  const dialog = await browser.el.element('nuxeo-attach-rule-button #dialog');
   await dialog.waitForVisible();
   const select = await dialog.element('nuxeo-document-suggestion');
   await fixtures.layouts.setValue(select, ruleName);
@@ -119,7 +132,8 @@ Then('I attach the {string} rule to the document', async function (ruleName) {
 });
 
 Then('I see the document is under retention', async function () {
-  const documentPage = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const documentPage = await browser.documentPage(this.doc.type);
   const infoBar = await documentPage.infoBar;
   await infoBar.waitForVisible();
   const ele = await infoBar.element('#retentionInfoBar #retention');
@@ -127,7 +141,8 @@ Then('I see the document is under retention', async function () {
 });
 
 Then('I see the document is under retention for {int} days', async function (days) {
-  const documentPage = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const documentPage = await browser.documentPage(this.doc.type);
   const infoBar = await documentPage.infoBar;
   await infoBar.waitForVisible();
   const ele = await infoBar.element('#retentionInfoBar #retention');
@@ -138,7 +153,8 @@ Then('I see the document is under retention for {int} days', async function (day
 });
 
 Then('I see the document is under indeterminate retention', async function () {
-  const documentPage = await this.ui.browser.documentPage(this.doc.type);
+  const browser = await this.ui.browser;
+  const documentPage = await browser.documentPage(this.doc.type);
   const infoBar = await documentPage.infoBar;
   await infoBar.waitForVisible();
   const ele = await infoBar.element('#retentionInfoBar #indeterminateRetention');
@@ -146,7 +162,8 @@ Then('I see the document is under indeterminate retention', async function () {
 });
 
 Then('I cannot see the trash button', async function () {
-  const trashButton = await this.ui.browser.trashDocumentButton;
+  const browser = await this.ui.browser;
+  const trashButton = await browser.trashDocumentButton;
   const isButtonVisible = await trashButton.isVisible();
   isButtonVisible.should.be.equals(false);
 });
@@ -160,7 +177,8 @@ When('I have a "ContractEnd" retention event', async () => {
 });
 
 When('I fire the {string} retention event with {string} input', async function (eventName, eventInput) {
-  const evtsElement = await this.ui.el.element('nuxeo-retention-events');
+  const ui = await this.ui;
+  const evtsElement = await ui.el.element('nuxeo-retention-events');
   await evtsElement.waitForVisible();
   const eventSelectElt = await evtsElement.element('nuxeo-directory-suggestion[name="event"]');
   await eventSelectElt.waitForVisible();
@@ -174,16 +192,18 @@ When('I fire the {string} retention event with {string} input', async function (
 });
 
 When('I search for documents Under legal hold', async function () {
-  const ele = await this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const ui = await this.ui;
+  const ele = await ui.el.element('nuxeo-search-page#retentionSearch');
   await ele.waitForVisible();
-  const searchPage = await this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   const filterBtn = await searchPage.element('nuxeo-retention-search-results nuxeo-quick-filters');
   await filterBtn.waitForVisible();
   await filterBtn.click();
 });
 
 When('I search for documents with Retention Rule {string}', async function (retentionRule) {
-  const searchPage = await this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const ui = await this.ui;
+  const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   await searchPage.waitForVisible();
   const rulesSelectElt = await searchPage.element('nuxeo-dropdown-aggregation');
   await rulesSelectElt.waitForVisible();
@@ -191,38 +211,41 @@ When('I search for documents with Retention Rule {string}', async function (rete
 });
 
 When('I clear the search filters', async function () {
-  const ele = await this.ui.el.$('nuxeo-search-page#retentionSearch');
-  await ele.waitForVisible();
-  const searchPage = await this.ui.el.element('nuxeo-search-page#retentionSearch');
+  const ui = await this.ui;
+  const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   const clearBtn = await searchPage.element('div.buttons paper-button');
   await clearBtn.click();
 });
 
 Then('I can see {int} document in search results', async function (results) {
-  const searchPage = await this.ui.el.element('nuxeo-search-page#retentionSearch');
+  await driver.pause(2000);
+  const ui = await this.ui;
+  const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   await searchPage.waitForVisible();
+  const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
   if (results === 0) {
-    const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
     return !ele.isVisible();
   }
-  return driver.waitUntil(
-    async () =>
-      (await searchPage.element('nuxeo-retention-search-results span.resultsCount').getText()) ===
-      `${results} result(s)`,
-  );
+  const text = await ele.getText();
+  if (text !== `${results} result(s)`) {
+    throw new Error(`Expected count of ${results} but found ${text}`);
+  }
+  return true;
 });
 
 Then('I can see the extend retention action', async function () {
-  await this.ui.browser.clickDocumentActionMenu('nuxeo-retain-button');
-  const dialog = await this.ui.browser.el.element('nuxeo-retain-button #dialog');
+  const browser = await this.ui.browser;
+  await browser.clickDocumentActionMenu('nuxeo-retain-button');
+  const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const button = await dialog.element('paper-button[name = "cancel"]');
   await button.click();
 });
 
 Then('I set the retention to expire in {int} days', async function (days) {
-  await this.ui.browser.clickDocumentActionMenu('nuxeo-retain-button');
-  const dialog = await this.ui.browser.el.element('nuxeo-retain-button #dialog');
+  const browser = await this.ui.browser;
+  await browser.clickDocumentActionMenu('nuxeo-retain-button');
+  const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const dateInput = await dialog.element('#picker');
   const futureDate = await moment().add(days, 'days').format(global.dateFormat);
