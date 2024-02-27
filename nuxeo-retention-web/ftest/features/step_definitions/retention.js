@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { When, Then } from '@cucumber/cucumber';
 
 When('I set a legal hold on the document with description {string}', async function (desc) {
