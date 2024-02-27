@@ -205,12 +205,11 @@ Then('I can see {int} document in search results', async function (results) {
     const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
     return !ele.isVisible();
   }
-  const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
-  const text = await ele.getText();
-  if (text !== `${results} result(s)`) {
-    throw Error(`Expected count of ${results} but found ${text}`);
-  }
-  return true;
+  return driver.waitUntil(
+    async () =>
+      (await searchPage.element('nuxeo-retention-search-results span.resultsCount').getText()) ===
+      `${results} result(s)`,
+  );
 });
 
 Then('I can see the extend retention action', async function () {
