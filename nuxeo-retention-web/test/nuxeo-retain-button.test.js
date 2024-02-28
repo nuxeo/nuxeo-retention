@@ -18,6 +18,8 @@ limitations under the License.
 import { fixture, html } from '@nuxeo/testing-helpers';
 import moment from '@nuxeo/moment';
 import '../elements/nuxeo-retain-button.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 const document = {
   'entity-type': 'document',
@@ -108,7 +110,7 @@ suite('nuxeo-retain-button', () => {
     test('Should toggle dialog', async () => {
       sinon.stub(attachEl.$.dialog, 'toggle');
       attachEl._toggleDialog();
-      expect(attachEl.$.dialog.toggle).to.have.been.calledOnce;
+      expect(attachEl.$.dialog.toggle.calledOnce).to.equal(true);
     });
   });
 
@@ -121,8 +123,8 @@ suite('nuxeo-retain-button', () => {
       attachEl._retain();
       expect(attachEl.$.retainOp.params).to.deep.equal({ until: '2025-05-09' });
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledOnce;
-        expect(attachEl._toggleDialog).to.have.been.calledOnce;
+        expect(attachEl.dispatchEvent.calledOnce).to.equal(true);
+        expect(attachEl._toggleDialog.calledOnce).to.equal(true);
       }, 0);
     });
   });
@@ -135,7 +137,7 @@ suite('nuxeo-retain-button', () => {
       attachEl.document.retainUntil = '2025-05-09';
       sinon.stub(attachEl, 'isRetentionDateIndeterminate').returns(false);
       expect(attachEl._computeMinDate()).equal('2025-05-09');
-      expect(attachEl.set).to.have.been.calledWith('until', '2025-05-09');
+      expect(attachEl.set.calledWith('until', '2025-05-09')).to.equal(true);
     });
 
     test("Should return min date as tomorrow's date if document has retain until date but retention date is indeterminate", async () => {
@@ -143,7 +145,7 @@ suite('nuxeo-retain-button', () => {
       const tomorrow = moment().add(1, 'days');
       sinon.stub(attachEl, 'isRetentionDateIndeterminate').returns(true);
       expect(attachEl._computeMinDate()).equal(moment(tomorrow.toJSON()).format('YYYY-MM-DD'));
-      expect(attachEl.set).to.have.been.calledWith('until', undefined);
+      expect(attachEl.set.calledWith('until', undefined)).to.equal(true);
     });
 
     test("Should return min date as tomorrow's date if document does not have retain until date though retention date is not indeterminate", async () => {
@@ -151,7 +153,7 @@ suite('nuxeo-retain-button', () => {
       const tomorrow = moment().add(1, 'days');
       sinon.stub(attachEl, 'isRetentionDateIndeterminate').returns(false);
       expect(attachEl._computeMinDate()).equal(moment(tomorrow.toJSON()).format('YYYY-MM-DD'));
-      expect(attachEl.set).to.have.been.calledWith('until', undefined);
+      expect(attachEl.set.calledWith('until', undefined)).to.equal(true);
     });
 
     test("Should return min date as tomorrow's date if document does not have retain until date and retention date is indeterminate", async () => {
@@ -159,7 +161,7 @@ suite('nuxeo-retain-button', () => {
       const tomorrow = moment().add(1, 'days');
       sinon.stub(attachEl, 'isRetentionDateIndeterminate').returns(true);
       expect(attachEl._computeMinDate()).equal(moment(tomorrow.toJSON()).format('YYYY-MM-DD'));
-      expect(attachEl.set).to.have.been.calledWith('until', undefined);
+      expect(attachEl.set.calledWith('until', undefined)).to.equal(true);
     });
   });
 

@@ -16,7 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import '../elements/nuxeo-retention-behavior.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
+import { Nuxeo } from '../elements/nuxeo-retention-behavior.js';
 
 suite('nuxeo-retention-behavior', () => {
   const document = {
@@ -75,7 +77,6 @@ suite('nuxeo-retention-behavior', () => {
     uid: '7',
     properties: {},
   };
-
   let sandbox;
   let retentionBehaviorInstance;
   const originalRetentionBehaviorObj = Nuxeo.RetentionBehavior;

@@ -17,6 +17,8 @@ limitations under the License.
 */
 import { fixture, html } from '@nuxeo/testing-helpers';
 import '../elements/nuxeo-hold-toggle-button.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 const document = {
   'entity-type': 'document',
@@ -132,7 +134,7 @@ suite('nuxeo-hold-toggle-button', () => {
       expect(attachEl.$.opHold.input).equal(providerObj);
       expect(attachEl.$.opHold.async).equal(true);
       setTimeout(() => {
-        expect(attachEl._toggleDialog).to.have.been.calledOnce;
+        expect(attachEl._toggleDialog.calledOnce).to.equal(true);
       }, 0);
     });
 
@@ -150,8 +152,8 @@ suite('nuxeo-hold-toggle-button', () => {
       expect(attachEl.$.opHold.async).equal(false);
       expect(attachEl.$.opHold.params).to.deep.equal({ description: 'some text' });
       setTimeout(() => {
-        expect(attachEl._toggleDialog).to.have.been.calledOnce;
-        expect(attachEl.dispatchEvent).to.have.been.calledOnce;
+        expect(attachEl._toggleDialog.calledOnce).to.equal(true);
+        expect(attachEl.dispatchEvent.calledOnce).to.equal(true);
       }, 0);
     });
 
@@ -162,8 +164,8 @@ suite('nuxeo-hold-toggle-button', () => {
       attachEl.document.isUnderRetentionOrLegalHold = true;
       windowStub.returns(false);
       attachEl._hold();
-      expect(attachEl._toggleDialog).not.to.have.been.calledOnce;
-      expect(attachEl.$.opHold.execute).not.to.have.been.calledOnce;
+      expect(attachEl._toggleDialog.calledOnce).to.equal(false);
+      expect(attachEl.$.opHold.execute.calledOnce).to.equal(false);
     });
   });
 
@@ -179,7 +181,7 @@ suite('nuxeo-hold-toggle-button', () => {
       expect(attachEl.$.opUnhold.input).equal(providerObj);
       expect(attachEl.$.opUnhold.async).equal(true);
       expect(attachEl.$.opUnhold.params).to.deep.equal({ action: 'unholdDocumentsAction' });
-      expect(attachEl.$.opUnhold.execute).to.have.been.calledOnce;
+      expect(attachEl.$.opUnhold.execute.calledOnce).to.equal(true);
     });
 
     test('Should execute Document.Unhold if provider is not present', async () => {
@@ -192,7 +194,7 @@ suite('nuxeo-hold-toggle-button', () => {
       expect(attachEl.$.opUnhold.async).equal(false);
       expect(attachEl.$.opUnhold.params).to.deep.equal({});
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledOnce;
+        expect(attachEl.dispatchEvent.calledOnce).to.equal(true);
       }, 0);
     });
   });
@@ -202,14 +204,14 @@ suite('nuxeo-hold-toggle-button', () => {
       attachEl.hold = false;
       sinon.spy(attachEl, '_toggleDialog');
       attachEl._toggle();
-      expect(attachEl._toggleDialog).to.have.been.calledOnce;
+      expect(attachEl._toggleDialog.calledOnce).to.equal(true);
     });
 
     test('Should perform unhold operation if hold is set to true', async () => {
       attachEl.hold = true;
       sinon.spy(attachEl, '_unhold');
       attachEl._toggle();
-      expect(attachEl._unhold).to.have.been.calledOnce;
+      expect(attachEl._unhold.calledOnce).to.equal(true);
     });
   });
 
@@ -218,8 +220,8 @@ suite('nuxeo-hold-toggle-button', () => {
       sinon.spy(attachEl, '_resetPopup');
       sinon.stub(attachEl.$.dialog, 'toggle');
       attachEl._toggleDialog();
-      expect(attachEl._resetPopup).to.have.been.calledOnce;
-      expect(attachEl.$.dialog.toggle).to.have.been.calledOnce;
+      expect(attachEl._resetPopup.calledOnce).to.equal(true);
+      expect(attachEl.$.dialog.toggle.calledOnce).to.equal(true);
     });
   });
 
@@ -227,7 +229,7 @@ suite('nuxeo-hold-toggle-button', () => {
     test('Should set description to null', async () => {
       sinon.spy(attachEl, 'set');
       attachEl._resetPopup();
-      expect(attachEl.set).to.have.been.calledOnceWith('description', null);
+      expect(attachEl.set.calledWith('description', null)).to.equal(true);
     });
   });
 
@@ -287,13 +289,15 @@ suite('nuxeo-hold-toggle-button', () => {
     test('Should dispatch notify event', async () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onHoldPollStart();
-      expect(attachEl.dispatchEvent).to.have.been.calledOnceWith(
-        new CustomEvent('notify', {
-          composed: true,
-          bubbles: true,
-          detail: { message: 'Setting legal hold' },
-        }),
-      );
+      expect(
+        attachEl.dispatchEvent.calledWith(
+          new CustomEvent('notify', {
+            composed: true,
+            bubbles: true,
+            detail: { message: 'Setting legal hold' },
+          }),
+        ),
+      ).to.equal(true);
     });
   });
 
@@ -301,13 +305,15 @@ suite('nuxeo-hold-toggle-button', () => {
     test('Should dispatch notify event', async () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onUnholdPollStart();
-      expect(attachEl.dispatchEvent).to.have.been.calledOnceWith(
-        new CustomEvent('notify', {
-          composed: true,
-          bubbles: true,
-          detail: { message: 'Unsetting legal hold' },
-        }),
-      );
+      expect(
+        attachEl.dispatchEvent.calledWith(
+          new CustomEvent('notify', {
+            composed: true,
+            bubbles: true,
+            detail: { message: 'Unsetting legal hold' },
+          }),
+        ),
+      ).to.equal(true);
     });
   });
 
@@ -317,7 +323,7 @@ suite('nuxeo-hold-toggle-button', () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onHoldResponse();
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledTwice;
+        expect(attachEl.dispatchEvent.calledTwice).to.equal(true);
       }, 0);
     });
   });
@@ -328,7 +334,7 @@ suite('nuxeo-hold-toggle-button', () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onUnholdResponse();
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledTwice;
+        expect(attachEl.dispatchEvent.calledTwice).to.equal(true);
       }, 0);
     });
   });

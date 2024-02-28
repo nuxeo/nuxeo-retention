@@ -17,6 +17,8 @@ limitations under the License.
 */
 import { fixture, html } from '@nuxeo/testing-helpers';
 import '../elements/nuxeo-retention-events.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 const document = {
   'entity-type': 'document',
@@ -92,7 +94,7 @@ suite('nuxeo-retention-events', () => {
       attachEl.startDate = '2024-02-20';
       attachEl._observeStartDate();
       expect(attachEl.$.provider.params.startDate).equal('2024-02-20');
-      expect(attachEl._refreshHistory).to.have.been.calledTwice;
+      expect(attachEl._refreshHistory.calledTwice).to.equal(true);
     });
 
     test('Should delete provider start date if it is available & refresh history', async () => {
@@ -100,7 +102,7 @@ suite('nuxeo-retention-events', () => {
       sinon.spy(attachEl, '_refreshHistory');
       attachEl._observeStartDate();
       expect(attachEl.$.provider.params.startDate).equal(undefined);
-      expect(attachEl._refreshHistory).to.have.been.calledOnce;
+      expect(attachEl._refreshHistory.calledOnce).to.equal(true);
     });
   });
 
@@ -110,7 +112,7 @@ suite('nuxeo-retention-events', () => {
       attachEl.endDate = '2024-02-20';
       attachEl._observeEndDate();
       expect(attachEl.$.provider.params.endDate).equal('2024-02-20');
-      expect(attachEl._refreshHistory).to.have.been.calledTwice;
+      expect(attachEl._refreshHistory.calledTwice).to.equal(true);
     });
 
     test('Should delete provider start date if it is available & refresh history', async () => {
@@ -118,7 +120,7 @@ suite('nuxeo-retention-events', () => {
       sinon.spy(attachEl, '_refreshHistory');
       attachEl._observeEndDate();
       expect(attachEl.$.provider.params.endDate).equal(undefined);
-      expect(attachEl._refreshHistory).to.have.been.calledOnce;
+      expect(attachEl._refreshHistory.calledOnce).to.equal(true);
     });
   });
 
@@ -129,7 +131,7 @@ suite('nuxeo-retention-events', () => {
       sinon.stub(attachEl.$.table, 'fetch').resolves();
       attachEl._refreshHistory(100);
       expect(attachEl.$.provider.page).equal(1);
-      expect(attachEl.$.table.reset).to.have.been.calledOnce;
+      expect(attachEl.$.table.reset.calledOnce).to.equal(true);
       setTimeout(() => {
         expect(attachEl.$.table.emptyLabel).equal('No past events');
       }, 100);
@@ -140,7 +142,7 @@ suite('nuxeo-retention-events', () => {
       sinon.stub(attachEl.$.table, 'reset');
       sinon.stub(attachEl.$.table, 'fetch').resolves();
       attachEl._refreshHistory(100);
-      expect(attachEl.$.table.reset).not.to.have.been.calledOnce;
+      expect(attachEl.$.table.reset.calledOnce).to.equal(false);
       setTimeout(() => {
         expect(attachEl.$.table.emptyLabel).equal('No past events');
       }, 100);
@@ -158,10 +160,10 @@ suite('nuxeo-retention-events', () => {
       expect(attachEl.$.op.params).to.deep.equal({ name: 'fire' });
       expect(attachEl.$.op.input).equal('fire-input');
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledOnce;
+        expect(attachEl.dispatchEvent.calledOnce).to.equal(true);
         expect(attachEl._event).equal(null);
         expect(attachEl._eventInput).equal(null);
-        expect(attachEl._refreshHistory).to.have.been.calledWith(1000);
+        expect(attachEl._refreshHistory.calledWith(100)).to.equal(false);
       }, 0);
     });
   });

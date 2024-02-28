@@ -17,6 +17,8 @@ limitations under the License.
 */
 import { fixture, html } from '@nuxeo/testing-helpers';
 import '../elements/nuxeo-unattach-rule-button.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 const document = {
   'entity-type': 'document',
@@ -150,7 +152,7 @@ suite('nuxeo-unattach-rule-button', () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._unretain();
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledTwice;
+        expect(attachEl.dispatchEvent.calledTwice).to.equal(true);
       }, 0);
     });
   });

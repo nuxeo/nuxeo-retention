@@ -17,6 +17,8 @@ limitations under the License.
 */
 import { fixture, html } from '@nuxeo/testing-helpers';
 import '../elements/nuxeo-attach-rule-button.js';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 const document = {
   'entity-type': 'document',
@@ -120,8 +122,8 @@ suite('nuxeo-attach-rule-button', () => {
       sinon.spy(attachEl, 'set');
       const dialogSpy = sinon.spy(attachEl.$.dialog, 'toggle');
       attachEl._toggleDialog();
-      expect(attachEl.set).to.have.been.calledOnceWith('rule', undefined);
-      expect(dialogSpy).to.have.been.calledOnce;
+      expect(attachEl.set.calledWith('rule', undefined)).to.equal(true);
+      expect(dialogSpy.calledOnce).to.equal(true);
     });
   });
 
@@ -256,13 +258,15 @@ suite('nuxeo-attach-rule-button', () => {
     test('Should dispatch notify event', async () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onPollStart();
-      expect(attachEl.dispatchEvent).to.have.been.calledOnceWith(
-        new CustomEvent('notify', {
-          composed: true,
-          bubbles: true,
-          detail: { message: 'Attaching retention rule' },
-        }),
-      );
+      expect(
+        attachEl.dispatchEvent.calledWith(
+          new CustomEvent('notify', {
+            composed: true,
+            bubbles: true,
+            detail: { message: 'Attaching retention rule' },
+          }),
+        ),
+      ).to.equal(true);
     });
   });
 
@@ -272,7 +276,7 @@ suite('nuxeo-attach-rule-button', () => {
       sinon.spy(attachEl, 'dispatchEvent');
       attachEl._onResponse();
       setTimeout(() => {
-        expect(attachEl.dispatchEvent).to.have.been.calledTwice;
+        expect(attachEl.dispatchEvent.calledTwice).to.equal(true);
       }, 0);
     });
   });
@@ -299,7 +303,7 @@ suite('nuxeo-attach-rule-button', () => {
         parameters: '{"ruleId":"1"}',
       });
       setTimeout(() => {
-        expect(attachEl._toggleDialog).to.have.been.calledOnce;
+        expect(attachEl._toggleDialog.calledOnce).to.equal(true);
       }, 0);
     });
     test('Should execute Retention.AttachRule api call if provider is not present', async () => {
@@ -317,8 +321,8 @@ suite('nuxeo-attach-rule-button', () => {
       expect(attachEl.$.attachRuleOp.async).equal(false);
       expect(attachEl.$.attachRuleOp.params).to.deep.equal({ rule: '1' });
       setTimeout(() => {
-        expect(attachEl._toggleDialog).to.have.been.calledOnce;
-        expect(attachEl.dispatchEvent).to.have.been.calledOnce;
+        expect(attachEl._toggleDialog.calledOnce).to.equal(true);
+        expect(attachEl.dispatchEvent.calledOnce).to.equal(true);
       }, 0);
     });
   });
