@@ -5,8 +5,7 @@
   "author": "Nuxeo",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@cucumber/cucumber": "^7.0.0",
-    "@nuxeo/nuxeo-web-ui-ftest": "3.0.27-rc.0",
+    "@nuxeo/nuxeo-web-ui-ftest": "3.0.31-rc.003",
     "@nuxeo/testing-helpers": "^3.1.5",
     "@open-wc/karma-esm": "^2.16.18",
     "@rollup/plugin-node-resolve": "^7.1.3",
