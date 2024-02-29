@@ -113,7 +113,7 @@ pipeline {
               nxWithGitHubStatus(context: 'utests/frontend') {
                 dir('nuxeo-retention-web') {
                   sh 'npm install --no-save playwright'
-                  sh 'npx playwright install --with-deps'
+                  sh 'npx playwright@1.34 install --with-deps'
                   sh 'npm run test'
                 }
               }
