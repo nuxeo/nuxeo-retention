@@ -108,6 +108,17 @@ pipeline {
       steps {
         script {
           def stages = [:]
+          stages['Frontend'] = {
+            container('playwright') {
+              nxWithGitHubStatus(context: 'utests/frontend') {
+                dir('nuxeo-retention-web') {
+                  sh 'npm install --no-save playwright'
+                  sh 'npx playwright install --with-deps'
+                  sh 'npm run test'
+                }
+              }
+            }
+          }
           stages['Backend - dev'] = {
             container('maven') {
               nxWithGitHubStatus(context: 'utests/backend/dev') {
@@ -231,3 +242,4 @@ pipeline {
     }
   }
 }
+
