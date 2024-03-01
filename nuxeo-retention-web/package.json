@@ -27,8 +27,7 @@
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-minify-html-literals": "^1.2.5",
     "rollup-plugin-terser": "^7.0.2",
-    "sinon": "17.0.1",
-    "sinon-chai": "^3.7.0"
+    "sinon": "17.0.1"
   },
   "dependencies": {
     "@nuxeo/moment": "^2.24.0-nx.0",
