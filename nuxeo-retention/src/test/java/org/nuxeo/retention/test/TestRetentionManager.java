@@ -24,14 +24,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.retention.RetentionConstants.RECORD_MANAGER_GROUP_NAME;
 
 import java.time.Duration;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
@@ -263,8 +267,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(record.isRetentionIndeterminate());
 
-        // Trigger event with unexpected input
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, session);
+        // Trigger event with unexpected input from non admin user with proper role
+        CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
+        userSession.getPrincipal().setGroups(Collections.singletonList(RECORD_MANAGER_GROUP_NAME));
+        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
         awaitRetentionExpiration(500);
         // Check record is still under indeterminate retention
         file = session.getDocument(file.getRef());
@@ -272,10 +278,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(record.isRetentionIndeterminate());
 
-        // Trigger event with expected input
+        // Trigger event with expected input from non admin user with proper role
         file.setPropertyValue("dc:title", triggeringEventValue);
         file = session.saveDocument(file);
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, session);
+        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
         awaitRetentionExpiration(500);
         // Check record is no longer under indeterminate retention
         file = session.getDocument(file.getRef());

@@ -21,8 +21,6 @@ package org.nuxeo.retention.actions;
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_STREAM;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.INPUT_1;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_ID_PARAM;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_INPUT_PARAM;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -55,6 +53,10 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
     public static final String ACTION_NAME = "evalInputEventBasedRule";
 
     public static final String ACTION_FULL_NAME = "retention/" + ACTION_NAME;
+
+    public static final String ACTION_EVENT_INPUT_PARAM = "eventInput";
+
+    public static final String ACTION_EVENT_ID_PARAM = "eventId";
 
     @Override
     public Topology getTopology(Map<String, String> options) {
