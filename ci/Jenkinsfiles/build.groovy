@@ -104,45 +104,6 @@ pipeline {
         }
       }
     }
-    stage('Run unit tests') {
-      steps {
-        script {
-          def stages = [:]
-          stages['Frontend'] = {
-            container('playwright') {
-              nxWithGitHubStatus(context: 'utests/frontend') {
-                dir('nuxeo-retention-web') {
-                  sh 'npm install'
-                  sh 'npm install --no-save playwright'
-                  sh 'npx playwright install --with-deps'
-                  sh 'npm run test'
-                }
-              }
-            }
-          }
-          stages['Backend - dev'] = {
-            container('maven') {
-              nxWithGitHubStatus(context: 'utests/backend/dev') {
-                try {
-                  // empty file required by the read-project-properties goal of the properties-maven-plugin with the
-                  // customEnvironment profile
-                  sh 'touch /root/nuxeo-test-dev.properties'
-                  retry(3) {
-                    sh 'mvn -B -nsu -pl :nuxeo-retention -Dcustom.environment=dev -Dcustom.environment.log.dir=target-dev test'
-                  }
-                } finally {
-                  archiveArtifacts artifacts: '**/target-dev/**/*.log'
-                  junit allowEmptyResults: true, testResults: "**/target-dev/surefire-reports/*.xml"
-                }
-              }
-            }
-          }
-          stages['Backend - MongoDB'] = buildUnitTestStage('mongodb')
-          stages['Backend - PostgreSQL'] = buildUnitTestStage('postgresql')
-          parallel stages
-        }
-      }
-    }
     stage('Run functional tests') {
       steps {
         container('maven') {

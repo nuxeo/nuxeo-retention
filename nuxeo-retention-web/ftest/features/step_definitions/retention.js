@@ -55,15 +55,17 @@ Then('I cannot unset the legal hold on the document', async function () {
 Then('I cannot edit main blob', async function () {
   const browser = await this.ui.browser;
   const page = await browser.documentPage(this.doc.type);
-  await page.el.waitForExist('nuxeo-replace-blob-button', false);
-  await page.el.waitForExist('nuxeo-delete-blob-button', false);
+  const pageElement = await page.el;
+  await pageElement.waitForExist('nuxeo-replace-blob-button', false);
+  await pageElement.waitForExist('nuxeo-delete-blob-button', false);
 });
 
 Then('I can edit main blob', async function () {
   const browser = await this.ui.browser;
   const page = await browser.documentPage(this.doc.type);
-  await page.el.waitForExist('nuxeo-replace-blob-button');
-  await page.el.waitForExist('nuxeo-delete-blob-button');
+  const pageElement = await page.el;
+  await pageElement.waitForExist('nuxeo-replace-blob-button');
+  await pageElement.waitForExist('nuxeo-delete-blob-button');
 });
 
 Then('I can see the retention menu', async function () {
@@ -193,9 +195,8 @@ When('I fire the {string} retention event with {string} input', async function (
 
 When('I search for documents Under legal hold', async function () {
   const ui = await this.ui;
-  const ele = await ui.el.element('nuxeo-search-page#retentionSearch');
-  await ele.waitForVisible();
   const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
+  await searchPage.waitForVisible();
   const filterBtn = await searchPage.element('nuxeo-retention-search-results nuxeo-quick-filters');
   await filterBtn.waitForVisible();
   await filterBtn.click();
