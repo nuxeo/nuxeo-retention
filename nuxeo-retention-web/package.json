@@ -63,7 +63,7 @@
     "format:prettier": "prettier \"**/*.{js,html}\" --write",
     "ftest": "cd ftest && nuxeo-web-ui-ftest --screenshots --report --headless",
     "ftest:watch": "cd ftest && nuxeo-web-ui-ftest --debug --tags=@watch",
-    "test": "web-test-runner",
+    "test": "web-test-runner test/nuxeo-retentionrule-create-layout.test.js",
     "test:watch": "web-test-runner --watch"
   }
 }
