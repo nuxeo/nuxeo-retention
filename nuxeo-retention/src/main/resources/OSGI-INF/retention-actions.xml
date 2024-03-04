@@ -6,7 +6,6 @@
     <action name="unholdDocumentsAction" inputStream="retention/unholdDocumentsAction" bucketSize="100" batchSize="20" />
     <action name="attachRetentionRule" inputStream="retention/attachRetentionRule" bucketSize="100" batchSize="20" />
     <action name="evalInputEventBasedRule" inputStream="retention/evalInputEventBasedRule" bucketSize="100" batchSize="20" />
-    <action name="processRetentionEvent" inputStream="retention/processRetentionEvent" bucketSize="100" batchSize="20" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
@@ -28,11 +27,6 @@
     <streamProcessor name="evalInputEventBasedRule" class="org.nuxeo.retention.actions.EvalInputEventBasedRuleAction"
       defaultConcurrency="${nuxeo.bulk.action.evalInputEventBasedRule.defaultConcurrency:=2}"
       defaultPartitions="${nuxeo.bulk.action.evalInputEventBasedRule.defaultPartitions:=4}">
-      <policy name="default" maxRetries="3" delay="1s" maxDelay="10s" continueOnFailure="true" />
-    </streamProcessor>
-    <streamProcessor name="processRetentionEvent" class="org.nuxeo.retention.actions.ProcessRetentionEventAction"
-      defaultConcurrency="${nuxeo.bulk.action.processRetentionEvent.defaultConcurrency:=2}"
-      defaultPartitions="${nuxeo.bulk.action.processRetentionEvent.defaultPartitions:=4}">
       <policy name="default" maxRetries="3" delay="1s" maxDelay="10s" continueOnFailure="true" />
     </streamProcessor>
   </extension>
