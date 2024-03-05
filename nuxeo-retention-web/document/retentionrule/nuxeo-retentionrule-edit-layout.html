@@ -42,9 +42,21 @@ limitations under the License.
     >
     </nuxeo-input>
 
-    <paper-checkbox role="widget" name="disabled" checked="{{document.properties.retention_rule:enabled}}">
-      [[i18n('retention.rule.label.enabled')]]
-    </paper-checkbox>
+    <div>
+      <paper-checkbox role="widget" name="disabled" checked="{{document.properties.retention_rule:enabled}}">
+        [[i18n('retention.rule.label.enabled')]]
+      </paper-checkbox>
+    </div>
+
+    <div>
+      <paper-checkbox
+        role="widget"
+        name="allowUndeclareRecord"
+        checked="{{document.properties.retention_rule:flexibleRecords}}"
+      >
+        [[i18n('retention.rule.label.allowUndeclareRecord')]]
+      </paper-checkbox>
+    </div>
 
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <nuxeo-select

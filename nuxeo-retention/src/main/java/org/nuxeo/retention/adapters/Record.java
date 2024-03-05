@@ -134,6 +134,14 @@ public class Record {
         save(session);
     }
 
+    /**
+     * @since 2023.1
+     */
+    public void unsetRule(CoreSession session) {
+        setRuleIds(null);
+        save(session);
+    }
+
     protected void setRuleIds(final List<String> ruleIds) {
         document.setPropertyValue(RetentionConstants.RECORD_RULE_IDS_PROP, (Serializable) ruleIds);
     }

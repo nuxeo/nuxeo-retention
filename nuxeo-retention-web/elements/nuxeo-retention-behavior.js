@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const Nuxeo = window.Nuxeo || {};
+// eslint-disable-next-line import/prefer-default-export
+export const Nuxeo = window.Nuxeo || {};
 
 let fetcher;
 

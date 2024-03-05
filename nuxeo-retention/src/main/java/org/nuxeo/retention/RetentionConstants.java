@@ -40,6 +40,11 @@ public class RetentionConstants {
 
     public static final String ENABLED_PROP = "retention_rule:enabled";
 
+    /**
+     * @since 2023.1
+     */
+    public static final String MAKE_FLEXIBLE_RECORDS_PROP = "retention_rule:flexibleRecords";
+
     public static final String EXPRESSION_PROP = "retention_def:expression";
 
     public static final String BEGIN_ACTIONS_PROP = "retention_def:beginActions";

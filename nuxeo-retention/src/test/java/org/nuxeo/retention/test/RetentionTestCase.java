@@ -29,7 +29,6 @@ import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -114,7 +113,17 @@ public abstract class RetentionTestCase {
             StartingPointPolicy startingPointPolicy, List<String> docTypes, String startingPointEventId,
             String startingPointExpression, String startingPointValue, String metadataXPath, long years, long months,
             long days, long durationMillis, List<String> beginActions, List<String> endActions) {
-        DocumentModel doc = session.createDocumentModel("/RetentionRules", "testRule", "RetentionRule");
+        return createRuleWithActions(policy, startingPointPolicy, docTypes, startingPointEventId,
+                startingPointExpression, startingPointValue, metadataXPath, years, months, days, durationMillis,
+                beginActions, endActions, false);
+    }
+
+    protected RetentionRule createRuleWithActions(RetentionRule.ApplicationPolicy policy,
+            StartingPointPolicy startingPointPolicy, List<String> docTypes, String startingPointEventId,
+            String startingPointExpression, String startingPointValue, String metadataXPath, long years, long months,
+            long days, long durationMillis, List<String> beginActions, List<String> endActions, boolean flexible) {
+        DocumentModel doc = session.createDocumentModel("/RetentionRules", "testRule" + +System.currentTimeMillis(),
+                "RetentionRule");
         RetentionRule rule = doc.getAdapter(RetentionRule.class);
         rule.setDurationYears(years);
         rule.setDurationMonths(months);
@@ -129,18 +138,32 @@ public abstract class RetentionTestCase {
         rule.setMetadataXpath(metadataXPath);
         rule.setBeginActions(beginActions);
         rule.setEndActions(endActions);
+        if (flexible) {
+            rule.makeFlexibleRecord();
+        } else {
+            rule.makeEnforcedRecord();
+        }
         session.createDocument(doc);
         return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
     }
 
     protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
             List<String> beginActions, List<String> endActions) {
+        return createImmediateRuleMillis(policy, durationMillis, beginActions, endActions, false);
+    }
+
+    protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
+            List<String> beginActions, List<String> endActions, boolean flexible) {
         return createRuleWithActions(policy, RetentionRule.StartingPointPolicy.IMMEDIATE, Arrays.asList("File"), null,
-                null, null, null, 0L, 0L, 0L, durationMillis, beginActions, endActions);
+                null, null, null, 0L, 0L, 0L, durationMillis, beginActions, endActions, flexible);
     }
 
     protected RetentionRule createManualImmediateRuleMillis(long durationMillis) {
-        return createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, durationMillis, null, null);
+        return createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, durationMillis, null, null, false);
+    }
+
+    protected RetentionRule createManualImmediateFlexibleRuleMillis(long durationMillis) {
+        return createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, durationMillis, null, null, true);
     }
 
     protected RetentionRule createManualEventBasedRuleMillisWithExpression(String eventId,

@@ -3,8 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>${revision}${sha1}${changelist}</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>2024.03.05-SNAPSHOT</version>
   </parent>
   <artifactId>nuxeo-retention-web</artifactId>
   <name>Nuxeo Retention Management WebUI integration</name>
@@ -19,7 +18,32 @@
             <phase>clean</phase>
             <configuration>
               <target>
-                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="clean"></ant>
+                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="clean" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>enforce-node-version</id>
+            <phase>validate</phase>
+            <configuration>
+              <target>
+                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="enforce-node-version" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>npm-install</id>
+            <phase>process-resources</phase>
+            <configuration>
+              <target>
+                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="install" />
+                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="lint" />
               </target>
             </configuration>
             <goals>
@@ -28,10 +52,10 @@
           </execution>
           <execution>
             <id>npm-build</id>
-            <phase>process-resources</phase>
+            <phase>compile</phase>
             <configuration>
               <target>
-                <ant antfile="${basedir}/build.xml" dir="${basedir}"></ant>
+                <ant antfile="${basedir}/build.xml" dir="${basedir}" target="build" />
               </target>
             </configuration>
             <goals>

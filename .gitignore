@@ -24,12 +24,18 @@ bin
 *.ids
 .pydevproject
 .factorypath
+.java-version
 
 # build artifacts
-target/
+target*/
+coverage/
 node_modules/
 nashorn_code_cache/
 chromedriver.log
-package-lock.json
 *.log
 *.pyc
+package-lock.json
+
+# Helm charts
+**/*.tgz
+**/*.lock

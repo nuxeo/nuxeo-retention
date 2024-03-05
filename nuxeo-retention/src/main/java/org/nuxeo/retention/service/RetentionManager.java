@@ -50,6 +50,17 @@ public interface RetentionManager {
     DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session);
 
     /**
+     * Unattaches a retention rule on a document and stop the current retention if any.Rule can be unattached only on
+     * flexible records.
+     *
+     * @param document the document
+     * @param session the core session
+     * @return the record document with a retention expiration date
+     * @since 2023.1
+     */
+    DocumentModel unattachRule(DocumentModel document, CoreSession session);
+
+    /**
      * Checks that the session has sufficient permission to attach the rule to the document.
      *
      * @param document the document

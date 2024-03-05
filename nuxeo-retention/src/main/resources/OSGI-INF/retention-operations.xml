@@ -7,6 +7,7 @@
     <operation class="org.nuxeo.retention.operations.UnholdDocument" />
 
     <operation class="org.nuxeo.retention.operations.AttachRetentionRule" />
+    <operation class="org.nuxeo.retention.operations.UnattachRetentionRule" />
 
     <operation class="org.nuxeo.retention.operations.FireRetentionEvent" />
   </extension>

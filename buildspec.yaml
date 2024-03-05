@@ -15,7 +15,8 @@ phases:
 
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto17
+      nodejs: 18
     commands:
       - aws s3 sync s3://db-dev-buildartifacts/tools/ ~/tools/
       - chmod a+x -R ~/tools/
@@ -31,7 +32,9 @@ phases:
         then
         CHANGELIST=-$CODEBUILD_BUILD_NUMBER;
         fi
-      - MAVEN_ARGS="-Dchangelist=$CHANGELIST -Drevision=$VERSION -DskipTests -T4C -nsu -ntp -Dnuxeo.skip.enforcer=true"
+      - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)$CHANGELIST
+      - MAVEN_ARGS=" -DskipTests -T4C -nsu -ntp -Dnuxeo.skip.enforcer=true"
+      - mvn versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false $MAVEN_ARGS
       - echo Build started on `date`
       - mvn clean compile install deploy $MAVEN_ARGS
       - echo Deployment done `date`

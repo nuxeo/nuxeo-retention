@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.retention.compliance.types">
-<#if "${nuxeo.retention.compliance.enabled}" == "true">
+<#assign
+  isStrictDefined = (nuxeo.retention.strictmode.enabled)??
+  isStrictTrue=isStrictDefined && "${nuxeo.retention.strictmode.enabled}" == "true"
+  isCompliantTrue="${nuxeo.retention.compliance.enabled}" == "true"
+>
+<#if isStrictTrue || (!isStrictDefined && isCompliantTrue)>
   <require>org.nuxeo.retention.types</require>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
