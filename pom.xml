@@ -2,19 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo</groupId>
+    <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-parent</artifactId>
-    <version>2023.1</version>
+    <version>2023.11.21-243</version>
   </parent>
 
-  <groupId>org.nuxeo.retention</groupId>
+  <groupId>cloud.docbyte.nuxeo.retention</groupId>
   <artifactId>nuxeo-retention-parent</artifactId>
   <name>Nuxeo Retention Management Parent</name>
-  <version>2023.4-SNAPSHOT</version>
+  <version>2024.03.05-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>The Nuxeo Retention Management addon adds the capability to create and attach retention rules to documents
     in order to perform advanced record management.
   </description>
+
+  <properties>
+    <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
+  </properties>
 
   <modules>
     <module>nuxeo-retention</module>
@@ -25,18 +29,18 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.nuxeo.retention</groupId>
+        <groupId>cloud.docbyte.nuxeo.retention</groupId>
         <artifactId>nuxeo-retention</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.retention</groupId>
+        <groupId>cloud.docbyte.nuxeo.retention</groupId>
         <artifactId>nuxeo-retention-package</artifactId>
         <version>${project.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.retention</groupId>
+        <groupId>cloud.docbyte.nuxeo.retention</groupId>
         <artifactId>nuxeo-retention-web</artifactId>
         <version>${project.version}</version>
       </dependency>
