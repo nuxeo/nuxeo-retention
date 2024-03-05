@@ -148,7 +148,7 @@ class RetentionHoldToggleButton extends mixinBehaviors([FiltersBehavior, FormatB
     const { isFlexibleRecord, isUnderRetentionOrLegalHold } = this.document;
     const response =
       isFlexibleRecord && isUnderRetentionOrLegalHold
-        ? window.confirm(this.i18n('retention.holdToggleButton.confirm.hold'))
+        ? window.confirm(this.i18n('retention.holdToggleButton.confirm.hold')) // eslint-disable-line no-alert
         : true;
     if (response) {
       if (this.provider) {
