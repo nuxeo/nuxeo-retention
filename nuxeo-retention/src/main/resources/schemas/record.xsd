@@ -11,7 +11,7 @@
       <xs:list>
         <xs:simpleType>
           <xs:restriction base="xs:string"
-            ref:resolver="documentResolver" ref:validation="false" ref:store="id" />
+            ref:resolver="documentResolver" ref:store="idOnly" />
         </xs:simpleType>
       </xs:list>
     </xs:simpleType>
