@@ -125,8 +125,10 @@ Then('I attach the {string} rule to the document', async function (ruleName) {
   await dialog.waitForVisible();
   const select = await dialog.element('nuxeo-document-suggestion');
   await fixtures.layouts.setValue(select, ruleName);
+  await driver.pause(2000);
   const addButton = await dialog.element('paper-button[name="add"]');
   await addButton.waitForEnabled();
+  await driver.pause(2000);
   await addButton.click();
   await driver.waitForVisible('iron-overlay-backdrop', 5000, true);
 });

@@ -7,7 +7,7 @@
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4",
     "@nuxeo/moment": "^2.24.0-nx.0",
-    "@nuxeo/nuxeo-web-ui-ftest": "3.0.31-rc.003",
+    "@nuxeo/nuxeo-web-ui-ftest": "3.0.31-rc.005",
     "@nuxeo/testing-helpers": "^3.1.5",
     "@rollup/plugin-node-resolve": "^7.1.3",
     "@web/dev-server-legacy": "^0.1.7",
@@ -29,10 +29,10 @@
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-minify-html-literals": "^1.2.5",
     "rollup-plugin-terser": "^7.0.2",
-    "sinon": "^17.0.1",
-    "sinon-chai": "^3.7.0"
+    "sinon": "^17.0.1"
   },
   "dependencies": {
+    "@nuxeo/moment": "^2.24.0-nx.0",
     "@nuxeo/nuxeo-elements": "~3.0.2-rc.0",
     "@nuxeo/nuxeo-ui-elements": "~3.0.2-rc.0",
     "@polymer/paper-button": "^3.0.0",
