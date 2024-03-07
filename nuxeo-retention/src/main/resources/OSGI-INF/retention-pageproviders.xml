@@ -34,7 +34,7 @@
       <searchDocumentType>RetentionSearch</searchDocumentType>
       <whereClause>
         <fixedPart>
-          AND ecm:isVersion = 0
+          ecm:isVersion = 0
           AND ecm:mixinType != 'HiddenInNavigation'
         </fixedPart>
         <predicate parameter="ecm:fulltext" operator="FULLTEXT">
