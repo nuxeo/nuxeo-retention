@@ -180,6 +180,13 @@ public abstract class RetentionTestCase {
                 0L, durationMillis, null, null);
     }
 
+    protected RetentionRule createManualEventBasedRuleMillisWithEventExpressionValue(String eventId, String expression,
+           long durationMillis) {
+        return createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
+                RetentionRule.StartingPointPolicy.EVENT_BASED, null, eventId, expression, null, null, 0L, 0L, 0L,
+                durationMillis, null, null);
+    }
+
     protected RetentionRule createManualMetadataBasedRuleMillis(String metadataXPath, long durationMillis) {
         return createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
                 RetentionRule.StartingPointPolicy.METADATA_BASED, null, null, null, null, metadataXPath, 0L, 0L, 0L,

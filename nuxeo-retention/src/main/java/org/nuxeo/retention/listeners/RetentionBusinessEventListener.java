@@ -18,10 +18,25 @@
  */
 package org.nuxeo.retention.listeners;
 
-import org.apache.commons.lang3.StringUtils;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
+import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
+import static org.nuxeo.retention.RetentionConstants.ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY;
+import static org.nuxeo.retention.RetentionConstants.RECORD_RULE_IDS_PROP;
+import static org.nuxeo.retention.RetentionConstants.RULE_RECORD_DOCUMENT_QUERY;
+import static org.nuxeo.retention.RetentionConstants.STARTING_POINT_EVENT_PROP;
+import static org.nuxeo.retention.actions.EvalInputEventBasedRuleAction.ACTION_EVENT_ID_PARAM;
+import static org.nuxeo.retention.actions.EvalInputEventBasedRuleAction.ACTION_EVENT_INPUT_PARAM;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.event.Event;
@@ -29,15 +44,14 @@ import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
-import org.nuxeo.retention.RetentionConstants;
-import org.nuxeo.retention.actions.ProcessRetentionEventAction;
+import org.nuxeo.retention.actions.EvalInputEventBasedRuleAction;
 import org.nuxeo.retention.event.RetentionEventContext;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Listener processing events with a {@link org.nuxeo.retention.event.RetentionEventContext}). The
- * listener schedules a {@link org.nuxeo.retention.actions.ProcessRetentionEventAction} on a query retrieving all
- * the retention rules targeting the listened event.
+ * Listener processing events with a {@link org.nuxeo.retention.event.RetentionEventContext}). The listener schedules a
+ * {@link org.nuxeo.retention.actions.EvalInputEventBasedRuleAction} on a query retrieving all the records attached to
+ * all the retention rules targeting the listened event.
  *
  * @since 11.1
  */
@@ -54,28 +68,31 @@ public class RetentionBusinessEventListener implements EventListener {
             String eventInput = ((RetentionEventContext) evtCtx).getInput();
             BulkService bulkService = Framework.getService(BulkService.class);
             RepositoryService repositoryService = Framework.getService(RepositoryService.class);
-            StringBuilder query = new StringBuilder(RetentionConstants.ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY);
-            query.append(" AND ") //
-                 // Only with event name
-                 .append(RetentionConstants.STARTING_POINT_EVENT_PROP)
-                 .append(" = ")
-                 .append(NXQL.escapeString(eventName));
-            if (StringUtils.isBlank(eventInput)) {
-                query.append(" AND ") //
-                     .append(RetentionConstants.STARTING_POINT_VALUE_PROP)
-                     .append(" IS NULL");
-            } else {
-                query.append(" AND ") //
-                     .append(RetentionConstants.STARTING_POINT_VALUE_PROP)
-                     .append(" = ")
-                     .append(NXQL.escapeString(eventInput));
-            }
             for (String repositoryName : repositoryService.getRepositoryNames()) {
-                BulkCommand command = new BulkCommand.Builder(ProcessRetentionEventAction.ACTION_NAME,
-                        query.toString()).user(SecurityConstants.SYSTEM_USERNAME).repository(repositoryName).build();
+                StringBuilder query = new StringBuilder(RULE_RECORD_DOCUMENT_QUERY);
+                var rulesIds = getEventBasedRuleIdsForEvent(eventName, repositoryName);
+                query.append(" AND ") //
+                     .append(RECORD_RULE_IDS_PROP) //
+                     .append(String.format(" IN ('%s')", rulesIds.stream().collect(Collectors.joining("', '"))));
+                BulkCommand command = new BulkCommand.Builder(EvalInputEventBasedRuleAction.ACTION_NAME,
+                        query.toString(), SYSTEM_USERNAME).param(ACTION_EVENT_ID_PARAM, eventName)
+                                                          .param(ACTION_EVENT_INPUT_PARAM, eventInput)
+                                                          .repository(repositoryName)
+                                                          .build();
                 bulkService.submit(command);
             }
         }
+    }
+
+    protected List<String> getEventBasedRuleIdsForEvent(String eventName, String repository) {
+        StringBuilder query = new StringBuilder(ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY);
+        query.append(" AND ") //
+             .append(STARTING_POINT_EVENT_PROP)
+             .append(" = ")
+             .append(NXQL.escapeString(eventName));
+        CoreSession session = CoreInstance.getCoreSession(repository);
+        PartialList<Map<String, Serializable>> results = session.queryProjection(query.toString(), 0, 0);
+        return results.stream().map(m -> (String) m.get(ECM_UUID)).collect(Collectors.toList());
     }
 
 }

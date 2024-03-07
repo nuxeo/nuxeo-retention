@@ -24,8 +24,10 @@ import java.util.Set;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
+import org.nuxeo.retention.event.RetentionEventContext;
 
 /**
  * Retention service.
@@ -61,6 +63,19 @@ public interface RetentionManager {
     DocumentModel unattachRule(DocumentModel document, CoreSession session);
 
     /**
+     * Fires a retention event with a {@link RetentionEventContext}.
+     *
+     * @param eventName the event to be fired
+     * @param eventInput the input if any
+     * @param audit should the event be audited
+     * @param session the session
+     * @throws IllegalArgumentException If the event input does not match the
+     *             {@link RetentionConstants#EVENT_INPUT_REGEX}
+     * @since 2023.4
+     */
+    void fireRetentionEvent(String eventName, String eventInput, boolean audit, CoreSession session);
+
+    /**
      * Checks that the session has sufficient permission to attach the rule to the document.
      *
      * @param document the document
@@ -83,11 +98,13 @@ public interface RetentionManager {
      * Evaluates the event-based retention rules that may be attached to the given record document.
      *
      * @param record the record document
-     * @param events the set of events
+     * @param event the event
+     * @param eventInput the eventInput
      * @param session the session
+     * @return true if rule matched the given event and input and the retention period was started, false otherwise
      * @since 11.1
      */
-    void evalExpressionEventBasedRules(Record record, Set<String> events, CoreSession session);
+    boolean applyEventBasedRules(Record record, String event, String eventInput, CoreSession session);
 
     /**
      * Returns the list of accepted platform core events for event-based retention rules.
