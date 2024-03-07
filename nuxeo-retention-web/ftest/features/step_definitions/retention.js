@@ -231,6 +231,7 @@ Then('I can see {int} document in search results', async function (results) {
   if (text !== `${results} result(s)`) {
     throw new Error(`Expected count of ${results} but found ${text}`);
   }
+  //test
   return true;
 });
 
