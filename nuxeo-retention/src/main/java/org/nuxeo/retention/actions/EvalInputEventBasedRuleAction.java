@@ -54,6 +54,10 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
     public static final String ACTION_FULL_NAME = "retention/" + ACTION_NAME;
 
+    public static final String ACTION_EVENT_INPUT_PARAM = "eventInput";
+
+    public static final String ACTION_EVENT_ID_PARAM = "eventId";
+
     @Override
     public Topology getTopology(Map<String, String> options) {
         return Topology.builder()
@@ -70,6 +74,10 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
         protected RetentionManager retentionManager;
 
+        protected String eventId;
+
+        protected String eventInput;
+
         public EvalInputEventBasedRuleComputation() {
             super(ACTION_FULL_NAME);
         }
@@ -80,6 +88,8 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
             Serializable auditParam = command.getParam(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
             disableAudit = auditParam != null && Boolean.parseBoolean(auditParam.toString());
             retentionManager = Framework.getService(RetentionManager.class);
+            eventInput = command.getParam(ACTION_EVENT_INPUT_PARAM);
+            eventId = command.getParam(ACTION_EVENT_ID_PARAM);
         }
 
         @Override
@@ -101,7 +111,7 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
                     log.debug("Record {} does not have an event-based rule, ignoring ...", recordDoc::getPathAsString);
                     continue;
                 }
-                session.setRetainUntil(recordDoc.getRef(), record.getRule(session).getRetainUntilDateFromNow(), null);
+                retentionManager.applyEventBasedRules(record, eventId, eventInput, session);
             }
         }
     }
