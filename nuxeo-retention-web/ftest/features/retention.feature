@@ -25,11 +25,13 @@ Feature: Retention
     And "John" has ManageRecord permission on the document
     And I browse to the document
     When I attach the "ContractFooEnded" rule to the document
+    Then I reload the page
     Then I see the document is under indeterminate retention
     And I cannot edit main blob
     When I go to the retention event
     And I fire the "Contract End" retention event with "bar" input
     And I browse to the document
+    Then I reload the page
     Then I see the document is under indeterminate retention
     And I can see the extend retention action
     When I go to the retention event
