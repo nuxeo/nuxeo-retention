@@ -237,8 +237,15 @@ Then('I can see the extend retention action', async function () {
   const browser = await this.ui.browser;
   // await browser.clickDocumentActionMenu('nuxeo-retain-button');
   const menu = await browser.el.element('nuxeo-actions-menu');
+  // eslint-disable-next-line no-console
+  console.log(menu);
   await menu.waitForExist('nuxeo-retain-button');
   const action = await menu.element('nuxeo-retain-button');
+  // eslint-disable-next-line no-console
+  console.log(action);
+  const action2 = await menu.element('nuxeo-hold-toggle-button');
+  // eslint-disable-next-line no-console
+  console.log(action2);
   await action.waitForExist();
   if ((await action.getAttribute('show-label')) !== null) {
     const myButton = await menu.element('#dropdownButton');
