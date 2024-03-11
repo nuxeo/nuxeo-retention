@@ -128,6 +128,7 @@ Then('I attach the {string} rule to the document', async function (ruleName) {
   const addButton = await dialog.element('paper-button[name="add"]');
   await addButton.waitForEnabled();
   await addButton.click();
+  await driver.pause(2000);
   await driver.waitForVisible('iron-overlay-backdrop', 5000, true);
 });
 
@@ -234,27 +235,30 @@ Then('I can see {int} document in search results', async function (results) {
 });
 
 Then('I can see the extend retention action', async function () {
-  const browser = await this.ui.browser;
+  // const browser = await this.ui.browser;
+  const ui = await this.ui;
+  // const browser = await ui.el.element('nuxeo-browser');
   // await browser.clickDocumentActionMenu('nuxeo-retain-button');
-  const menu = await browser.el.element('nuxeo-actions-menu');
+  const menu = await ui.el.element('nuxeo-actions-menu');
   // eslint-disable-next-line no-console
   console.log(menu);
-  await menu.waitForExist('nuxeo-retain-button');
-  const action = await menu.element('nuxeo-retain-button');
+  const action = await ui.el.element('nuxeo-retain-button');
   // eslint-disable-next-line no-console
   console.log(action);
-  if ((await menu.element('nuxeo-retain-button').getAttribute('show-label')) !== null) {
-    const myButton = await menu.element('#dropdownButton');
-    await myButton.click();
-    await menu.waitForVisible('paper-listbox');
-    await menu.waitForVisible('[slot="dropdown"] .label');
-    await menu.waitForEnabled('[slot="dropdown"] .label');
-  }
+  // if ((await action.getAttribute('show-label')) !== null) {
+  //   // eslint-disable-next-line no-console
+  //   console.log('i am here');
+  //   const myButton = await menu.element('#dropdownButton');
+  //   await myButton.click();
+  //   await menu.waitForVisible('paper-listbox');
+  //   await menu.waitForVisible('[slot="dropdown"] .label');
+  //   await menu.waitForEnabled('[slot="dropdown"] .label');
+  // }
   const myClass = await action.$('.action');
   await myClass.waitForVisible();
   await myClass.waitForEnabled();
   await myClass.click();
-  const dialog = await browser.el.element('nuxeo-retain-button #dialog');
+  const dialog = await ui.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const button = await dialog.element('paper-button[name = "cancel"]');
   await button.click();

@@ -20,7 +20,6 @@ import './elements/nuxeo-retention-behavior.js';
 import './elements/nuxeo-retention-events.js';
 import './elements/nuxeo-retention-menu.js';
 import './elements/nuxeo-retain-button.js';
-import './elements/nuxeo-unattach-rule-button.js';
 
 import html from './nuxeo-retention.html';
 
