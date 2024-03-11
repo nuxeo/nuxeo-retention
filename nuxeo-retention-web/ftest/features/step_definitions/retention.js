@@ -235,7 +235,22 @@ Then('I can see {int} document in search results', async function (results) {
 
 Then('I can see the extend retention action', async function () {
   const browser = await this.ui.browser;
-  await browser.clickDocumentActionMenu('nuxeo-retain-button');
+  // await browser.clickDocumentActionMenu('nuxeo-retain-button');
+  const menu = await browser.el.element('nuxeo-actions-menu');
+  await menu.waitForExist('nuxeo-retain-button');
+  const action = await menu.element('nuxeo-retain-button');
+  await action.waitForExist();
+  if ((await action.getAttribute('show-label')) !== null) {
+    const myButton = await menu.element('#dropdownButton');
+    await myButton.click();
+    await menu.waitForVisible('paper-listbox');
+    await menu.waitForVisible('[slot="dropdown"] .label');
+    await menu.waitForEnabled('[slot="dropdown"] .label');
+  }
+  const myClass = await action.$('.action');
+  await myClass.waitForVisible();
+  await myClass.waitForEnabled();
+  await myClass.click();
   const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const button = await dialog.element('paper-button[name = "cancel"]');
