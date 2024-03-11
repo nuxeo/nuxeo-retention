@@ -246,8 +246,8 @@ Then('I can see the extend retention action', async function () {
   const action2 = await menu.element('nuxeo-hold-toggle-button');
   // eslint-disable-next-line no-console
   console.log(action2);
-  await action.waitForExist();
-  if ((await action.getAttribute('show-label')) !== null) {
+  await action.el.waitForExist();
+  if ((await action.el.getAttribute('show-label')) !== null) {
     const myButton = await menu.element('#dropdownButton');
     await myButton.click();
     await menu.waitForVisible('paper-listbox');
