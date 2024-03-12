@@ -18,12 +18,10 @@
  */
 package org.nuxeo.retention.listeners;
 
-import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_ID_PARAM;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_INPUT_PARAM;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.event.Event;
@@ -37,9 +35,9 @@ import org.nuxeo.retention.event.RetentionEventContext;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Listener processing events with a {@link org.nuxeo.retention.event.RetentionEventContext}). The listener schedules a
- * {@link org.nuxeo.retention.actions.ProcessRetentionEventAction} on a query retrieving all the retention rules
- * targeting the listened event.
+ * Listener processing events with a {@link org.nuxeo.retention.event.RetentionEventContext}). The
+ * listener schedules a {@link org.nuxeo.retention.actions.ProcessRetentionEventAction} on a query retrieving all
+ * the retention rules targeting the listened event.
  *
  * @since 11.1
  */
@@ -62,12 +60,19 @@ public class RetentionBusinessEventListener implements EventListener {
                  .append(RetentionConstants.STARTING_POINT_EVENT_PROP)
                  .append(" = ")
                  .append(NXQL.escapeString(eventName));
+            if (StringUtils.isBlank(eventInput)) {
+                query.append(" AND ") //
+                     .append(RetentionConstants.STARTING_POINT_VALUE_PROP)
+                     .append(" IS NULL");
+            } else {
+                query.append(" AND ") //
+                     .append(RetentionConstants.STARTING_POINT_VALUE_PROP)
+                     .append(" = ")
+                     .append(NXQL.escapeString(eventInput));
+            }
             for (String repositoryName : repositoryService.getRepositoryNames()) {
-                BulkCommand command = new BulkCommand.Builder(ProcessRetentionEventAction.ACTION_NAME, query.toString(),
-                        SYSTEM_USERNAME).param(ACTION_EVENT_ID_PARAM, eventName)
-                                        .param(ACTION_EVENT_INPUT_PARAM, eventInput)
-                                        .repository(repositoryName)
-                                        .build();
+                BulkCommand command = new BulkCommand.Builder(ProcessRetentionEventAction.ACTION_NAME,
+                        query.toString()).user(SecurityConstants.SYSTEM_USERNAME).repository(repositoryName).build();
                 bulkService.submit(command);
             }
         }

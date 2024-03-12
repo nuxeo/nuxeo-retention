@@ -83,16 +83,6 @@ public class RetentionConstants {
 
     public static final String RETAIN_UNTIL_PROP = "record:retainUntil";
 
-    /**
-     * @since 2023.4
-     */
-    public static final String EVENT_BASED_RULE_INPUT = "eventInput";
-
-    /**
-     * @since 2023.4
-     */
-    public static final String EVENT_INPUT_REGEX = "^[a-zA-Z0-9-_.\\s]+$";
-
     public static final String ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY = "SELECT * FROM Document" //
             + " WHERE ecm:mixinType = '" + RETENTION_RULE_FACET + "'" //
             + " AND ecm:isTrashed = 0" //

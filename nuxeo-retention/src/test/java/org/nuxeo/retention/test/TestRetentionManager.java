@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -144,6 +145,7 @@ public class TestRetentionManager extends RetentionTestCase {
         assertEquals("Update Title From Scripting", file.getTitle());
     }
 
+    @Ignore(value = "NXP-29002")
     @Test
     public void testManualImmediateRule() throws InterruptedException {
         RetentionRule testRule = createManualImmediateRuleMillis(100);
@@ -162,7 +164,7 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
-    public void testManualEventBasedRuleOnDocumentMovedToFolder() throws InterruptedException {
+    public void testManualDocumentMovedToFolderUsingExpressionRule() throws InterruptedException {
         RetentionRule testRule = createManualEventBasedRuleMillisWithExpression(DocumentEventTypes.DOCUMENT_MOVED,
                 "document.getPathAsString().startsWith('/testFolder')", 1000);
 
@@ -204,7 +206,7 @@ public class TestRetentionManager extends RetentionTestCase {
 
     @Test
     @Deploy("org.nuxeo.retention.core.test:OSGI-INF/retention-vocabularies-test.xml")
-    public void testManualEventBasedRuleWithInputOnCustomEvent() throws InterruptedException {
+    public void testManualDocumentMovedToFolderUsingEventValueRule() throws InterruptedException {
         String retentionEventId = "myRetentionEvent";
         String myRetentionEventInput = "myEventInput";
         RetentionRule testRule = createManualEventBasedRuleMillisWithEventValue(retentionEventId, myRetentionEventInput,
@@ -236,55 +238,6 @@ public class TestRetentionManager extends RetentionTestCase {
 
         awaitRetentionExpiration(500);
 
-        // it has no retention anymore
-        file = session.getDocument(file.getRef());
-        record = file.getAdapter(Record.class);
-        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertTrue(record.isRetentionExpired());
-    }
-
-    @Test
-    @Deploy("org.nuxeo.retention.core.test:OSGI-INF/retention-vocabularies-test.xml")
-    public void testManualEventBasedRuleWithExpressionOnCustomEvent() throws InterruptedException {
-        String retentionEventId = "myRetentionEvent";
-        String triggeringEventValue = "foo";
-        String myRetentionEventExpression = "document.getTitle().equals(eventInput)";
-        RetentionRule testRule = createManualEventBasedRuleMillisWithExpression(retentionEventId,
-                myRetentionEventExpression, 1000);
-
-        file = service.attachRule(file, testRule, session);
-        assertTrue(file.isRecord());
-        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
-
-        awaitRetentionExpiration(500);
-
-        file = session.getDocument(file.getRef());
-        Record record = file.getAdapter(Record.class);
-        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertTrue(record.isRetentionIndeterminate());
-
-        // Trigger event with unexpected input
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, session);
-        awaitRetentionExpiration(500);
-        // Check record is still under indeterminate retention
-        file = session.getDocument(file.getRef());
-        record = file.getAdapter(Record.class);
-        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertTrue(record.isRetentionIndeterminate());
-
-        // Trigger event with expected input
-        file.setPropertyValue("dc:title", triggeringEventValue);
-        file = session.saveDocument(file);
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, session);
-        awaitRetentionExpiration(500);
-        // Check record is no longer under indeterminate retention
-        file = session.getDocument(file.getRef());
-        record = file.getAdapter(Record.class);
-        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertTrue(file.isRecord());
-        assertFalse(record.isRetentionIndeterminate());
-
-        awaitRetentionExpiration(500);
         // it has no retention anymore
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);

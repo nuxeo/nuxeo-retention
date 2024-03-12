@@ -24,9 +24,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.nuxeo.retention.RetentionConstants.RECORD_MANAGER_GROUP_NAME;
-
-import java.util.Collections;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -38,11 +35,8 @@ import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.security.impl.ACLImpl;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
-import org.nuxeo.ecm.core.event.Event;
-import org.nuxeo.ecm.core.event.test.CapturingEventListener;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.RetentionRule;
-import org.nuxeo.retention.event.RetentionEventContext;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -52,7 +46,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 public class TestRetentionSecurity extends RetentionTestCase {
 
     @Test
-    public void shouldNotBeAuthorizedToManageLegalHold() {
+    public void shouldBeAuthorizedToManageLegalHold() {
         try {
             CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
             service.attachRule(file, createManualImmediateRuleMillis(100), userSession);
@@ -136,27 +130,6 @@ public class TestRetentionSecurity extends RetentionTestCase {
         file = service.attachRule(file, rr, session);
         assertThrows("Document is already under retention or legal hold", NuxeoException.class,
                 () -> service.attachRule(file, rr, session));
-    }
-
-    @Test
-    public void shouldNotBeAllowedToFireRetentionEvent() {
-        CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
-        assertThrows("User should not be able to fire retention event", NuxeoException.class,
-                () -> service.fireRetentionEvent("foo", "bar", true, userSession));
-    }
-
-    @Test
-    public void shouldBeAllowedToFireRetentionEvent() {
-        CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
-        userSession.getPrincipal().setGroups(Collections.singletonList(RECORD_MANAGER_GROUP_NAME));
-        try (CapturingEventListener listener = new CapturingEventListener("foo")) {
-            service.fireRetentionEvent("foo", "bar", false, userSession);
-            assertEquals(1, listener.getCapturedEvents().size());
-            Event event = listener.getCapturedEvents().get(0);
-            assertEquals("foo", event.getName());
-            assertTrue(event.getContext() instanceof RetentionEventContext);
-            assertEquals(((RetentionEventContext) event.getContext()).getInput(), "bar");
-        }
     }
 
 }

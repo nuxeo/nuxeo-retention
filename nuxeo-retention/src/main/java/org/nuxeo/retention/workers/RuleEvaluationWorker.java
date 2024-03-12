@@ -35,8 +35,8 @@ import org.nuxeo.retention.service.RetentionManager;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Worker scheduled to proceed {@link org.nuxeo.retention.service.RetentionManager#evalExpressionEventBasedRules} on
- * document ids with events set.
+ * Worker scheduled to proceed {@link org.nuxeo.retention.service.RetentionManager#evalExpressionEventBasedRules}
+ * on document ids with events set.
  *
  * @since 11.1
  */
@@ -89,11 +89,7 @@ public class RuleEvaluationWorker extends AbstractWork {
                 log.warn("Document should be impacted by retention but is no longer a Record: {}", docId);
                 continue;
             }
-            for (String event : docsToCheckAndEvents.get(docId)) {
-                if (retentionManager.applyEventBasedRules(record, event, null, session)) {
-                    return;
-                }
-            }
+            retentionManager.evalExpressionEventBasedRules(record, docsToCheckAndEvents.get(docId), session);
         }
 
     }

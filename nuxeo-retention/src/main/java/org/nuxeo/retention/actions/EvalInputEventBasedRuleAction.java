@@ -21,8 +21,6 @@ package org.nuxeo.retention.actions;
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_STREAM;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.INPUT_1;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_ID_PARAM;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_INPUT_PARAM;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -72,10 +70,6 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
         protected RetentionManager retentionManager;
 
-        protected String eventId;
-
-        protected String eventInput;
-
         public EvalInputEventBasedRuleComputation() {
             super(ACTION_FULL_NAME);
         }
@@ -86,8 +80,6 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
             Serializable auditParam = command.getParam(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
             disableAudit = auditParam != null && Boolean.parseBoolean(auditParam.toString());
             retentionManager = Framework.getService(RetentionManager.class);
-            eventInput = command.getParam(ACTION_EVENT_INPUT_PARAM);
-            eventId = command.getParam(ACTION_EVENT_ID_PARAM);
         }
 
         @Override
@@ -109,7 +101,7 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
                     log.debug("Record {} does not have an event-based rule, ignoring ...", recordDoc::getPathAsString);
                     continue;
                 }
-                retentionManager.applyEventBasedRules(record, eventId, eventInput, session);
+                session.setRetainUntil(recordDoc.getRef(), record.getRule(session).getRetainUntilDateFromNow(), null);
             }
         }
     }
