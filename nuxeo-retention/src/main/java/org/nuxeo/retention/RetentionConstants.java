@@ -19,7 +19,6 @@
 package org.nuxeo.retention;
 
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.retention.adapters.RetentionRule;
 
 /**
@@ -94,7 +93,7 @@ public class RetentionConstants {
      */
     public static final String EVENT_INPUT_REGEX = "^[a-zA-Z0-9-_.\\s]+$";
 
-    public static final String ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY = "SELECT " + NXQL.ECM_UUID + " FROM Document" //
+    public static final String ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY = "SELECT * FROM Document" //
             + " WHERE ecm:mixinType = '" + RETENTION_RULE_FACET + "'" //
             + " AND ecm:isTrashed = 0" //
             + " AND ecm:isVersion = 0" //

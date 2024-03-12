@@ -21,8 +21,6 @@ package org.nuxeo.retention.actions;
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_STREAM;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.INPUT_1;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_ID_PARAM;
-import static org.nuxeo.retention.actions.ProcessRetentionEventAction.ACTION_EVENT_INPUT_PARAM;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -33,40 +31,46 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
+import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.lib.stream.computation.Topology;
 import org.nuxeo.retention.RetentionConstants;
-import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.service.RetentionManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamProcessorTopology;
 
 /**
- * Bulk action to evaluate expression on record documents with an attached event-based retention rule. Depending on the
- * expression evaluation outcome, a determinate retention period is computed and set on the record document.
+ * Bulk action to retrieve event-based retention rules. For each rule, a
+ * {@link org.nuxeo.retention.actions.EvalInputEventBasedRuleAction} is scheduled.
  *
  * @since 11.1
  */
-public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
+public class ProcessRetentionEventAction implements StreamProcessorTopology {
 
-    public static final String ACTION_NAME = "evalInputEventBasedRule";
+    public static final String ACTION_NAME = "processRetentionEvent";
 
     public static final String ACTION_FULL_NAME = "retention/" + ACTION_NAME;
+
+    public static final String ACTION_EVENT_INPUT_PARAM = "eventInput";
+
+    public static final String ACTION_EVENT_ID_PARAM = "eventId";
 
     @Override
     public Topology getTopology(Map<String, String> options) {
         return Topology.builder()
-                       .addComputation(EvalInputEventBasedRuleComputation::new,
+                       .addComputation(ProcessRetentionEventComputation::new,
                                Arrays.asList(INPUT_1 + ":" + ACTION_FULL_NAME, OUTPUT_1 + ":" + STATUS_STREAM))
                        .build();
     }
 
-    public static class EvalInputEventBasedRuleComputation extends AbstractBulkComputation {
+    public static class ProcessRetentionEventComputation extends AbstractBulkComputation {
 
-        private static final Logger log = LogManager.getLogger(EvalInputEventBasedRuleComputation.class);
+        private static final Logger log = LogManager.getLogger(ProcessRetentionEventComputation.class);
 
         protected boolean disableAudit;
 
@@ -76,7 +80,7 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
         protected String eventInput;
 
-        public EvalInputEventBasedRuleComputation() {
+        public ProcessRetentionEventComputation() {
             super(ACTION_FULL_NAME);
         }
 
@@ -92,24 +96,33 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
         @Override
         protected void compute(CoreSession session, List<String> ids, Map<String, Serializable> properties) {
-            for (DocumentModel recordDoc : loadDocuments(session, ids)) {
-                if (!recordDoc.hasFacet(RetentionConstants.RECORD_FACET)) {
-                    log.debug("Document {} is not a record, ignoring ...", recordDoc::getPathAsString);
+            for (DocumentModel ruleDoc : loadDocuments(session, ids)) {
+                if (!ruleDoc.hasFacet(RetentionConstants.RETENTION_RULE_FACET)) {
+                    log.debug("Document {} is not a retention rule, ignoring ...", ruleDoc::getPathAsString);
                     continue;
                 }
-                Record record = recordDoc.getAdapter(Record.class);
-                if (!record.isRetentionIndeterminate()) {
-                    log.debug("Record {} has already a determinate retention date {}, ignoring ...",
-                            recordDoc::getPathAsString,
-                            () -> (recordDoc.getRetainUntil() == null ? null : recordDoc.getRetainUntil().toInstant()));
-                    continue;
-                }
-                RetentionRule rule = record.getRule(session);
-                if (!rule.isEventBased()) {
-                    log.debug("Record {} does not have an event-based rule, ignoring ...", recordDoc::getPathAsString);
-                    continue;
-                }
-                retentionManager.applyEventBasedRules(record, eventId, eventInput, session);
+                RetentionRule rule = ruleDoc.getAdapter(RetentionRule.class);
+                scheduleInputEventBasedRule(rule);
+            }
+        }
+
+        protected void scheduleInputEventBasedRule(RetentionRule rule) {
+            if (!rule.isEnabled() || !rule.isEventBased()) {
+                throw new IllegalArgumentException("Rule is disabled or not event-based");
+            }
+            BulkService bulkService = Framework.getService(BulkService.class);
+            RepositoryService repositoryService = Framework.getService(RepositoryService.class);
+            StringBuilder query = new StringBuilder(RetentionConstants.RULE_RECORD_DOCUMENT_QUERY);
+            query.append(" AND ") //
+                 .append(RetentionConstants.RECORD_RULE_IDS_PROP) //
+                 .append(" = '" + rule.getDocument().getId() + "'");
+            for (String repositoryName : repositoryService.getRepositoryNames()) {
+                BulkCommand command = new BulkCommand.Builder(EvalInputEventBasedRuleAction.ACTION_NAME,
+                        query.toString(), SecurityConstants.SYSTEM_USERNAME).param(ACTION_EVENT_ID_PARAM, eventId)
+                                                                            .param(ACTION_EVENT_INPUT_PARAM, eventInput)
+                                                                            .repository(repositoryName)
+                                                                            .build();
+                bulkService.submit(command);
             }
         }
     }
