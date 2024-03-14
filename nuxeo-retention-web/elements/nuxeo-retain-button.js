@@ -24,7 +24,6 @@ import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-tooltip.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
-import moment from '@nuxeo/moment';
 
 /**
 `nuxeo-retain-button`
