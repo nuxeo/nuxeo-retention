@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { fixture, html } from '@nuxeo/testing-helpers';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import moment from '@nuxeo/moment';
 import '../elements/nuxeo-retain-button.js';
 import sinon from 'sinon';

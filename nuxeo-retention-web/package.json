@@ -30,7 +30,6 @@
     "sinon": "17.0.1"
   },
   "dependencies": {
-    "@nuxeo/moment": "^2.24.0-nx.0",
     "@nuxeo/nuxeo-elements": "~3.1.0-rc.75",
     "@nuxeo/nuxeo-ui-elements": "~3.1.0-rc.75",
     "@polymer/paper-button": "^3.0.0",
