@@ -52,7 +52,7 @@ Closure buildUnitTestStage(env) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2021'
+    label 'jenkins-nuxeo-package-lts-2021-nodejs18'
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
@@ -156,7 +156,6 @@ pipeline {
           }
           nxWithGitHubStatus(context: 'ftests') {
             echo "Functional tests are disabled (https://jira.nuxeo.com/browse/WEBUI-1260 and https://jira.nuxeo.com/browse/WEBUI-1252)"
-            /*
             script {
               def testNamespace = "${CURRENT_NAMESPACE}-retention-${BRANCH_NAME}-${BUILD_NUMBER}-ftests".replaceAll('\\.', '-').toLowerCase()
               def nuxeoParentVersion = readMavenPom().getParent().getVersion()
@@ -170,7 +169,6 @@ pipeline {
                 }
               }
             }
-            */
           }
         }
       }
