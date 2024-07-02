@@ -157,6 +157,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         record.unsetRule(session);
         session.unsetRetainUntil(document.getRef());
         document.removeFacet(RetentionConstants.RECORD_FACET);
+        document.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, true);
         document.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, true);
         document.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
         document.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
