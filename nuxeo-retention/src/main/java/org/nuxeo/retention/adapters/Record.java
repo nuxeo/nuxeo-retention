@@ -112,12 +112,14 @@ public class Record {
     }
 
     protected void save(CoreSession session) {
+        document.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, true);
         document.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, true);
         document.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
         document.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
         document.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, true);
         document.putContextData(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE, true);
         session.saveDocument(document);
+        document.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, null);
         document.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, null);
         document.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, null);
         document.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, null);
