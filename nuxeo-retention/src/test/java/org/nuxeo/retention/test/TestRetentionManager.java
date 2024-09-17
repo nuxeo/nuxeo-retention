@@ -31,7 +31,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreInstance;

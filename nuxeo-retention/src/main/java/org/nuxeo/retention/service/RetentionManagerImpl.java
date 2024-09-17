@@ -18,7 +18,7 @@
  */
 package org.nuxeo.retention.service;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 import static org.nuxeo.retention.RetentionConstants.EVENT_BASED_RULE_INPUT;
 import static org.nuxeo.retention.RetentionConstants.EVENT_INPUT_REGEX;
@@ -35,9 +35,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.el.ExpressionFactoryImpl;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
