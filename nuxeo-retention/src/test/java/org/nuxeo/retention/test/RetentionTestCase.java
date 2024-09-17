@@ -25,7 +25,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -181,7 +181,7 @@ public abstract class RetentionTestCase {
     }
 
     protected RetentionRule createManualEventBasedRuleMillisWithEventExpressionValue(String eventId, String expression,
-           long durationMillis) {
+            long durationMillis) {
         return createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
                 RetentionRule.StartingPointPolicy.EVENT_BASED, null, eventId, expression, null, null, 0L, 0L, 0L,
                 durationMillis, null, null);
