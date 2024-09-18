@@ -109,7 +109,7 @@ pipeline {
         stage('Formatting check') {
           when {
             // if current version is higher than default branch (aka: version in maintenance) run formatting check
-            expression { env.REFERENCE_BRANCH.compareToIgnoreCase(nxGitHub.getDefaultBranch()) > 0 }
+            expression { nxGitHub.getReferenceBranch().compareToIgnoreCase(nxGitHub.getDefaultBranch()) > 0 }
           }
           environment {
             // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
