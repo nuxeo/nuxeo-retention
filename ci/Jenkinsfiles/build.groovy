@@ -116,7 +116,7 @@ pipeline {
             MAVEN_CLI_ARGS = "--settings /root/.m2/settings.xml -Duser.home=/home/jenkins -B -nsu"
           }
           steps {
-            container('maven-mongodb') {
+            container('maven') {
               warnError(message: 'Formatting check has failed') {
                 nxWithGitHubStatus(context: 'maven/lint', message: 'Lint') {
                   script {
