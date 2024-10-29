@@ -64,4 +64,3 @@
     "test:watch": "web-test-runner --watch"
   }
 }
-
