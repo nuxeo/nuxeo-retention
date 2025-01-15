@@ -143,8 +143,8 @@ public abstract class RetentionTestCase {
         } else {
             rule.makeEnforcedRecord();
         }
-        session.createDocument(doc);
-        return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
+        doc = session.createDocument(doc);
+        return session.saveDocument(doc).getAdapter(RetentionRule.class);
     }
 
     protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
