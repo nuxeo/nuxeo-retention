@@ -217,7 +217,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (audit) {
             AuditLogger logger = Framework.getService(AuditLogger.class);
             LogEntry entry = logger.newLogEntry();
-            entry.setEventId(name);
+            entry.setEventId(eventInput);
             entry.setEventDate(new Date());
             entry.setCategory(RetentionConstants.EVENT_CATEGORY);
             entry.setPrincipalName(session.getPrincipal().getName());
