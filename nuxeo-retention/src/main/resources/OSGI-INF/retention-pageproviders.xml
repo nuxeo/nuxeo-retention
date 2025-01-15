@@ -4,8 +4,7 @@
     target="org.nuxeo.ecm.platform.query.api.PageProviderService"
     point="providers">
 
-    <coreQueryPageProvider
-      name="manual_retention_rule_suggestion">
+    <coreQueryPageProvider name="manual_retention_rule_suggestion">
       <whereClause>
         <predicate parameter="retention_rule:docTypes" operator="=">
           <field name="docType" />
@@ -19,8 +18,7 @@
       <pageSize>50</pageSize>
     </coreQueryPageProvider>
 
-    <coreQueryPageProvider
-      name="active_retention_rule">
+    <coreQueryPageProvider name="active_retention_rule">
       <pattern quoteParameters="false" escapeParameters="true"> SELECT
         * FROM Document WHERE ecm:mixinType = 'RetentionRule' AND
         retention_rule:enabled = 1 AND ecm:isTrashed = 0
@@ -29,8 +27,7 @@
       <pageSize>50</pageSize>
     </coreQueryPageProvider>
 
-    <genericPageProvider name="retention_search"
-      class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+    <searchServicePageProvider name="retention_search">
       <searchDocumentType>RetentionSearch</searchDocumentType>
       <whereClause>
         <fixedPart>
@@ -107,7 +104,7 @@
         </quickFilter>
       </quickFilters>
       <pageSize>20</pageSize>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 </component>

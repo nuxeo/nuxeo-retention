@@ -38,6 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
@@ -65,9 +68,6 @@ import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.actions.ELActionContext;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
@@ -78,6 +78,7 @@ import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.event.RetentionEventContext;
 import org.nuxeo.retention.workers.RuleEvaluationWorker;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Component;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
 
@@ -160,7 +161,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         document.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, true);
         document.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, true);
         document.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
-        document.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+        document.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, true);
         document.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, true);
         document.putContextData(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE, true);
         return session.saveDocument(document);
@@ -215,14 +216,12 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         Event event = evctx.newEvent(eventName);
         Framework.getService(EventProducer.class).fireEvent(event);
         if (audit) {
-            AuditLogger logger = Framework.getService(AuditLogger.class);
-            LogEntry entry = logger.newLogEntry();
-            entry.setEventId(eventInput);
-            entry.setEventDate(new Date());
-            entry.setCategory(RetentionConstants.EVENT_CATEGORY);
-            entry.setPrincipalName(session.getPrincipal().getName());
-            entry.setComment(evctx.getInput());
-            logger.addLogEntries(Collections.singletonList(entry));
+            LogEntry entry = LogEntry.builder(eventName, new Date())
+                                     .category(RetentionConstants.EVENT_CATEGORY)
+                                     .principalName(session.getPrincipal().getName())
+                                     .comment(evctx.getInput())
+                                     .build();
+            Framework.getService(AuditBackend.class).addLogEntries(Collections.singletonList(entry));
         }
     }
 
@@ -427,8 +426,11 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     @Override
     public int getApplicationStartedOrder() {
-        // after directories
-        return 98;
+        Component component = (Component) Framework.getRuntime()
+                                                   .getComponentInstance(
+                                                           "org.nuxeo.ecm.core.operation.OperationServiceComponent")
+                                                   .getInstance();
+        return component.getApplicationStartedOrder() + 1;
     }
 
     @Override

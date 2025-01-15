@@ -19,7 +19,6 @@
 package org.nuxeo.retention.listeners;
 
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
-import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
 import static org.nuxeo.retention.RetentionConstants.ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY;
 import static org.nuxeo.retention.RetentionConstants.RECORD_RULE_IDS_PROP;
 import static org.nuxeo.retention.RetentionConstants.RULE_RECORD_DOCUMENT_QUERY;
@@ -73,7 +72,7 @@ public class RetentionBusinessEventListener implements EventListener {
                 var rulesIds = getEventBasedRuleIdsForEvent(eventName, repositoryName);
                 query.append(" AND ") //
                      .append(RECORD_RULE_IDS_PROP) //
-                     .append(String.format(" IN ('%s')", rulesIds.stream().collect(Collectors.joining("', '"))));
+                     .append(String.format(" IN ('%s')", String.join("', '", rulesIds)));
                 BulkCommand command = new BulkCommand.Builder(EvalInputEventBasedRuleAction.ACTION_NAME,
                         query.toString(), SYSTEM_USERNAME).param(ACTION_EVENT_ID_PARAM, eventName)
                                                           .param(ACTION_EVENT_INPUT_PARAM, eventInput)
@@ -92,7 +91,7 @@ public class RetentionBusinessEventListener implements EventListener {
              .append(NXQL.escapeString(eventName));
         CoreSession session = CoreInstance.getCoreSession(repository);
         PartialList<Map<String, Serializable>> results = session.queryProjection(query.toString(), 0, 0);
-        return results.stream().map(m -> (String) m.get(ECM_UUID)).collect(Collectors.toList());
+        return results.stream().map(m -> (String) m.get(NXQL.ECM_UUID)).collect(Collectors.toList());
     }
 
 }

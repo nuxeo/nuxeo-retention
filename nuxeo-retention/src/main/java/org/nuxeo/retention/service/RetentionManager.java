@@ -81,7 +81,7 @@ public interface RetentionManager {
      * @param document the document
      * @param rule the rule
      * @param session the session
-     * @return
+     * @return true if rule can be attached to the document
      * @since 11.1
      */
     boolean canAttachRule(DocumentModel document, RetentionRule rule, CoreSession session);
