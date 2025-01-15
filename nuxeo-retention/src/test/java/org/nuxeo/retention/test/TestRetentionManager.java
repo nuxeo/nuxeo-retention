@@ -301,9 +301,9 @@ public class TestRetentionManager extends RetentionTestCase {
     @Test
     public void testManualMetadataBasedRule() throws InterruptedException {
         RetentionRule testRule = createManualMetadataBasedRuleMillis("dc:expired", 1000);
-        Calendar halfSecond = Calendar.getInstance();
-        halfSecond.add(Calendar.MILLISECOND, 500);
-        file.setPropertyValue("dc:expired", halfSecond);
+        Calendar expired = Calendar.getInstance();
+        expired.add(Calendar.MILLISECOND, 1000);
+        file.setPropertyValue("dc:expired", expired);
         file = session.saveDocument(file);
 
         file = service.attachRule(file, testRule, session);

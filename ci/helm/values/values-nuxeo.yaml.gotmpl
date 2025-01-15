@@ -16,7 +16,7 @@ service:
 mongodb:
   enabled: true
   host: {{ printf "mongodb.%s" $localDomain }}
-packages: nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
+packages: nuxeo-opensearch1-embed nuxeo-search-client-opensearch1 nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
 customEnvs:
 {{- if (contains "preprod" (env "CONNECT_CLID_SECRET")) }}
 - name: NUXEO_CONNECT_URL

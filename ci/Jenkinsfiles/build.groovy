@@ -34,8 +34,6 @@ Closure buildUnitTestStage(env) {
                 sh """
                   mvn -B -nsu -pl :nuxeo-retention \
                     -Dcustom.environment=${env} \
-                    -Dcustom.environment.log.dir=target-${env} \
-                    -Dnuxeo.test.core=${env == 'mongodb' ? 'mongodb' : 'vcs'} \
                     test
                 """
               }
@@ -61,6 +59,7 @@ pipeline {
   }
   environment {
     CURRENT_NAMESPACE = nxK8s.getCurrentNamespace()
+    TEST_SERVICE_DOMAIN_SUFFIX = 'svc.cluster.local'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms512m -Xmx3072m"
     VERSION = nxUtils.getVersion()
     NUXEO_RETENTION_PACKAGE_PATH = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
