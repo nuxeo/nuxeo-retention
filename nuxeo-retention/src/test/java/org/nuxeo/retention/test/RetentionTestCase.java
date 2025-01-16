@@ -38,6 +38,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
@@ -49,11 +50,14 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(EmbeddedAutomationServerFeature.class)
+@Features({AuditFeature.class, EmbeddedAutomationServerFeature.class})
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.core.management")
+@Deploy("org.nuxeo.ecm.platform.types")
+@Deploy("org.nuxeo.ecm.platform.webapp.types")
 @Deploy("org.nuxeo.ecm.default.config")
+@Deploy("org.nuxeo.ecm.platform.search.core")
+@Deploy("org.nuxeo.ecm.platform.tag")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
 @Deploy("org.nuxeo.retention.core:OSGI-INF/retention-vocabularies.xml")
@@ -143,8 +147,8 @@ public abstract class RetentionTestCase {
         } else {
             rule.makeEnforcedRecord();
         }
-        session.createDocument(doc);
-        return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
+        doc = session.createDocument(doc);
+        return session.saveDocument(doc).getAdapter(RetentionRule.class);
     }
 
     protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
