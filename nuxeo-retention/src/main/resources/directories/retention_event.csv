@@ -1,4 +1,4 @@
 "id","label","obsolete","ordering"
-documentMoved,"label.directories.retention_event.moved",0,1
-documentModified,"label.directories.retention_event.modified",0,2
+Retention.documentMoved,"label.directories.retention_event.moved",0,1
+Retention.documentModified,"label.directories.retention_event.modified",0,2
 
