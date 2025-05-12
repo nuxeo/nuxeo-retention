@@ -19,7 +19,7 @@
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-library identifier: "platform-ci-shared-library@v0.0.49"
+library identifier: "platform-ci-shared-library@v0.0.58"
 
 pipeline {
   agent {
@@ -117,15 +117,10 @@ pipeline {
   }
 
   post {
-    success {
+    always {
       script {
-        currentBuild.description = "Release ${VERSION}"
-        nxSlack.success(message: "Successfully released nuxeo/nuxeo-retention ${VERSION}: ${BUILD_URL}")
-      }
-    }
-    unsuccessful {
-      script {
-        nxSlack.error(message: "Failed to release nuxeo/nuxeo-retention ${VERSION}: ${BUILD_URL}")
+        nxUtils.setReleaseDescription()
+        nxUtils.notifyReleaseStatusIfNecessary()
       }
     }
   }
