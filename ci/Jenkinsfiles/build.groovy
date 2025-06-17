@@ -94,7 +94,12 @@ pipeline {
                 Compile
                 ----------------------------------------"""
                 echo "MAVEN_OPTS=$MAVEN_OPTS"
-                sh 'mvn -B -nsu -T4C install -DskipTests'
+                sh """
+                  mvn -B -nsu -T4C install -DskipTests \
+                    -Dfrontend-plugin.node.server.id=nexus-internal \
+                    -Dfrontend-plugin.node.download.root=https://${NODE_DIST_REGISTRY} \
+                    -Dfrontend-plugin.node.npm.userconfig=${NPM_CONFIG_USERCONFIG}
+                """
               }
             }
           }
@@ -192,8 +197,10 @@ pipeline {
               nxWithHelmfileDeployment(namespace: testNamespace, environment: "functionalTests", envVars: ["CONNECT_CLID_SECRET=${clidSecret}"],
                   secrets: [[name: clidSecret, namespace: 'platform']]) {
                 dir('nuxeo-retention-web') {
-                  // do retry ftests as a test assert a number of documents and those are not cleaned at teardown
-                  sh "npm run ftest -- --nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo"
+                  sh """
+                      mvn -B -nsu com.github.eirslett:frontend-maven-plugin:npm@ftest -Pftest \
+                      -Dfrontend-plugin.ftest.nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo
+                    """
                 }
               }
             }
