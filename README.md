@@ -1,4 +1,4 @@
-[![Build Status](https://jenkins.platform.dev.nuxeo.com/buildStatus/icon?job=nuxeo%2Fnuxeo-retention%2Flts-2023)](https://jenkins.platform.dev.nuxeo.com/job/retention/job/nuxeo-retention/job/lts-2023/)
+[![Build Status](https://jenkins.platform.dev.nuxeo.com/buildStatus/icon?job=retention%2Fnuxeo-retention%2Flts-2023)](https://jenkins.platform.dev.nuxeo.com/job/retention/job/nuxeo-retention/job/lts-2023/)
 
 # Nuxeo Retention
 
