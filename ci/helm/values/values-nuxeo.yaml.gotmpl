@@ -16,7 +16,7 @@ service:
 mongodb:
   enabled: true
   host: {{ printf "mongodb.%s" $localDomain }}
-packages: nuxeo-opensearch1-embed nuxeo-search-client-opensearch1 nuxeo-web-ui-2025.5.0-rc /packages/nuxeo-retention-package-*.zip
+packages: nuxeo-opensearch1-embed nuxeo-search-client-opensearch1 nuxeo-web-ui-2025.5.0-rc.6 /packages/nuxeo-retention-package-*.zip
 customEnvs:
 
 - name: NUXEO_CONNECT_URL
