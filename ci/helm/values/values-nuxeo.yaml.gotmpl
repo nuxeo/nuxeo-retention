@@ -16,12 +16,12 @@ service:
 mongodb:
   enabled: true
   host: {{ printf "mongodb.%s" $localDomain }}
-packages: nuxeo-opensearch1-embed nuxeo-search-client-opensearch1 nuxeo-web-ui-3.1.20-rc.003 /packages/nuxeo-retention-package-*.zip
+packages: nuxeo-opensearch1-embed nuxeo-search-client-opensearch1 nuxeo-web-ui /packages/nuxeo-retention-package-*.zip
 customEnvs:
-
+{{- if (contains "preprod" (env "CONNECT_CLID_SECRET")) }}
 - name: NUXEO_CONNECT_URL
   value: https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/
-
+{{- end }}
 - name: NUXEO_CLID
   valueFrom:
     secretKeyRef:
