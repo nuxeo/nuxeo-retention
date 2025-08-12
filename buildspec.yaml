@@ -15,7 +15,7 @@ phases:
 
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto21
     commands:
       - aws s3 sync s3://db-dev-buildartifacts/tools/ ~/tools/
       - chmod a+x -R ~/tools/
