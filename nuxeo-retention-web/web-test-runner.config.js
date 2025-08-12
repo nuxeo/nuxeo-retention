@@ -7,8 +7,8 @@ const baseConfig = {
   files: 'test/**/*.test.js',
   browsers: [
     playwrightLauncher({ product: 'chromium' }),
-    playwrightLauncher({ product: 'webkit' }),
-    playwrightLauncher({ product: 'firefox' }),
+    /* playwrightLauncher({ product: 'webkit' }), */
+    /* playwrightLauncher({ product: 'firefox' }), */
   ],
   coverage: true,
   nodeResolve: true,

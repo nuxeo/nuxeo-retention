@@ -16,7 +16,7 @@
 * Contributors:
 *     Kevin Leturc <kevin.leturc@hyland.com>
 */
-library identifier: "platform-ci-shared-library@v0.0.25"
+library identifier: "platform-ci-shared-library@v0.0.67"
 
 Closure buildUnitTestStage(env) {
   return {
@@ -34,8 +34,6 @@ Closure buildUnitTestStage(env) {
                 sh """
                   mvn -B -nsu -pl :nuxeo-retention \
                     -Dcustom.environment=${env} \
-                    -Dcustom.environment.log.dir=target-${env} \
-                    -Dnuxeo.test.core=${env == 'mongodb' ? 'mongodb' : 'vcs'} \
                     test
                 """
               }
@@ -52,7 +50,7 @@ Closure buildUnitTestStage(env) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
@@ -61,6 +59,7 @@ pipeline {
   }
   environment {
     CURRENT_NAMESPACE = nxK8s.getCurrentNamespace()
+    TEST_SERVICE_DOMAIN_SUFFIX = 'svc.cluster.local'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms512m -Xmx3072m"
     VERSION = nxUtils.getVersion()
     NUXEO_RETENTION_PACKAGE_PATH = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
@@ -84,23 +83,58 @@ pipeline {
         }
       }
     }
-    stage('Compile') {
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'compile') {
-            echo """
-            ----------------------------------------
-            Compile
-            ----------------------------------------"""
-            echo "MAVEN_OPTS=$MAVEN_OPTS"
-            sh 'mvn -B -nsu -T4C install -DskipTests'
+    stage('Build') {
+      parallel {
+        stage('Compile') {
+          steps {
+            container('maven') {
+              nxWithGitHubStatus(context: 'compile') {
+                echo """
+                ----------------------------------------
+                Compile
+                ----------------------------------------"""
+                echo "MAVEN_OPTS=$MAVEN_OPTS"
+                sh """
+                  mvn -B -nsu -T4C install -DskipTests \
+                    -Dfrontend-plugin.node.server.id=nexus-internal \
+                    -Dfrontend-plugin.node.download.root=https://${NODE_DIST_REGISTRY} \
+                    -Dfrontend-plugin.node.npm.userconfig=${NPM_CONFIG_USERCONFIG}
+                """
+              }
+            }
+          }
+          post {
+            always {
+              archiveArtifacts artifacts: '**/target/*.jar, **/target/nuxeo-*-package-*.zip'
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
           }
         }
-      }
-      post {
-        always {
-          archiveArtifacts artifacts: '**/target/*.jar, **/target/nuxeo-*-package-*.zip'
-          junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+        stage('Formatting check') {
+          when {
+            // if current version is higher than default branch (aka: version in maintenance) run formatting check
+            expression { nxGitHub.getReferenceBranch().compareToIgnoreCase(nxGitHub.getDefaultBranch()) > 0 }
+          }
+          environment {
+            // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
+            MAVEN_CLI_ARGS = "--settings /root/.m2/settings.xml -Duser.home=/home/jenkins -B -nsu"
+          }
+          steps {
+            container('maven') {
+              warnError(message: 'Formatting check has failed') {
+                nxWithGitHubStatus(context: 'maven/lint', message: 'Lint') {
+                  script {
+                    echo """
+                    ----------------------------------------
+                    Check formatting
+                    ----------------------------------------"""
+                    sh "git fetch origin lts-2025:origin/lts-2025"
+                    sh "mvn ${MAVEN_CLI_ARGS} -V -Dcustom.environment=spotless spotless:check"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -155,8 +189,6 @@ pipeline {
             }
           }
           nxWithGitHubStatus(context: 'ftests') {
-            echo "Functional tests are disabled (https://jira.nuxeo.com/browse/WEBUI-1260 and https://jira.nuxeo.com/browse/WEBUI-1252)"
-            /*
             script {
               def testNamespace = "${CURRENT_NAMESPACE}-retention-${BRANCH_NAME}-${BUILD_NUMBER}-ftests".replaceAll('\\.', '-').toLowerCase()
               def nuxeoParentVersion = readMavenPom().getParent().getVersion()
@@ -165,12 +197,13 @@ pipeline {
               nxWithHelmfileDeployment(namespace: testNamespace, environment: "functionalTests", envVars: ["CONNECT_CLID_SECRET=${clidSecret}"],
                   secrets: [[name: clidSecret, namespace: 'platform']]) {
                 dir('nuxeo-retention-web') {
-                  // do retry ftests as a test assert a number of documents and those are not cleaned at teardown
-                  sh "npm run ftest -- --nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo"
+                  sh """
+                      mvn -B -nsu com.github.eirslett:frontend-maven-plugin:npm@ftest -Pftest \
+                      -Dfrontend-plugin.ftest.nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo
+                    """
                 }
               }
             }
-            */
           }
         }
       }
@@ -240,8 +273,9 @@ pipeline {
   post {
     always {
       script {
-        currentBuild.description = "Build ${VERSION}"
+        nxUtils.setBuildDescription()
         nxJira.updateIssues()
+        nxUtils.notifyBuildStatusIfNecessary()
       }
     }
   }

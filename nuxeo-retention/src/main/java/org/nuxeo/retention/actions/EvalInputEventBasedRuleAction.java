@@ -29,11 +29,11 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.lib.stream.computation.Topology;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
@@ -54,6 +54,10 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
     public static final String ACTION_FULL_NAME = "retention/" + ACTION_NAME;
 
+    public static final String ACTION_EVENT_INPUT_PARAM = "eventInput";
+
+    public static final String ACTION_EVENT_ID_PARAM = "eventId";
+
     @Override
     public Topology getTopology(Map<String, String> options) {
         return Topology.builder()
@@ -70,6 +74,10 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
 
         protected RetentionManager retentionManager;
 
+        protected String eventId;
+
+        protected String eventInput;
+
         public EvalInputEventBasedRuleComputation() {
             super(ACTION_FULL_NAME);
         }
@@ -77,9 +85,11 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
         @Override
         public void startBucket(String bucketKey) {
             BulkCommand command = getCurrentCommand();
-            Serializable auditParam = command.getParam(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
+            Serializable auditParam = command.getParam(AuditComponent.DISABLE_AUDIT_LOGGER);
             disableAudit = auditParam != null && Boolean.parseBoolean(auditParam.toString());
             retentionManager = Framework.getService(RetentionManager.class);
+            eventInput = command.getParam(ACTION_EVENT_INPUT_PARAM);
+            eventId = command.getParam(ACTION_EVENT_ID_PARAM);
         }
 
         @Override
@@ -101,7 +111,7 @@ public class EvalInputEventBasedRuleAction implements StreamProcessorTopology {
                     log.debug("Record {} does not have an event-based rule, ignoring ...", recordDoc::getPathAsString);
                     continue;
                 }
-                session.setRetainUntil(recordDoc.getRef(), record.getRule(session).getRetainUntilDateFromNow(), null);
+                retentionManager.applyEventBasedRules(record, eventId, eventInput, session);
             }
         }
     }

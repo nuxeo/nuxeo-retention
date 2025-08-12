@@ -18,25 +18,34 @@
  */
 package org.nuxeo.retention.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
 
 import java.time.Duration;
 import java.util.Calendar;
+import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PropertyException;
+import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.operations.AttachRetentionRule;
+import org.nuxeo.retention.operations.FireRetentionEvent;
 import org.nuxeo.retention.operations.RetainDocument;
 import org.nuxeo.retention.operations.UnattachRetentionRule;
 
@@ -47,6 +56,9 @@ public class TestRetentionOperation extends RetentionTestCase {
 
     @Inject
     AutomationService service;
+
+    @Inject
+    AuditBackend auditBackend;
 
     @Test
     public void testAttachEnforcedRuleAndUnattach() throws OperationException {
@@ -145,6 +157,21 @@ public class TestRetentionOperation extends RetentionTestCase {
             assertTrue(file.isFlexibleRecord());
             assertTrue(file.isUnderRetentionOrLegalHold());
         }
+    }
+
+    @Test
+    public void testRetentionEventAudited() throws OperationException {
+        try (OperationContext ctx = new OperationContext(session)) {
+            ctx.setInput("foo");
+            OperationChain chain = new OperationChain("testChain");
+            chain.add(FireRetentionEvent.ID).set("audit", true).set("name", "bar");
+            service.run(ctx, chain);
+        }
+        List<LogEntry> res = auditBackend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, "bar")));
+        assertNotNull(res);
+        assertEquals(1, res.size());
+        assertEquals("foo", res.getFirst().getComment());
     }
 
 }

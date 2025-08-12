@@ -25,20 +25,15 @@ import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -46,10 +41,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
-@RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
+@Features(RetentionFeature.class)
 public class TestRetentionAdapters {
 
     @Inject

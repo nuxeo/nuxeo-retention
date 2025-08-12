@@ -24,15 +24,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.retention.RetentionConstants.RECORD_MANAGER_GROUP_NAME;
 
 import java.time.Duration;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.junit.Ignore;
 import org.junit.Test;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
@@ -145,7 +148,6 @@ public class TestRetentionManager extends RetentionTestCase {
         assertEquals("Update Title From Scripting", file.getTitle());
     }
 
-    @Ignore(value = "NXP-29002")
     @Test
     public void testManualImmediateRule() throws InterruptedException {
         RetentionRule testRule = createManualImmediateRuleMillis(100);
@@ -164,7 +166,7 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
-    public void testManualDocumentMovedToFolderUsingExpressionRule() throws InterruptedException {
+    public void testManualEventBasedRuleOnDocumentMovedToFolder() throws InterruptedException {
         RetentionRule testRule = createManualEventBasedRuleMillisWithExpression(DocumentEventTypes.DOCUMENT_MOVED,
                 "document.getPathAsString().startsWith('/testFolder')", 1000);
 
@@ -206,7 +208,7 @@ public class TestRetentionManager extends RetentionTestCase {
 
     @Test
     @Deploy("org.nuxeo.retention.core.test:OSGI-INF/retention-vocabularies-test.xml")
-    public void testManualDocumentMovedToFolderUsingEventValueRule() throws InterruptedException {
+    public void testManualEventBasedRuleWithInputOnCustomEvent() throws InterruptedException {
         String retentionEventId = "myRetentionEvent";
         String myRetentionEventInput = "myEventInput";
         RetentionRule testRule = createManualEventBasedRuleMillisWithEventValue(retentionEventId, myRetentionEventInput,
@@ -246,11 +248,62 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
+    @Deploy("org.nuxeo.retention.core.test:OSGI-INF/retention-vocabularies-test.xml")
+    public void testManualEventBasedRuleWithExpressionOnCustomEvent() throws InterruptedException {
+        String retentionEventId = "myRetentionEvent";
+        String triggeringEventValue = "foo";
+        String myRetentionEventExpression = "document.getTitle().equals(eventInput)";
+        RetentionRule testRule = createManualEventBasedRuleMillisWithExpression(retentionEventId,
+                myRetentionEventExpression, 1000);
+
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        awaitRetentionExpiration(500);
+
+        file = session.getDocument(file.getRef());
+        Record record = file.getAdapter(Record.class);
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertTrue(record.isRetentionIndeterminate());
+
+        // Trigger event with unexpected input from non admin user with proper role
+        CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
+        userSession.getPrincipal().setGroups(Collections.singletonList(RECORD_MANAGER_GROUP_NAME));
+        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
+        awaitRetentionExpiration(500);
+        // Check record is still under indeterminate retention
+        file = session.getDocument(file.getRef());
+        record = file.getAdapter(Record.class);
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertTrue(record.isRetentionIndeterminate());
+
+        // Trigger event with expected input from non admin user with proper role
+        file.setPropertyValue("dc:title", triggeringEventValue);
+        file = session.saveDocument(file);
+        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
+        awaitRetentionExpiration(500);
+        // Check record is no longer under indeterminate retention
+        file = session.getDocument(file.getRef());
+        record = file.getAdapter(Record.class);
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertTrue(file.isRecord());
+        assertFalse(record.isRetentionIndeterminate());
+
+        awaitRetentionExpiration(500);
+        // it has no retention anymore
+        file = session.getDocument(file.getRef());
+        record = file.getAdapter(Record.class);
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertTrue(record.isRetentionExpired());
+    }
+
+    @Test
     public void testManualMetadataBasedRule() throws InterruptedException {
         RetentionRule testRule = createManualMetadataBasedRuleMillis("dc:expired", 1000);
-        Calendar halfSecond = Calendar.getInstance();
-        halfSecond.add(Calendar.MILLISECOND, 500);
-        file.setPropertyValue("dc:expired", halfSecond);
+        Calendar expired = Calendar.getInstance();
+        expired.add(Calendar.MILLISECOND, 1000);
+        file.setPropertyValue("dc:expired", expired);
         file = session.saveDocument(file);
 
         file = service.attachRule(file, testRule, session);

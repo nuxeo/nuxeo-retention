@@ -22,46 +22,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(EmbeddedAutomationServerFeature.class)
-@RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.core.management")
-@Deploy("org.nuxeo.ecm.default.config")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-vocabularies.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-content-template.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-service-framework.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-listeners.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-operations.xml")
-@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-actions.xml")
+@Features(RetentionFeature.class)
 public abstract class RetentionTestCase {
 
     @Inject
@@ -69,6 +52,9 @@ public abstract class RetentionTestCase {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature transactionFeature;
 
     @Inject
     protected CoreSession session;
@@ -101,12 +87,12 @@ public abstract class RetentionTestCase {
 
     protected void awaitRetentionExpiration(long millis) throws InterruptedException {
         // wait a bit more than retention period to pass retention expiration date
-        coreFeature.waitForAsyncCompletion();
+        transactionFeature.nextTransaction();
         Thread.sleep(millis);
         // trigger manually instead of waiting for scheduler
         new RetentionExpiredFinderListener().handleEvent(null);
         assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(60)));
-        coreFeature.waitForAsyncCompletion();
+        transactionFeature.nextTransaction();
     }
 
     protected RetentionRule createRuleWithActions(RetentionRule.ApplicationPolicy policy,
@@ -143,8 +129,8 @@ public abstract class RetentionTestCase {
         } else {
             rule.makeEnforcedRecord();
         }
-        session.createDocument(doc);
-        return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
+        doc = session.createDocument(doc);
+        return session.saveDocument(doc).getAdapter(RetentionRule.class);
     }
 
     protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
@@ -154,8 +140,8 @@ public abstract class RetentionTestCase {
 
     protected RetentionRule createImmediateRuleMillis(RetentionRule.ApplicationPolicy policy, long durationMillis,
             List<String> beginActions, List<String> endActions, boolean flexible) {
-        return createRuleWithActions(policy, RetentionRule.StartingPointPolicy.IMMEDIATE, Arrays.asList("File"), null,
-                null, null, null, 0L, 0L, 0L, durationMillis, beginActions, endActions, flexible);
+        return createRuleWithActions(policy, RetentionRule.StartingPointPolicy.IMMEDIATE, List.of("File"), null, null,
+                null, null, 0L, 0L, 0L, durationMillis, beginActions, endActions, flexible);
     }
 
     protected RetentionRule createManualImmediateRuleMillis(long durationMillis) {
@@ -178,6 +164,13 @@ public abstract class RetentionTestCase {
         return createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
                 RetentionRule.StartingPointPolicy.EVENT_BASED, null, eventId, null, startingPointValue, null, 0L, 0L,
                 0L, durationMillis, null, null);
+    }
+
+    protected RetentionRule createManualEventBasedRuleMillisWithEventExpressionValue(String eventId, String expression,
+            long durationMillis) {
+        return createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
+                RetentionRule.StartingPointPolicy.EVENT_BASED, null, eventId, expression, null, null, 0L, 0L, 0L,
+                durationMillis, null, null);
     }
 
     protected RetentionRule createManualMetadataBasedRuleMillis(String metadataXPath, long durationMillis) {

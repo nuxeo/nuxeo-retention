@@ -3,13 +3,17 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.retention</groupId>
     <artifactId>nuxeo-retention-parent</artifactId>
-    <version>2024.03.05-SNAPSHOT</version>
+    <version>2025.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-retention</artifactId>
   <name>Nuxeo Retention Management Core</name>
 
   <dependencies>
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
@@ -82,6 +86,21 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-default-config</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-search-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-tag</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

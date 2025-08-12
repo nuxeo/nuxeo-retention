@@ -19,11 +19,11 @@
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-library identifier: "platform-ci-shared-library@v0.0.25"
+library identifier: "platform-ci-shared-library@v0.0.67"
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
@@ -33,7 +33,9 @@ pipeline {
   environment {
     BRANCH_NAME = "${params.BRANCH}"
     BUILD_VERSION = "${params.BUILD_VERSION}"
-    JIRA_NUXEO_ADDON_MOVING_VERSION = 'retention-2023.x'
+    JIRA_PROJECT = 'NXP'
+    JIRA_MOVING_VERSION = 'retention-2025.x'
+    JIRA_RELEASED_VERSION = "retention-${VERSION}"
     VERSION = "${nxUtils.getMajorDotMinorVersion(version: env.BUILD_VERSION)}"
   }
   stages {
@@ -95,24 +97,17 @@ pipeline {
       steps {
         container('maven') {
           script {
-            def jiraVersionName = "retention-${VERSION}"
-            // create a new released version in Jira
-            def jiraVersion = [
-                project: 'NXP',
-                name: jiraVersionName,
+            nxProject.release(
+              jql                  : "project = ${JIRA_PROJECT} and fixVersion = ${JIRA_MOVING_VERSION}",
+              newJiraVersion       : [
+                project    : env.JIRA_PROJECT,
+                name       : env.JIRA_RELEASED_VERSION,
                 description: "Retention Addon ${VERSION}",
                 releaseDate: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
-                released: true,
-            ]
-            nxJira.newVersion(version: jiraVersion)
-            // find Jira tickets included in this release and update them
-            def jiraTickets = nxJira.jqlSearch(jql: "project = NXP and fixVersion = ${JIRA_NUXEO_ADDON_MOVING_VERSION}")
-            def previousVersion = nxUtils.getPreviousMajorDotMinorVersion()
-            def changelog = nxGit.getChangeLog(previousVersion: previousVersion, version: env.VERSION)
-            def committedIssues = jiraTickets.data.issues.findAll { changelog.contains(it.key) }
-            committedIssues.each {
-              nxJira.editIssueFixVersion(idOrKey: it.key, fixVersionToRemove: env.JIRA_NUXEO_ADDON_MOVING_VERSION, fixVersionToAdd: jiraVersionName)
-            }
+                released   : true,
+              ],
+              jiraMovingVersionName: env.JIRA_MOVING_VERSION,
+            )
           }
         }
       }
@@ -120,15 +115,10 @@ pipeline {
   }
 
   post {
-    success {
+    always {
       script {
-        currentBuild.description = "Release ${VERSION}"
-        nxSlack.success(message: "Successfully released nuxeo/nuxeo-retention ${VERSION}: ${BUILD_URL}")
-      }
-    }
-    unsuccessful {
-      script {
-        nxSlack.error(message: "Failed to release nuxeo/nuxeo-retention ${VERSION}: ${BUILD_URL}")
+        nxUtils.setReleaseDescription()
+        nxUtils.notifyReleaseStatusIfNecessary()
       }
     }
   }

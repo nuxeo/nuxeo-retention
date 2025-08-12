@@ -26,12 +26,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.lib.stream.computation.Topology;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.service.RetentionManager;
@@ -74,7 +74,7 @@ public class AttachRetentionRuleAction implements StreamProcessorTopology {
         @Override
         public void startBucket(String bucketKey) {
             BulkCommand command = getCurrentCommand();
-            Serializable auditParam = command.getParam(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
+            Serializable auditParam = command.getParam(AuditComponent.DISABLE_AUDIT_LOGGER);
             disableAudit = auditParam != null && Boolean.parseBoolean(auditParam.toString());
             retentionManager = Framework.getService(RetentionManager.class);
             ruleId = command.getParam(PARAM_RULE_ID);
@@ -90,7 +90,7 @@ public class AttachRetentionRuleAction implements StreamProcessorTopology {
                     continue;
                 }
                 if (disableAudit) {
-                    doc.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, Boolean.TRUE);
+                    doc.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, Boolean.TRUE);
                 }
                 retentionManager.attachRule(doc, rule, session);
             }

@@ -4,20 +4,25 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-parent</artifactId>
-    <version>2023.11.21-243</version>
+    <version>2025.08.08-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.retention</groupId>
   <artifactId>nuxeo-retention-parent</artifactId>
   <name>Nuxeo Retention Management Parent</name>
-  <version>2024.03.05-SNAPSHOT</version>
+  <version>2025.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>The Nuxeo Retention Management addon adds the capability to create and attach retention rules to documents
     in order to perform advanced record management.
   </description>
 
   <properties>
-    <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
+      <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
+    <frontend-plugin.node.version>v22.17.0</frontend-plugin.node.version>
+    <frontend-plugin.node.download.root/>
+    <frontend-plugin.node.server.id/>
+    <frontend-plugin.node.npm.userconfig>${env.HOME}/.npmrc</frontend-plugin.node.npm.userconfig>
+    <frontend-plugin.ftest.nuxeoUrl>http://localhost:8080</frontend-plugin.ftest.nuxeoUrl>
   </properties>
 
   <modules>
@@ -75,6 +80,34 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>2.43.0</version>
+          <configuration combine.children="append">
+            <ratchetFrom>origin/lts-2025</ratchetFrom>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.github.eirslett</groupId>
+          <artifactId>frontend-maven-plugin</artifactId>
+          <version>1.15.1</version>
+          <configuration>
+            <nodeVersion>${frontend-plugin.node.version}</nodeVersion>
+            <nodeDownloadRoot>${frontend-plugin.node.download.root}</nodeDownloadRoot>
+            <serverId>${frontend-plugin.node.server.id}</serverId>
+            <environmentVariables>
+              <NPM_CONFIG_USERCONFIG>${frontend-plugin.node.npm.userconfig}</NPM_CONFIG_USERCONFIG>
+            </environmentVariables>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
   <scm>
     <connection>scm:git:git://github.com/nuxeo/nuxeo-retention.git</connection>

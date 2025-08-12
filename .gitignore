@@ -26,8 +26,12 @@ bin
 .factorypath
 .java-version
 
+# node
+.nprmrc
+
 # build artifacts
 target*/
+node/
 coverage/
 node_modules/
 nashorn_code_cache/
