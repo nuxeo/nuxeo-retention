@@ -32,7 +32,7 @@ Closure buildUnitTestStage(env) {
               """
               retry(3) {
                 sh """
-                  mvn -B -nsu -pl :nuxeo-retention \
+                  mvn ${MAVEN_CLI_ARGS} -pl :nuxeo-retention \
                     -Dcustom.environment=${env} \
                     test
                 """
@@ -61,6 +61,7 @@ pipeline {
     CURRENT_NAMESPACE = nxK8s.getCurrentNamespace()
     TEST_SERVICE_DOMAIN_SUFFIX = 'svc.cluster.local'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms512m -Xmx3072m"
+    MAVEN_CLI_ARGS = "-B -V -nsu -Dnuxeo.skip.enforcer=true -Prelease"
     VERSION = nxUtils.getVersion()
     NUXEO_RETENTION_PACKAGE_PATH = "nuxeo-retention-package/target/nuxeo-retention-package-${VERSION}.zip"
   }
@@ -95,7 +96,7 @@ pipeline {
                 ----------------------------------------"""
                 echo "MAVEN_OPTS=$MAVEN_OPTS"
                 sh """
-                  mvn -B -nsu -T4C install -DskipTests \
+                  mvn ${MAVEN_CLI_ARGS} -T4C install -DskipTests \
                     -Dfrontend-plugin.node.server.id=nexus-internal \
                     -Dfrontend-plugin.node.download.root=https://${NODE_DIST_REGISTRY} \
                     -Dfrontend-plugin.node.npm.userconfig=${NPM_CONFIG_USERCONFIG}
@@ -115,10 +116,6 @@ pipeline {
             // if current version is higher than default branch (aka: version in maintenance) run formatting check
             expression { nxGitHub.getReferenceBranch().compareToIgnoreCase(nxGitHub.getDefaultBranch()) > 0 }
           }
-          environment {
-            // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
-            MAVEN_CLI_ARGS = "--settings /root/.m2/settings.xml -Duser.home=/home/jenkins -B -nsu"
-          }
           steps {
             container('maven') {
               warnError(message: 'Formatting check has failed') {
@@ -130,6 +127,23 @@ pipeline {
                     ----------------------------------------"""
                     sh "git fetch origin lts-2025:origin/lts-2025"
                     sh "mvn ${MAVEN_CLI_ARGS} -V -Dcustom.environment=spotless spotless:check"
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Enforcer check') {
+          steps {
+            container('maven') {
+              warnError(message: 'Enforcer check has failed') {
+                nxWithGitHubStatus(context: 'maven/enforcer', message: 'Enforce') {
+                  script {
+                    echo """
+                    ----------------------------------------
+                    Check enforcer rules
+                    ----------------------------------------""".stripIndent()
+                    sh "mvn ${MAVEN_CLI_ARGS} -Dcustom.environment=enforcer enforcer:enforce"
                   }
                 }
               }
@@ -162,7 +176,7 @@ pipeline {
                   // customEnvironment profile
                   sh 'touch /root/nuxeo-test-dev.properties'
                   retry(3) {
-                    sh 'mvn -B -nsu -pl :nuxeo-retention -Dcustom.environment=dev -Dcustom.environment.log.dir=target-dev test'
+                    sh "mvn ${MAVEN_CLI_ARGS} -pl :nuxeo-retention -Dcustom.environment=dev test"
                   }
                 } finally {
                   archiveArtifacts artifacts: '**/target-dev/**/*.log'
@@ -198,7 +212,7 @@ pipeline {
                   secrets: [[name: clidSecret, namespace: 'platform']]) {
                 dir('nuxeo-retention-web') {
                   sh """
-                      mvn -B -nsu com.github.eirslett:frontend-maven-plugin:npm@ftest -Pftest \
+                      mvn ${MAVEN_CLI_ARGS} com.github.eirslett:frontend-maven-plugin:npm@ftest -Pftest \
                       -Dfrontend-plugin.ftest.nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo
                     """
                 }
