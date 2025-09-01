@@ -1,5 +1,5 @@
 /*
-* (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+* (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 * Contributors:
 *     Kevin Leturc <kevin.leturc@hyland.com>
 */
-library identifier: "platform-ci-shared-library@v0.0.67"
+library identifier: "platform-ci-shared-library@v0.0.71"
 
 Closure buildUnitTestStage(env) {
   return {
@@ -24,10 +24,11 @@ Closure buildUnitTestStage(env) {
       nxWithGitHubStatus(context: "utests/backend/${env}") {
         script {
           def testNamespace = "${CURRENT_NAMESPACE}-retention-${BRANCH_NAME}-${BUILD_NUMBER}-${env}".replaceAll('\\.', '-').toLowerCase()
-          nxWithHelmfileDeployment(namespace: testNamespace, environment: "${env}UnitTests") {
+          nxWithHelmfileDeployment(namespace: testNamespace, environment: "${env}UnitTests", cacheName: env) {
             try {
               sh """
                 cat ci/mvn/nuxeo-test-${env}.properties \
+                  ci/mvn/nuxeo-test-kafka.properties \
                 | envsubst > /root/nuxeo-test-${env}.properties
               """
               retry(3) {
