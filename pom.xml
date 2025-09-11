@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-parent</artifactId>
-    <version>2025.08.08-SNAPSHOT</version>
+    <version>2025.09.11-7</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.retention</groupId>
