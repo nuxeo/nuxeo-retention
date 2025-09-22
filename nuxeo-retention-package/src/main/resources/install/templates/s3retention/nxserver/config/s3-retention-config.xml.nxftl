@@ -12,6 +12,7 @@
       <property name="awstoken">${nuxeo.retention.s3storage.awstoken}</property>
       <property name="bucket">${nuxeo.retention.s3storage.bucket}</property>
       <property name="region">${nuxeo.retention.s3storage.region}</property>
+      <property name="storageClass">${nuxeo.retention.s3storage.storageClass}</property>
       <property name="endpoint">${nuxeo.retention.s3storage.endpoint}</property>
       <property name="pathstyleaccess">${nuxeo.retention.s3storage.pathstyleaccess}</property>
       <property name="accelerateMode">${nuxeo.retention.s3storage.accelerateMode}</property>
