@@ -30,9 +30,9 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
+import org.nuxeo.ecm.core.security.RetentionExpiredAction;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
@@ -51,16 +51,13 @@ public abstract class RetentionTestCase {
     protected RetentionManager service;
 
     @Inject
-    protected CoreFeature coreFeature;
+    protected CoreBulkFeature coreBulkFeature;
 
     @Inject
     protected TransactionalFeature transactionFeature;
 
     @Inject
     protected CoreSession session;
-
-    @Inject
-    protected BulkService bulkService;
 
     protected DocumentModel file;
 
@@ -91,7 +88,9 @@ public abstract class RetentionTestCase {
         Thread.sleep(millis);
         // trigger manually instead of waiting for scheduler
         new RetentionExpiredFinderListener().handleEvent(null);
-        assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(60)));
+        transactionFeature.nextTransaction();
+        assertTrue("Bulk action didn't finish",
+                coreBulkFeature.wait(RetentionExpiredAction.ACTION_NAME, Duration.ofSeconds(60)));
         transactionFeature.nextTransaction();
     }
 
