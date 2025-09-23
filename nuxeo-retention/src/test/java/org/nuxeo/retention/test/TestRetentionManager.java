@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -39,12 +40,13 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
-import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
+import org.nuxeo.ecm.core.security.RetentionExpiredAction;
+import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
-import org.nuxeo.retention.event.RetentionEventContext;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -188,15 +190,14 @@ public class TestRetentionManager extends RetentionTestCase {
         folder = session.saveDocument(folder);
 
         file = session.move(file.getRef(), folder.getRef(), null);
-
-        awaitRetentionExpiration(500);
+        waitForRetentionBusinessEvent();
 
         record = file.getAdapter(Record.class);
         assertFalse(record.isRetentionIndeterminate());
         assertFalse(record.isRetentionExpired());
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
 
-        awaitRetentionExpiration(500);
+        awaitRetentionExpiration(1000);
 
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);
@@ -204,6 +205,20 @@ public class TestRetentionManager extends RetentionTestCase {
         // it has no retention anymore
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(record.isRetentionExpired());
+    }
+
+    protected void fireRetentionBusinessEvent(String eventId, String eventInput) throws InterruptedException {
+        service.fireRetentionEvent(eventId, eventInput, false, session);
+        transactionFeature.nextTransaction();// first wait for event to be processed
+        waitForRetentionBusinessEvent();
+    }
+
+    protected void waitForRetentionBusinessEvent() throws InterruptedException {
+        assertTrue("Bulk action didn't finish",
+                Framework.getService(WorkManager.class)
+                         .awaitCompletion(Duration.ofSeconds(30).toMillis(), TimeUnit.MILLISECONDS)
+                        && coreBulkFeature.wait(RetentionExpiredAction.ACTION_NAME, Duration.ofSeconds(30)));
+        transactionFeature.nextTransaction();
     }
 
     @Test
@@ -217,20 +232,17 @@ public class TestRetentionManager extends RetentionTestCase {
         file = service.attachRule(file, testRule, session);
         assertTrue(file.isRecord());
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+        Record record = file.getAdapter(Record.class);
+        assertTrue(record.isRetentionIndeterminate());
 
         awaitRetentionExpiration(500);
 
         file = session.getDocument(file.getRef());
-        Record record = file.getAdapter(Record.class);
+        record = file.getAdapter(Record.class);
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(record.isRetentionIndeterminate());
 
-        RetentionEventContext evctx = new RetentionEventContext(session.getPrincipal());
-        evctx.setInput(myRetentionEventInput);
-        Event event = evctx.newEvent(retentionEventId);
-        eventProducer.fireEvent(event);
-
-        awaitRetentionExpiration(500);
+        fireRetentionBusinessEvent(retentionEventId, myRetentionEventInput);
 
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);
@@ -238,7 +250,7 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(file.isRecord());
         assertFalse(record.isRetentionIndeterminate());
 
-        awaitRetentionExpiration(500);
+        awaitRetentionExpiration(1000);
 
         // it has no retention anymore
         file = session.getDocument(file.getRef());
@@ -270,8 +282,8 @@ public class TestRetentionManager extends RetentionTestCase {
         // Trigger event with unexpected input from non admin user with proper role
         CoreSession userSession = CoreInstance.getCoreSession(session.getRepositoryName(), "user");
         userSession.getPrincipal().setGroups(Collections.singletonList(RECORD_MANAGER_GROUP_NAME));
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
-        awaitRetentionExpiration(500);
+        fireRetentionBusinessEvent(retentionEventId, triggeringEventValue);
+
         // Check record is still under indeterminate retention
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);
@@ -281,8 +293,8 @@ public class TestRetentionManager extends RetentionTestCase {
         // Trigger event with expected input from non admin user with proper role
         file.setPropertyValue("dc:title", triggeringEventValue);
         file = session.saveDocument(file);
-        service.fireRetentionEvent(retentionEventId, triggeringEventValue, false, userSession);
-        awaitRetentionExpiration(500);
+        fireRetentionBusinessEvent(retentionEventId, triggeringEventValue);
+
         // Check record is no longer under indeterminate retention
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);
@@ -290,7 +302,7 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(file.isRecord());
         assertFalse(record.isRetentionIndeterminate());
 
-        awaitRetentionExpiration(500);
+        awaitRetentionExpiration(1000);
         // it has no retention anymore
         file = session.getDocument(file.getRef());
         record = file.getAdapter(Record.class);
