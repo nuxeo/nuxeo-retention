@@ -18,6 +18,7 @@
  */
 package org.nuxeo.retention.test;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -48,6 +49,7 @@ import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 11.1
@@ -413,7 +415,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(file.isFlexibleRecord());
         assertFalse(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
-        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        transactionFeature.nextTransaction();
+        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
+            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
+        });
 
         testRule = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
         file = service.attachRule(file, testRule, session);
@@ -432,7 +437,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(file.isFlexibleRecord());
         assertFalse(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
-        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        transactionFeature.nextTransaction();
+        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
+            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
+        });
 
         testRule = createManualImmediateRuleMillis(Duration.ofDays(1).toMillis());
         file = service.attachRule(file, testRule, session);
@@ -451,7 +459,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertFalse(file.isFlexibleRecord());
         assertTrue(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
-        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        transactionFeature.nextTransaction();
+        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
+            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
+        });
 
         RetentionRule testRule1Day = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
         assertThrows(IllegalStateException.class, () -> service.attachRule(file, testRule1Day, session));
