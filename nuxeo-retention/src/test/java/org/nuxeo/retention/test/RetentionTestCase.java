@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -30,12 +31,15 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
+import org.nuxeo.ecm.core.security.RetentionExpiredAction;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.work.api.WorkManager;
+import org.nuxeo.retention.actions.EvalInputEventBasedRuleAction;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -51,16 +55,13 @@ public abstract class RetentionTestCase {
     protected RetentionManager service;
 
     @Inject
-    protected CoreFeature coreFeature;
+    protected CoreBulkFeature coreBulkFeature;
 
     @Inject
     protected TransactionalFeature transactionFeature;
 
     @Inject
     protected CoreSession session;
-
-    @Inject
-    protected BulkService bulkService;
 
     protected DocumentModel file;
 
@@ -85,13 +86,31 @@ public abstract class RetentionTestCase {
         assertNotNull(session.getRetainUntil(doc.getRef()));
     }
 
+    protected void fireRetentionBusinessEvent(String eventId, String eventInput) throws InterruptedException {
+        service.fireRetentionEvent(eventId, eventInput, false, session);
+        awaitEventBasedRetention(Duration.ofSeconds(60));
+    }
+
     protected void awaitRetentionExpiration(long millis) throws InterruptedException {
         // wait a bit more than retention period to pass retention expiration date
         transactionFeature.nextTransaction();
         Thread.sleep(millis);
         // trigger manually instead of waiting for scheduler
         new RetentionExpiredFinderListener().handleEvent(null);
-        assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(60)));
+        transactionFeature.nextTransaction();
+        assertTrue("Bulk action didn't finish",
+                coreBulkFeature.wait(RetentionExpiredAction.ACTION_NAME, Duration.ofSeconds(60)));
+        transactionFeature.nextTransaction();
+    }
+
+    protected void awaitEventBasedRetention(Duration duration) throws InterruptedException {
+        // TODO leverage https://github.com/nuxeo/nuxeo-lts/commit/5f67207d0f1a1ac62eb15bebbfe3ebc920493633
+        long begin = System.currentTimeMillis();
+        transactionFeature.nextTransaction(); // first wait for event to be processed
+        assertTrue(Framework.getService(WorkManager.class).awaitCompletion(duration.toMillis(), TimeUnit.MILLISECONDS));
+        var leftDuration = duration.minusMillis(System.currentTimeMillis() - begin);
+        assertTrue("Bulk action didn't finish",
+                coreBulkFeature.wait(EvalInputEventBasedRuleAction.ACTION_NAME, leftDuration));
         transactionFeature.nextTransaction();
     }
 
