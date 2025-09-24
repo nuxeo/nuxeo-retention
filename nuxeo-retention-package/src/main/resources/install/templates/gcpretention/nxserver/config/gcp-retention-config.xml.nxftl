@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<component name="retention-gcp" version="1.0.0">
+
+  <require>default-repository-config</require>
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="records">
+      <class>${nuxeo.retention.core.binarymanager}</class>
+      <property name="record">true</property>
+      <class>${nuxeo.core.binarymanager}</class>
+      <property name="project">${nuxeo.gcp.retention.project}</property>
+      <property name="credentials">${nuxeo.gcp.retention.credentials}</property>
+      <property name="bucket">${nuxeo.gcp.retention.storage.bucket}</property>
+      <property name="bucket_prefix">${nuxeo.gcp.retention.storage.bucket_prefix}</property>
+    </blobprovider>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher merge="true">
+      <property name="records">records</property>
+      <property name="default">default</property>
+    </blobdispatcher>
+  </extension>
+
+</component>
