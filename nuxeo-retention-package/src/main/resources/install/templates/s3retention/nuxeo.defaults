@@ -24,4 +24,5 @@ nuxeo.retention.s3storage.socket.timeout=${nuxeo.s3storage.socket.timeout}
 nuxeo.retention.s3storage.endpoint=${nuxeo.s3storage.endpoint}
 nuxeo.retention.s3storage.pathstyleaccess=${nuxeo.s3storage.pathstyleaccess}
 nuxeo.retention.s3storage.accelerateMode=${nuxeo.s3storage.accelerateMode}
+nuxeo.retention.s3storage.storageClass=${nuxeo.s3storage.storageClass}
 nuxeo.retention.s3storage.bucket_prefix=
