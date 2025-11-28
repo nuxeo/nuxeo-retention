@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<component name="org.nuxeo.storage.azure.retention" version="1.0.0">
+
+  <require>default-repository-config</require>
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="records">
+      <class>${nuxeo.retention.core.binarymanager}</class>
+      <property name="record">true</property>
+      <property name="account.name">${nuxeo.storage.azure.retention.account.name}</property>
+      <property name="account.key">${nuxeo.storage.azure.retention.account.key}</property>
+      <property name="container">${nuxeo.storage.azure.retention.container}</property>
+      <property name="prefix">${nuxeo.storage.azure.retention.prefix}</property>
+      <property name="endpointProtocol">${nuxeo.storage.azure.retention.endpointProtocol}</property>
+      <property name="cachesize">${nuxeo.storage.azure.retention.cachesize}</property>
+      <property name="cdn.host">${nuxeo.storage.azure.retention.cdn.host}</property>
+    </blobprovider>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher merge="true">
+      <property name="records">records</property>
+      <property name="default">default</property>
+    </blobdispatcher>
+  </extension>
+
+</component>
