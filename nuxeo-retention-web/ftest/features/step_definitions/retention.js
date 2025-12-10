@@ -250,14 +250,16 @@ Then('I set the retention to expire in {int} days', async function (days) {
   await browser.pause(500);
   const dateInput = await dialog.element('#picker');
   const futureDate = moment().add(days, 'days').toISOString();
+  const [year, monthDay] = futureDate.split('T');
   await browser.executeScript(
-    (el, date) => {
-      el.value = date;
-      el._inputValue = date.split('T')[0];
-      el.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    (element, isoDate, dateOnlyPart) => {
+      element.value = isoDate;
+      element._inputValue = dateOnlyPart;
+      element.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     },
     dateInput,
-    futureDate
+    futureDate,
+    year
   );
   
   const addButton = await dialog.element('paper-button[name="add"]');
