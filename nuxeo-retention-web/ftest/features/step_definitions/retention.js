@@ -262,7 +262,7 @@ Then('I set the retention to expire in {int} days', async function (days) {
     },
     dateInput,
     futureDate,
-    dateOnlyPart
+    dateOnlyPart,
   );
   
   const addButton = await dialog.element('paper-button[name="add"]');
