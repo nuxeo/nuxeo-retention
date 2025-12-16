@@ -264,7 +264,7 @@ Then('I set the retention to expire in {int} days', async function (days) {
     futureDate,
     dateOnlyPart,
   );
-  
+
   const addButton = await dialog.element('paper-button[name="add"]');
   await addButton.waitForEnabled({ timeout: 5000 });
   await addButton.click();
