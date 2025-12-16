@@ -248,24 +248,11 @@ Then('I set the retention to expire in {int} days', async function (days) {
   const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const dateInput = await dialog.element('#picker');
-  const futureDate = moment().add(days, 'days').toISOString();
-  const dateOnlyPart = futureDate.split('T')[0];
-  await browser.executeScript(
-    (pickerElement, isoDate, dateOnly) => {
-      const el = pickerElement;
-      const fullDate = isoDate;
-      const datePart = dateOnly;
-      el.value = fullDate;
-      el._inputValue = datePart;
-      el.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
-    },
-    dateInput,
-    futureDate,
-    dateOnlyPart,
-  );
+  const futureDate = await moment().add(days, 'days').format(global.dateFormat);
+  await fixtures.layouts.setValue(dateInput, futureDate);
 
   const addButton = await dialog.element('paper-button[name="add"]');
-  await addButton.waitForEnabled({ timeout: 5000 });
+  await addButton.waitForEnabled();
   await addButton.click();
 });
 
