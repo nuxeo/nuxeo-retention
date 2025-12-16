@@ -247,7 +247,6 @@ Then('I set the retention to expire in {int} days', async function (days) {
   await browser.clickDocumentActionMenu('nuxeo-retain-button');
   const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
-  await browser.pause(500);
   const dateInput = await dialog.element('#picker');
   const futureDate = moment().add(days, 'days').toISOString();
   const dateOnlyPart = futureDate.split('T')[0];
