@@ -250,7 +250,6 @@ Then('I set the retention to expire in {int} days', async function (days) {
   const dateInput = await dialog.element('#picker');
   const futureDate = await moment().add(days, 'days').format(global.dateFormat);
   await fixtures.layouts.setValue(dateInput, futureDate);
-
   const addButton = await dialog.element('paper-button[name="add"]');
   await addButton.waitForEnabled();
   await addButton.click();
