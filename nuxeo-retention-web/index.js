@@ -24,6 +24,7 @@ import './elements/nuxeo-unattach-rule-button.js';
 
 import html from './nuxeo-retention.html';
 
+
 const tmpl = document.createElement('template');
 tmpl.innerHTML = html;
 document.head.appendChild(tmpl.content);
