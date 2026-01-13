@@ -63,6 +63,13 @@
       <artifactId>nuxeo-platform-usermanager</artifactId>
     </dependency>
 
+    <!-- Test libraries -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+    </dependency>
+
+    <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
