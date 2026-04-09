@@ -121,17 +121,8 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             }
             Calendar value = (Calendar) prop.getValue();
             if (value != null) {
-                Calendar retainUntilCandidate = rule.getRetainUntilDateFrom(value);
-                Calendar now = Calendar.getInstance();
-                if (now.after(retainUntilCandidate)) {
-                    log.info(
-                            "Metabased-based rule found past date {} as retention expiration date on {} from {} property. Ignoring...",
-                            retainUntilCandidate::toInstant, document::getPathAsString, () -> xpath);
-                    retainUntil = null;
-                } else {
-                    retainUntil = retainUntilCandidate;
-                    log.debug("Attaching rule based on {} with value {}", () -> xpath, retainUntil::toInstant);
-                }
+                retainUntil = rule.getRetainUntilDateFrom(value);
+                log.debug("Attaching rule based on {} with value {}", () -> xpath, retainUntil::toInstant);
             } else {
                 retainUntil = null;
                 log.info("Attaching rule based on {}: empty value", xpath);
