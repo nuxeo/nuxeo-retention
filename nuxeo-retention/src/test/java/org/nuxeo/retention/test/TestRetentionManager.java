@@ -328,6 +328,9 @@ public class TestRetentionManager extends RetentionTestCase {
         file = service.attachRule(file, testRule, session);
         assertTrue(file.isRecord());
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertNotNull(session.getRetainUntil(file.getRef()));
+        Record record = file.getAdapter(Record.class);
+        assertTrue(record.isRetentionExpired());
     }
 
     @Test
