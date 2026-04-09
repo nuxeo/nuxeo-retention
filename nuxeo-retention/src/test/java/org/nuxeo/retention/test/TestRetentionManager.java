@@ -32,15 +32,12 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
-import jakarta.inject.Inject;
-
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
-import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
@@ -51,9 +48,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @since 11.1
  */
 public class TestRetentionManager extends RetentionTestCase {
-
-    @Inject
-    protected EventProducer eventProducer;
 
     @Test
     public void testRuleOnlyFile() {
@@ -339,8 +333,6 @@ public class TestRetentionManager extends RetentionTestCase {
     @Test
     public void testManualNullMetadataBasedRule() {
         RetentionRule testRule = createManualMetadataBasedRuleMillis("dc:expired", 500);
-        Calendar minusOneSecond = Calendar.getInstance();
-        minusOneSecond.add(Calendar.MILLISECOND, -1000);
         file = session.saveDocument(file);
 
         file = service.attachRule(file, testRule, session);
@@ -398,9 +390,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertFalse(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
         transactionFeature.nextTransaction();
-        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
-            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
-        });
+        await().atMost(Duration.ofSeconds(1))
+               .pollInterval(Duration.ofMillis(5))
+               .untilAsserted(() -> TransactionHelper.runInTransaction(
+                       () -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()))));
 
         testRule = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
         file = service.attachRule(file, testRule, session);
@@ -420,9 +413,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertFalse(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
         transactionFeature.nextTransaction();
-        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
-            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
-        });
+        await().atMost(Duration.ofSeconds(1))
+               .pollInterval(Duration.ofMillis(5))
+               .untilAsserted(() -> TransactionHelper.runInTransaction(
+                       () -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()))));
 
         testRule = createManualImmediateRuleMillis(Duration.ofDays(1).toMillis());
         file = service.attachRule(file, testRule, session);
@@ -434,7 +428,7 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
-    public void testReattachFlexibleRuleOnExpiredEnforcedRecord() throws InterruptedException {
+    public void testReattachFlexibleRuleOnExpiredEnforcedRecord() {
         RetentionRule testRule = createManualImmediateRuleMillis(1);
         file = service.attachRule(file, testRule, session);
         assertTrue(file.isRecord());
@@ -442,9 +436,10 @@ public class TestRetentionManager extends RetentionTestCase {
         assertTrue(file.isEnforcedRecord());
         assertTrue(file.hasFacet(RetentionConstants.RECORD_FACET));
         transactionFeature.nextTransaction();
-        await().atMost(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(5)).untilAsserted(() -> {
-            TransactionHelper.runInTransaction(() -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef())));
-        });
+        await().atMost(Duration.ofSeconds(1))
+               .pollInterval(Duration.ofMillis(5))
+               .untilAsserted(() -> TransactionHelper.runInTransaction(
+                       () -> assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()))));
 
         RetentionRule testRule1Day = createManualImmediateFlexibleRuleMillis(Duration.ofDays(1).toMillis());
         assertThrows(IllegalStateException.class, () -> service.attachRule(file, testRule1Day, session));
