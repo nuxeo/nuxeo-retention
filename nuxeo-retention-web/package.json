@@ -67,7 +67,7 @@
     "format": "npm run format:prettier && npm run format:eslint",
     "format:eslint": "eslint --ext .js,.html . --fix",
     "format:prettier": "prettier \"**/*.{js,html}\" --write",
-    "ftest": "cd ftest && nuxeo-web-ui-ftest --screenshots --report --headless",
+    "ftest": "cd ftest && nuxeo-web-ui-ftest --screenshots --report --headless --tags=\"not @ignore\"",
     "ftest:watch": "cd ftest && nuxeo-web-ui-ftest --debug --tags=@watch",
     "test": "web-test-runner",
     "test:watch": "web-test-runner --watch"
