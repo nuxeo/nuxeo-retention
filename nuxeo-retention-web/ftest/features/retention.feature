@@ -16,6 +16,9 @@ Feature: Retention
     When I login as "John"
     Then I can see the retention menu
 
+  # NXP-33683: Disabled until WebUI fixes DocumentView selector regression in 2025.16.0
+  # See https://github.com/nuxeo/nuxeo-web-ui/blob/666fbebd016847eb4c3a4e/packages/nuxeo-web-ui-ftest/pages/ui/browser/document_page.js
+  @ignore
   Scenario: Immediate Manual Rule
     When I login as "John"
     And I go to the retention rules location
@@ -35,6 +38,8 @@ Feature: Retention
     Then I see the document is under retention
     And I cannot edit main blob
 
+  # NXP-33683: Disabled until WebUI fixes DocumentView selector regression in 2025.16.0
+  @ignore
   Scenario: Metadata-based Manual Rule
     When I login as "John"
     And I go to the retention rules location
@@ -58,6 +63,8 @@ Feature: Retention
     Then I see the document is under retention
     And I cannot edit main blob
 
+  # NXP-33683: Disabled until WebUI fixes DocumentView selector regression in 2025.16.0
+  @ignore
   Scenario: Event-based Manual Rule
     Given I have a "ContractEnd" retention event
     When I login as "John"
