@@ -1,0 +1,13 @@
+diff --git a/node_modules/@nuxeo/nuxeo-web-ui-ftest/pages/ui/browser/document_page.js b/node_modules/@nuxeo/nuxeo-web-ui-ftest/pages/ui/browser/document_page.js
+index dce32d5..fb02d39 100644
+--- a/node_modules/@nuxeo/nuxeo-web-ui-ftest/pages/ui/browser/document_page.js
++++ b/node_modules/@nuxeo/nuxeo-web-ui-ftest/pages/ui/browser/document_page.js
+@@ -20,7 +20,7 @@ export default class DocumentPage extends BasePage {
+       const flatSelector = `${this._selector} nuxeo-document-view div#container`;
+       const container = await browser.$(flatSelector);
+       await container.waitForDisplayed();
+-      return new DocumentView(container, this.docType);
++      return new DocumentView(flatSelector, this.docType);
+     })();
+   } 
+ 
