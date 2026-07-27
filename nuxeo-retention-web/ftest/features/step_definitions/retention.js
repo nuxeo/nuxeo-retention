@@ -126,10 +126,11 @@ Then('I attach the {string} rule to the document', async function (ruleName) {
   const select = await dialog.element('nuxeo-document-suggestion');
   await fixtures.layouts.setValue(select, ruleName);
   const addButton = await dialog.element('paper-button[name="add"]');
-  await addButton.waitForEnabled();
-  // The nuxeo-document-suggestion element's bounding box extends over the button after selection,
-  // causing WebDriver's W3C hit-test to report 'element click intercepted'. Use a JavaScript
-  // click to dispatch the event directly on the button, bypassing the hit-test.
+  // The "add" button stays disabled (pointer-events: none) until the selected rule propagates to
+  // the model. WDIO's waitForEnabled() ignores a paper-button's reflected `disabled` attribute and
+  // returns immediately, so wait explicitly for the button to be enabled, then dispatch the click
+  // via JavaScript so the paper-button on-tap gesture fires regardless of viewport/overlay.
+  await dialog.waitForExist('paper-button[name="add"]:not([disabled])');
   await driver.execute((el) => el.click(), addButton);
   await driver.waitForVisible('iron-overlay-backdrop', 5000, true);
 });
@@ -254,8 +255,12 @@ Then('I set the retention to expire in {int} days', async function (days) {
   const futureDate = await moment().add(days, 'days').format(global.dateFormat);
   await fixtures.layouts.setValue(dateInput, futureDate);
   const addButton = await dialog.element('paper-button[name="add"]');
-  await addButton.waitForEnabled();
-  await addButton.click();
+  // The retain "add" button stays disabled (pointer-events: none) until the picked date propagates
+  // to the `until` model. WDIO's waitForEnabled() ignores a paper-button's reflected `disabled`
+  // attribute and returns immediately, so wait explicitly for the button to be enabled; otherwise
+  // the click lands on a disabled button and is intercepted by the buttons container.
+  await dialog.waitForExist('paper-button[name="add"]:not([disabled])');
+  await driver.execute((el) => el.click(), addButton);
 });
 
 When('I wait {int} seconds', async (seconds) => {
