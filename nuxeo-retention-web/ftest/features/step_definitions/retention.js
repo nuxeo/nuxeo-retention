@@ -221,18 +221,43 @@ When('I clear the search filters', async function () {
 });
 
 Then('I can see {int} document in search results', async function (results) {
-  await driver.pause(2000);
   const ui = await this.ui;
   const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   await searchPage.waitForVisible();
-  const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
+  // Read the count label via textContent (which pierces shadow DOM): on Chrome 150+ getText()
+  // returns '' for shadow-DOM content that is not laid out on screen. Re-query the label each poll
+  // to avoid stale-element errors when the results re-render, and wait/retry to cover Elasticsearch
+  // indexing lag instead of a single fixed pause.
+  const readCount = async () => {
+    const el = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
+    if (!(await el.isExisting()) || !(await el.isVisible())) {
+      return null;
+    }
+    return ((await driver.execute((node) => node.textContent, el)) || '').trim();
+  };
   if (results === 0) {
-    return !ele.isVisible();
+    await driver.waitUntil(async () => (await readCount()) === null, {
+      timeout: 20000,
+      interval: 1000,
+      timeoutMsg: 'Expected no results but the count label is still shown',
+    });
+    return true;
   }
-  const text = await ele.getText();
-  if (text !== `${results} result(s)`) {
-    throw new Error(`Expected count of ${results} but found ${text}`);
-  }
+  let lastSeen = 'n/a';
+  await driver
+    .waitUntil(
+      async () => {
+        const text = await readCount();
+        if (text !== null) {
+          lastSeen = text;
+        }
+        return text === `${results} result(s)`;
+      },
+      { timeout: 20000, interval: 1000 },
+    )
+    .catch(() => {
+      throw new Error(`Expected count of ${results} but found ${lastSeen}`);
+    });
   return true;
 });
 
