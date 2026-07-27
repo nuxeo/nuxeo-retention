@@ -252,7 +252,11 @@ Then('I set the retention to expire in {int} days', async function (days) {
   const dialog = await browser.el.element('nuxeo-retain-button #dialog');
   await dialog.waitForVisible();
   const dateInput = await dialog.element('#picker');
-  const futureDate = await moment().add(days, 'days').format(global.dateFormat);
+  // The retain dialog's custom-date-picker strict-parses typed input against the short locale
+  // format ('L', e.g. MM/DD/YYYY). global.dateFormat is the long format ('LL', e.g. "July 28,
+  // 2026"), which fails strict parsing and silently falls back to today, producing an invalid
+  // retain that resolves to indeterminate. Use 'L' so the picker parses the future date.
+  const futureDate = await moment().add(days, 'days').format('L');
   await fixtures.layouts.setValue(dateInput, futureDate);
   const addButton = await dialog.element('paper-button[name="add"]');
   // The retain "add" button stays disabled (pointer-events: none) until the picked date propagates
