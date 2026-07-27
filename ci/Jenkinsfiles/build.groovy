@@ -237,6 +237,21 @@ pipeline {
               nxWithHelmfileDeployment(namespace: testNamespace, environment: "functionalTests", envVars: ["CONNECT_CLID_SECRET=${clidSecret}"],
                   secrets: [[name: clidSecret, namespace: 'platform']]) {
                 dir('nuxeo-retention-web') {
+                  // [DO NOT MERGE] Overlay the @nuxeo/nuxeo-web-ui-ftest source from
+                  // nuxeo-web-ui PR #3333 (test-side only changes) on top of the released
+                  // package installed by `npm ci`, keeping its node_modules and manifests
+                  // intact (single dependency tree). This validates the unreleased ftest
+                  // changes against the retention scenarios.
+                  sh '''
+                      set -eu
+                      WEBUI_FTEST_BRANCH=ftest-wdio-browser-provisioning-optimization-lts-2025
+                      rm -rf /tmp/nuxeo-web-ui-ftest-pr
+                      git clone --depth 1 --branch "${WEBUI_FTEST_BRANCH}" \
+                        https://github.com/nuxeo/nuxeo-web-ui.git /tmp/nuxeo-web-ui-ftest-pr
+                      ( cd /tmp/nuxeo-web-ui-ftest-pr/packages/nuxeo-web-ui-ftest \
+                        && tar --exclude=node_modules --exclude=package.json --exclude=package-lock.json -cf - . ) \
+                      | ( cd node_modules/@nuxeo/nuxeo-web-ui-ftest && tar -xf - )
+                    '''
                   sh """
                       mvn ${MAVEN_CLI_ARGS} com.github.eirslett:frontend-maven-plugin:npm@ftest -Pftest \
                       -Dfrontend-plugin.ftest.nuxeoUrl=http://nuxeo.${NAMESPACE}.svc.cluster.local/nuxeo
