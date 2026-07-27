@@ -127,7 +127,10 @@ Then('I attach the {string} rule to the document', async function (ruleName) {
   await fixtures.layouts.setValue(select, ruleName);
   const addButton = await dialog.element('paper-button[name="add"]');
   await addButton.waitForEnabled();
-  await addButton.click();
+  // The nuxeo-document-suggestion element's bounding box extends over the button after selection,
+  // causing WebDriver's W3C hit-test to report 'element click intercepted'. Use a JavaScript
+  // click to dispatch the event directly on the button, bypassing the hit-test.
+  await driver.execute((el) => el.click(), addButton);
   await driver.waitForVisible('iron-overlay-backdrop', 5000, true);
 });
 
