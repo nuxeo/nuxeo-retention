@@ -222,17 +222,34 @@ When('I clear the search filters', async function () {
 });
 
 Then('I can see {int} document in search results', async function (results) {
-  await driver.pause(2000);
   const ui = await this.ui;
   const searchPage = await ui.el.element('nuxeo-search-page#retentionSearch');
   await searchPage.waitForVisible();
-  const ele = await searchPage.element('nuxeo-retention-search-results span.resultsCount');
+  const selector = 'nuxeo-retention-search-results span.resultsCount';
   if (results === 0) {
+    const ele = await searchPage.element(selector);
     return !ele.isVisible();
   }
-  const text = await ele.getText();
-  if (text !== `${results} result(s)`) {
-    throw new Error(`Expected count of ${results} but found ${text}`);
+  // Read the count via textContent rather than getText(): on newer Chrome (stable 150/151) getText()
+  // returns an empty string for content below the fold, so a single immediate read fails spuriously.
+  // Poll the label until it renders the expected "{n} result(s)" text, tolerating the asynchronous
+  // search / Elasticsearch indexing lag that the previous fixed pause was masking.
+  const expected = `${results} result(s)`;
+  let lastSeen = 'n/a';
+  try {
+    await driver.waitUntil(
+      async () => {
+        const ele = await searchPage.element(selector);
+        if (!(await ele.isExisting())) {
+          return false;
+        }
+        lastSeen = ((await driver.execute((el) => el.textContent, ele)) || '').trim();
+        return lastSeen === expected;
+      },
+      { timeout: 20000, interval: 1000 },
+    );
+  } catch (e) {
+    throw new Error(`Expected count of "${expected}" but found "${lastSeen}"`, { cause: e });
   }
   return true;
 });
