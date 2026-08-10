@@ -63,9 +63,8 @@ public class RetentionExpiredListener implements EventListener {
         Record record = doc.getAdapter(Record.class);
         RetentionManager retentionManager = Framework.getService(RetentionManager.class);
         CoreSession session = ctx.getCoreSession();
-        record.saveRetainUntil((Calendar) docCxt.getProperty(CoreEventConstants.RETAIN_UNTIL));
+        record.saveRetainUntil((Calendar) docCxt.getProperty(CoreEventConstants.RETAIN_UNTIL), session);
         retentionManager.proceedRetentionExpired(record, session);
-        session.saveDocument(doc);
     }
 
 }
