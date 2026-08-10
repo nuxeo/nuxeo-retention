@@ -84,7 +84,7 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
-    public void testManualImmediateRuleWithDefaultOperationActions() throws InterruptedException {
+    public void testManualImmediateRuleWithTrashEndAction() throws InterruptedException {
         RetentionRule testRule = createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, 100, null,
                 List.of("Document.Trash"));
 
@@ -99,6 +99,21 @@ public class TestRetentionManager extends RetentionTestCase {
         // it has no retention anymore and trashed
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(file.isTrashed());
+    }
+
+    @Test
+    public void testManualImmediateRuleWithDeleteEndAction() throws InterruptedException {
+        RetentionRule testRule = createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, 100, null,
+                List.of("Document.Delete"));
+
+        file = service.attachRule(file, testRule, session);
+        assertTrue(session.isRecord(file.getRef()));
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        awaitRetentionExpiration(1000);
+
+        // document has been deleted
+        assertFalse(session.exists(file.getRef()));
     }
 
     @Test

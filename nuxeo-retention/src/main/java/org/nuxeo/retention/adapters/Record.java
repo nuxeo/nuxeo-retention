@@ -127,8 +127,23 @@ public class Record {
         document.getContextData().remove(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE);
     }
 
+    /**
+     * @deprecated since 2025.4, use {@link #saveRetainUntil(Calendar, CoreSession)} instead
+     */
+    @Deprecated(since = "2025.4", forRemoval = true)
     public void saveRetainUntil(Calendar retainUntil) {
+        CoreSession session = document.getCoreSession();
+        if (session == null) {
+            // Detached DocumentModel: keep in-memory update and avoid NPE
+            document.setPropertyValue(RetentionConstants.RETAIN_UNTIL_PROP, retainUntil);
+            return;
+        }
+        saveRetainUntil(retainUntil, session);
+    }
+
+    public void saveRetainUntil(Calendar retainUntil, CoreSession session) {
         document.setPropertyValue(RetentionConstants.RETAIN_UNTIL_PROP, retainUntil);
+        save(session);
     }
 
     public void setRule(RetentionRule rule, CoreSession session) {
