@@ -1,16 +1,15 @@
 <component name="org.nuxeo.retention.audit" version="1.0">
-  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
-    <event name="retentionRuleAttached" />
-    <event name="afterSetRetention">
-      <extendedInfos>
-        <extendedInfo expression="${message.properties.retainUntil}" key="retainUntil" />
-      </extendedInfos>
-    </event>
-    <event name="afterExtendRetention">
-      <extendedInfos>
-        <extendedInfo expression="${message.properties.retainUntil}" key="retainUntil" />
-      </extendedInfos>
-    </event>
-    <event name="afterUnsetRetention" />
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="routes">
+    <route name="default">
+      <event name="retentionRuleAttached" />
+      <event name="afterSetRetention" />
+      <event name="afterExtendRetention" />
+      <event name="afterUnsetRetention" />
+    </route>
+  </extension>
+
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="extendedInfo">
+    <extendedInfo event="afterSetRetention" key="retainUntil" expression="${message.properties.retainUntil}" />
+    <extendedInfo event="afterExtendRetention" key="retainUntil" expression="${message.properties.retainUntil}" />
   </extension>
 </component>
