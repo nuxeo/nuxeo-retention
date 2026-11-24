@@ -1,4 +1,4 @@
-ARG NUXEO_VERSION=2025
+ARG NUXEO_VERSION=2027
 
 FROM docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}
 
@@ -14,8 +14,7 @@ LABEL org.nuxeo.retention.version=$VERSION
 RUN --mount=type=secret,id=CLID,env=CLID \
     --mount=type=secret,id=CONNECT_URL,env=CONNECT_URL \
     /install-packages.sh --clid ${CLID} --connect-url ${CONNECT_URL} \
-      nuxeo-opensearch1-embed \
-      nuxeo-search-client-opensearch1 \
+      nuxeo-search-client-opensearch3 \
       ${NUXEO_WEB_UI_PACKAGE}
 
 RUN --mount=type=bind,source=./target,target=/tmp/local-packages  \

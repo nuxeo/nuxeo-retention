@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.nuxeo</groupId>
     <artifactId>nuxeo-parent</artifactId>
-    <version>2025.29</version>
+    <version>2027.0.230</version>
   </parent>
 
   <groupId>org.nuxeo.retention</groupId>
   <artifactId>nuxeo-retention-parent</artifactId>
   <name>Nuxeo Retention Management Parent</name>
-  <version>2025.4-SNAPSHOT</version>
+  <version>2027.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>The Nuxeo Retention Management addon adds the capability to create and attach retention rules to documents
     in order to perform advanced record management.
@@ -86,6 +86,7 @@
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
           <configuration combine.children="append">
+	    <!-- TODO change -->  
             <ratchetFrom>origin/lts-2025</ratchetFrom>
           </configuration>
         </plugin>
