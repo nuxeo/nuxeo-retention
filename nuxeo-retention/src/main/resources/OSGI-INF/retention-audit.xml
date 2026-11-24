@@ -6,6 +6,12 @@
       <event name="afterExtendRetention" />
       <event name="afterUnsetRetention" />
     </route>
+    <route name="retentionEvent">
+      <backend name="default" />
+      <predicate class="org.nuxeo.audit.service.route.CategoryLogEntryPredicate">
+        <property name="category">Retention</property>
+      </predicate>
+    </route>
   </extension>
 
   <extension target="org.nuxeo.audit.service.AuditComponent" point="extendedInfo">
