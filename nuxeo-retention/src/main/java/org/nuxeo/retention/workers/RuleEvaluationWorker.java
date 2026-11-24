@@ -35,8 +35,8 @@ import org.nuxeo.retention.service.RetentionManager;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Worker scheduled to proceed {@link org.nuxeo.retention.service.RetentionManager#evalExpressionEventBasedRules} on
- * document ids with events set.
+ * Worker scheduled to proceed {@link org.nuxeo.retention.service.RetentionManager#applyEventBasedRules} on document ids
+ * with events set.
  *
  * @since 11.1
  */
@@ -54,8 +54,7 @@ public class RuleEvaluationWorker extends AbstractWork {
 
     public RuleEvaluationWorker(Map<String, Set<String>> docsToCheckAndEvents) {
         this.docsToCheckAndEvents = docsToCheckAndEvents;
-        List<String> docs = new ArrayList<>();
-        docs.addAll(docsToCheckAndEvents.keySet());
+        List<String> docs = new ArrayList<>(docsToCheckAndEvents.keySet());
         setDocuments(Framework.getService(RepositoryManager.class).getDefaultRepositoryName(), docs);
     }
 

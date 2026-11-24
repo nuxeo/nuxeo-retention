@@ -40,7 +40,7 @@ public class FireRetentionEvent {
     @Context
     protected RetentionManager retentionManager;
 
-    @Param(name = "name", required = true)
+    @Param(name = "name")
     protected String name;
 
     @Param(name = "audit", required = false)

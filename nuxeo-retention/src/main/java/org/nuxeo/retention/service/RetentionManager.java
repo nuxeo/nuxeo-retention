@@ -118,7 +118,9 @@ public interface RetentionManager {
      * Invalidate service (useful in a test context).
      *
      * @since 11.1
+     * @deprecated since 2027.0, unused
      */
+    @Deprecated(since = "2027.0", forRemoval = true)
     void invalidate();
 
     /**
