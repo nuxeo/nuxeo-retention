@@ -6,7 +6,7 @@ mongodb:
 postgresql:
   enabled: false
 opensearch:
-  enabled: false
+  enabled: true
 kafka:
   enabled: true
 
