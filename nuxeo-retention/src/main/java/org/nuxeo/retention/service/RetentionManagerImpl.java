@@ -38,9 +38,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.AuditRouteRequest;
 import org.nuxeo.audit.api.LogEntry;
-import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.audit.service.AuditComponent;
+import org.nuxeo.audit.service.AuditRouter;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
@@ -212,7 +213,9 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                                      .principalName(session.getPrincipal().getName())
                                      .comment(evctx.getInput())
                                      .build();
-            Framework.getService(AuditBackend.class).addLogEntries(Collections.singletonList(entry));
+            Framework.getService(AuditRouter.class)
+                     .routeToBackends(
+                             AuditRouteRequest.builder(Collections.singletonList(entry)).toDefaultBackend().build());
         }
     }
 
@@ -408,6 +411,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
     }
 
+    @SuppressWarnings("removal")
     @Override
     public void invalidate() {
         synchronized (this) {

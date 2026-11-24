@@ -100,7 +100,7 @@ public class RetentionDocumentEventListener implements PostCommitFilteringEventL
                 // XXX should we check if the record should be under retention again?
                 continue;
             }
-            docsToCheckAndEvents.computeIfAbsent(docId, k -> new HashSet<>()).add(event.getName());
+            docsToCheckAndEvents.computeIfAbsent(docId, _ -> new HashSet<>()).add(event.getName());
         }
         if (!docsToCheckAndEvents.isEmpty()) {
             retentionManager.evalRules(docsToCheckAndEvents);
